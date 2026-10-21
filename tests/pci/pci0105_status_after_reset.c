@@ -42,10 +42,8 @@ static test_result_t test_pci_status_init(struct virtio_dev *dev,
         TFAIL("device_status %u after reset, expected 0", st);
 
     /* Restore for clean teardown */
-    cfg->device_status = VIRTIO_STATUS_ACKNOWLEDGE | VIRTIO_STATUS_DRIVER;
-    __sync_synchronize();
-    cfg->device_status |= VIRTIO_STATUS_FEATURES_OK;
-    __sync_synchronize();
+    if (virtio_pci_init(dev) < 0)
+        TFAIL("base feature negotiation rejected after reset");
     cfg->device_status |= VIRTIO_STATUS_DRIVER_OK;
     __sync_synchronize();
 
