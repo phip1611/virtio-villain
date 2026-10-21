@@ -24,7 +24,7 @@ static test_result_t test_double_feature_negotiation(struct virtio_dev *dev,
                                                      struct vring *vr)
 {
     /*
-     * Device is in DRIVER_OK (harness initialized with zero features).
+     * Device is in DRIVER_OK with base transport features negotiated.
      * Now attempt to re-negotiate features without resetting.
      */
 
