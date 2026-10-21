@@ -84,7 +84,7 @@ static test_result_t test_feature_downgrade(struct virtio_dev *dev,
     __sync_synchronize();
 
     if (!(cfg->device_status & VIRTIO_STATUS_FEATURES_OK))
-        return TEST_SKIP;
+        TREJECT("device rejected zero features after reset");
 
     struct vring vr3;
     vring_alloc(&vr3, 16);
