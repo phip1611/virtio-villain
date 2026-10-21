@@ -32,6 +32,8 @@ static test_result_t test_blk_flush_after_reset(struct virtio_dev *dev,
     uint32_t feat = cfg->device_feature;
     cfg->driver_feature_select = 0;
     cfg->driver_feature = feat;
+    cfg->driver_feature_select = 1;
+    cfg->driver_feature = virtio_pci_base_features_hi(dev);
     __sync_synchronize();
     cfg->device_status = 1 | 2 | 8; /* FEATURES_OK */
     __sync_synchronize();
