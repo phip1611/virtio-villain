@@ -1595,6 +1595,14 @@ def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
         output = (f"[vv-sidecar] SKIP: backend {backend.name} is not "
                   f"supported by {os.path.basename(sidecar_path)}\n")
         return [(test_names[0], "SKIP", output)]
+    required_tools = getattr(sidecar_mod, "REQUIRED_TOOLS", {})
+    for tool in required_tools.get(backend.name, ()):
+        executable = (_find_ch_remote(backend.binary)
+                      if backend.name == "ch" and tool == "ch-remote"
+                      else shutil.which(tool))
+        if not executable:
+            output = f"[vv-sidecar] SKIP: required host tool {tool} not found\n"
+            return [(test_names[0], "SKIP", output)]
     # A batch runs every test in one VM, so the timeout budget scales
     # with the number of tests. A single per test timeout routinely
     # trips under heavy parallelism and kills the VM mid batch, wedging
