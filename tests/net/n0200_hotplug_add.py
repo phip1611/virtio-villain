@@ -6,6 +6,7 @@ CH requires permission to create a tap interface on the host.
 from host_helpers import ch_command, qmp, wait_ready
 
 SUPPORTED_BACKENDS = ("ch", "qemu")
+REQUIRED_TOOLS = {"ch": ("ch-remote",)}
 
 
 def run(ctx):
