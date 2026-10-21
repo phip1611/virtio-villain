@@ -2867,23 +2867,29 @@ def test_unit_sidecar_unfinished_action_fails():
                 assert not thread.is_alive()
 
 
-def test_unit_sidecar_unsupported_backend_skips_before_setup():
+def test_unit_sidecar_missing_prerequisites_skips_before_setup():
     from types import SimpleNamespace
     from unittest.mock import Mock, patch
 
-    sidecar = SimpleNamespace(SUPPORTED_BACKENDS=("ch",), run=Mock())
-    with patch.object(RUN_MOD, "_find_sidecar", return_value="sidecar"), \
-         patch.object(RUN_MOD, "_load_sidecar", return_value=sidecar), \
-         patch.object(RUN_MOD.tempfile, "mktemp") as create_disk, \
-         patch.object(RUN_MOD.subprocess, "Popen") as launch:
-        results = RUN_MOD.run_test(
-            SimpleNamespace(name="qemu"), "kernel", "T0001", 5,
-            disk_format="qcow2")
-    assert results[0][:2] == ("T0001", "SKIP"), results
-    assert "backend qemu is not supported" in results[0][2]
-    create_disk.assert_not_called()
-    launch.assert_not_called()
-    sidecar.run.assert_not_called()
+    sidecar = SimpleNamespace(
+        SUPPORTED_BACKENDS=("ch",), REQUIRED_TOOLS={"ch": ("ch-remote",)},
+        run=Mock())
+    for backend, reason in (
+            ("qemu", "backend qemu is not supported"),
+            ("ch", "required host tool ch-remote not found")):
+        with patch.object(RUN_MOD, "_find_sidecar", return_value="sidecar"), \
+             patch.object(RUN_MOD, "_load_sidecar", return_value=sidecar), \
+             patch.object(RUN_MOD, "_find_ch_remote", return_value=None), \
+             patch.object(RUN_MOD.tempfile, "mktemp") as create_disk, \
+             patch.object(RUN_MOD.subprocess, "Popen") as launch:
+            results = RUN_MOD.run_test(
+                SimpleNamespace(name=backend, binary="/vmm"), "kernel",
+                "T0001", 5, disk_format="qcow2")
+        assert results[0][:2] == ("T0001", "SKIP"), results
+        assert reason in results[0][2], results
+        create_disk.assert_not_called()
+        launch.assert_not_called()
+        sidecar.run.assert_not_called()
 
 
 def test_unit_sidecar_supported_backend_runs():
@@ -2898,11 +2904,16 @@ def test_unit_sidecar_supported_backend_runs():
         def build_cmd(self, kernel, initramfs, disk_path, cmdline, opts=None):
             return ["sh", "-c", "sleep 0.1; printf '[PASS] T0001\\n'"]
 
-    for declaration in ({}, {"SUPPORTED_BACKENDS": ("fake",)}):
+    for declaration in (
+            {}, {"SUPPORTED_BACKENDS": ("fake",)},
+            {"REQUIRED_TOOLS": {"ch": ("ch-remote",)}},
+            {"REQUIRED_TOOLS": {"fake": ("test-control",)}}):
         action = Mock()
         sidecar = SimpleNamespace(run=action, **declaration)
         with patch.object(RUN_MOD, "_find_sidecar", return_value="sidecar"), \
-             patch.object(RUN_MOD, "_load_sidecar", return_value=sidecar):
+             patch.object(RUN_MOD, "_load_sidecar", return_value=sidecar), \
+             patch.object(RUN_MOD.shutil, "which",
+                          return_value="/tools/test-control"):
             results = RUN_MOD.run_test(
                 Backend(), "kernel", "T0001", 5, 0, False, "raw", {})
         assert results[0][:2] == ("T0001", "PASS"), results
