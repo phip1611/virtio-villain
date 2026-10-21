@@ -19,7 +19,7 @@ static test_result_t test_suspend_no_feature(struct virtio_dev *dev,
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     (void)vr;
 
-    /* Our harness negotiates zero features, so SUSPEND is not active */
+    /* The harness does not negotiate SUSPEND. */
     uint8_t status = cfg->device_status;
     cfg->device_status = status | VIRTIO_STATUS_SUSPEND;
     __sync_synchronize();
