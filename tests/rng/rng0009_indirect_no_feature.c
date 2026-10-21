@@ -3,7 +3,7 @@
  * RNG0009: RNG indirect without negotiated feature.
  *
  * Submit a requestq descriptor with VRING_DESC_F_INDIRECT set.
- * The harness negotiates zero features so VIRTIO_F_INDIRECT_DESC
+ * The harness does not negotiate VIRTIO_F_INDIRECT_DESC, so it
  * is not active. Per spec 2.7.7 the driver MUST NOT use indirect
  * descriptors without the feature. The device must reject.
  */
