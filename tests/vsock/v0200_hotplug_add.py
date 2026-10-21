@@ -7,6 +7,7 @@ import os
 from host_helpers import qmp, wait_ready
 
 SUPPORTED_BACKENDS = ("ch", "qemu")
+REQUIRED_TOOLS = {"ch": ("ch-remote",)}
 
 
 def vmm_config():
