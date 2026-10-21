@@ -35,6 +35,10 @@ static test_result_t test_kick_after_reset(struct virtio_dev *dev,
     __sync_synchronize();
     dev->common->device_status |= VIRTIO_STATUS_DRIVER;
     __sync_synchronize();
+    dev->common->driver_feature_select = 0;
+    dev->common->driver_feature = 0;
+    dev->common->driver_feature_select = 1;
+    dev->common->driver_feature = virtio_pci_base_features_hi(dev);
     dev->common->device_status |= VIRTIO_STATUS_FEATURES_OK;
     __sync_synchronize();
 
