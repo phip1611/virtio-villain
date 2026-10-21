@@ -496,6 +496,31 @@ static void test_vring_prepare(void)
           "vring_attach still suppresses interrupts");
 }
 
+static void test_base_features(void)
+{
+    struct virtio_pci_common_cfg cfg = {0};
+    struct virtio_dev dev = { .common = &cfg };
+    const uint32_t version = 1u << (VIRTIO_F_VERSION_1 - 32);
+    const uint32_t access = 1u << (VIRTIO_F_ACCESS_PLATFORM - 32);
+
+    CHECK(virtio_pci_base_features_hi(&dev) == 0,
+          "base features do not add unoffered bits");
+    CHECK(cfg.device_feature_select == 1,
+          "base features read feature word one");
+    cfg.device_feature = version;
+    CHECK(virtio_pci_base_features_hi(&dev) == version,
+          "base features accept VERSION_1 without ACCESS_PLATFORM");
+    cfg.device_feature = version | access;
+    CHECK(virtio_pci_base_features_hi(&dev) == (version | access),
+          "base features accept offered ACCESS_PLATFORM");
+    cfg.device_feature = access;
+    CHECK(virtio_pci_base_features_hi(&dev) == access,
+          "base features do not invent VERSION_1");
+    cfg.device_feature = UINT32_MAX;
+    CHECK(virtio_pci_base_features_hi(&dev) == (version | access),
+          "base features exclude packed rings and other optional features");
+}
+
 /* --- Test registry --- */
 
 static void test_registry(void)
@@ -547,6 +572,7 @@ int main(void)
             test_perf_batch_accounting();
             test_perf_multi_queue_accounting();
     test_registry();
+    test_base_features();
     int ok = (tests_passed == tests_run);
     const char *tag = ok ? c_pass : c_fail;
     printf("\n%sselftest/lib: %d/%d passed%s\n",
