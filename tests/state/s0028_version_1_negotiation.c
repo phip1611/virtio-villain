@@ -35,10 +35,10 @@ static test_result_t test_version_1_negotiation(struct virtio_dev *dev,
     if (!(offered_hi & (1U << (VIRTIO_F_VERSION_1 - 32))))
         TFAIL("!(offered_hi & (1U << (VIRTIO_F_VERSION_1 - 32)))"); /* modern device MUST offer VERSION_1 */
 
-    /* Accept VERSION_1 */
+    /* Accept VERSION_1 and ACCESS_PLATFORM when offered. */
     cfg->driver_feature_select = 1;
     __sync_synchronize();
-    cfg->driver_feature = (1U << (VIRTIO_F_VERSION_1 - 32));
+    cfg->driver_feature = virtio_pci_base_features_hi(dev);
     __sync_synchronize();
 
     cfg->driver_feature_select = 0;
