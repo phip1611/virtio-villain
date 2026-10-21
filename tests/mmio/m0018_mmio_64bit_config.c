@@ -11,34 +11,8 @@
 
 static test_result_t do_test(struct virtio_mmio_dev *dev)
 {
-    /* Initialize device minimally */
-    mmio_write32(dev, VIRTIO_MMIO_STATUS, 0);
-    __sync_synchronize();
-    usleep(10000);
-
-    mmio_write32(dev, VIRTIO_MMIO_STATUS, VIRTIO_MMIO_STATUS_ACKNOWLEDGE);
-    __sync_synchronize();
-    mmio_write32(dev, VIRTIO_MMIO_STATUS,
-                 VIRTIO_MMIO_STATUS_ACKNOWLEDGE | VIRTIO_MMIO_STATUS_DRIVER);
-    __sync_synchronize();
-
-    /* Accept no features */
-    mmio_write32(dev, VIRTIO_MMIO_DRIVER_FEATURES_SEL, 0);
-    mmio_write32(dev, VIRTIO_MMIO_DRIVER_FEATURES, 0);
-    mmio_write32(dev, VIRTIO_MMIO_DRIVER_FEATURES_SEL, 1);
-    mmio_write32(dev, VIRTIO_MMIO_DRIVER_FEATURES, 0);
-    __sync_synchronize();
-
-    mmio_write32(dev, VIRTIO_MMIO_STATUS,
-                 VIRTIO_MMIO_STATUS_ACKNOWLEDGE |
-                 VIRTIO_MMIO_STATUS_DRIVER |
-                 VIRTIO_MMIO_STATUS_FEATURES_OK);
-    __sync_synchronize();
-    usleep(5000);
-
-    uint32_t status = mmio_read32(dev, VIRTIO_MMIO_STATUS);
-    if (!(status & VIRTIO_MMIO_STATUS_FEATURES_OK))
-        return TEST_SKIP;
+    if (virtio_mmio_init(dev) < 0)
+        TFAIL("base feature negotiation rejected");
 
     /*
      * Read the first 64-bit config value as two 32-bit reads.
