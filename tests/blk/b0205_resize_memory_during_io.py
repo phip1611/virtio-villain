@@ -4,7 +4,9 @@ B0205 sidecar. Grows guest RAM through resize --memory while the
 guest keeps block reads in flight, so the block device serves I/O
 across a guest memory map change.
 """
-from host_helpers import qmp, wait_ready
+import json
+
+from host_helpers import ch_command, qmp, wait_ready
 
 SUPPORTED_BACKENDS = ("ch", "qemu")
 
@@ -23,7 +25,13 @@ def run(ctx):
         ctx.log("added 128M guest memory")
         return
 
-    # Boot RAM is 512M with hotplug_size=256M, so 640M is in range.
+    memory = json.loads(ch_command(ctx, "info").stdout)["config"]["memory"]
+    boot_size = memory["size"]
+    max_size = boot_size + (memory.get("hotplug_size") or 0)
+    if not boot_size < 640 * 1024 * 1024 <= max_size:
+        ctx.skip(f"guest memory cannot grow from {boot_size} bytes to 640M "
+                 f"within limit {max_size} bytes")
+
     ctx.log("resizing guest memory to 640M")
     cp = ctx.vm_api("resize", ["--memory", "640M"], timeout=30.0)
     if cp.returncode != 0:
