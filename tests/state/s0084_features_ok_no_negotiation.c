@@ -43,11 +43,8 @@ static test_result_t test_features_ok_no_negotiation(struct virtio_dev *dev,
     if (st == 0)
         TWEDGED("st == 0");
 
-    /*
-     * Either FEATURES_OK sticks (device accepts zero features)
-     * or it was cleared (device rejected). Both are valid.
-     */
-    (void)st;
+    if (!(st & VIRTIO_STATUS_FEATURES_OK))
+        TREJECT("device rejected feature negotiation without feature writes");
     return TEST_PASS;
 }
 
