@@ -27,7 +27,7 @@ static test_result_t test_queue_size_not_power_of_two(struct virtio_dev *dev,
     dev->common->driver_feature_select = 0;
     dev->common->driver_feature = 0;
     dev->common->driver_feature_select = 1;
-    dev->common->driver_feature = 0;
+    dev->common->driver_feature = virtio_pci_base_features_hi(dev);
     dev->common->device_status |= VIRTIO_STATUS_FEATURES_OK;
     __sync_synchronize();
 
@@ -51,14 +51,7 @@ static test_result_t test_queue_size_not_power_of_two(struct virtio_dev *dev,
     /* Reset and verify survival */
     virtio_pci_reset(dev);
 
-    dev->common->device_status = VIRTIO_STATUS_ACKNOWLEDGE;
-    __sync_synchronize();
-    dev->common->device_status |= VIRTIO_STATUS_DRIVER;
-    __sync_synchronize();
-    dev->common->device_status |= VIRTIO_STATUS_FEATURES_OK;
-    __sync_synchronize();
-
-    if (!(dev->common->device_status & VIRTIO_STATUS_FEATURES_OK)) {
+    if (virtio_pci_init(dev) < 0) {
         vv_log("non-power-of-two queue_size made device unresponsive");
         TFAIL("!(dev->common->device_status & VIRTIO_STATUS_FEATURES_OK)");
     }
