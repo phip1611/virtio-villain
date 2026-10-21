@@ -43,7 +43,7 @@ static test_result_t test_features_above_bit31(struct virtio_dev *dev,
      * bits that are certainly not offered. This tests whether the
      * device properly rejects unsupported high bits.
      */
-    uint32_t hi_bits = (1U << (VIRTIO_F_VERSION_1 - 32)) | 0xDEAD0000;
+    uint32_t hi_bits = virtio_pci_base_features_hi(dev) | 0xDEAD0000;
     cfg->driver_feature_select = 1;
     cfg->driver_feature = hi_bits;
     __sync_synchronize();
