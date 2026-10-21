@@ -35,6 +35,8 @@ static test_result_t test_blk_same_sector_two_queues(struct virtio_dev *dev,
     __sync_synchronize();
     cfg->driver_feature_select = 0;
     cfg->driver_feature = cfg->device_feature;
+    cfg->driver_feature_select = 1;
+    cfg->driver_feature = virtio_pci_base_features_hi(dev);
     cfg->device_status |= VIRTIO_STATUS_FEATURES_OK;
     __sync_synchronize();
     if (!(cfg->device_status & VIRTIO_STATUS_FEATURES_OK))
