@@ -94,7 +94,7 @@ static test_result_t test_queue_drain_race(struct virtio_dev *dev,
     dev->common->driver_feature_select = 0;
     dev->common->driver_feature = 0;
     dev->common->driver_feature_select = 1;
-    dev->common->driver_feature = 0;
+    dev->common->driver_feature = virtio_pci_base_features_hi(dev);
     dev->common->device_status |= VIRTIO_STATUS_FEATURES_OK;
     __sync_synchronize();
 
