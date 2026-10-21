@@ -70,11 +70,12 @@ static test_result_t test_split_to_packed_reinit(struct virtio_dev *dev,
         return TEST_SKIP;
     }
 
-    /* Negotiate only RING_PACKED */
+    /* Negotiate RING_PACKED with the base transport features. */
     cfg->driver_feature_select = 0;
     cfg->driver_feature = 0;
     cfg->driver_feature_select = 1;
-    cfg->driver_feature = (1u << (VIRTIO_F_RING_PACKED - 32));
+    cfg->driver_feature = virtio_pci_base_features_hi(dev) |
+                          (1u << (VIRTIO_F_RING_PACKED - 32));
     cfg->device_status |= VIRTIO_STATUS_FEATURES_OK;
     __sync_synchronize();
 
