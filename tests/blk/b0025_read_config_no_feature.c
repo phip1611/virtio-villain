@@ -24,7 +24,7 @@ static test_result_t test_blk_read_config_no_feature(struct virtio_dev *dev,
     /*
      * Read common_cfg fields that are normally only meaningful after
      * feature negotiation: config_generation, queue_notify_off, etc.
-     * The harness negotiated zero features, so any feature-gated
+     * The harness negotiated no device features, so any feature-gated
      * behavior triggered by reading these is a VMM bug.
      */
     volatile uint8_t gen = dev->common->config_generation;
