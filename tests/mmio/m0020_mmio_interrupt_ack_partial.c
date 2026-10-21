@@ -14,33 +14,8 @@
 
 static test_result_t do_test(struct virtio_mmio_dev *dev)
 {
-    /* Initialize device */
-    mmio_write32(dev, VIRTIO_MMIO_STATUS, 0);
-    __sync_synchronize();
-    usleep(10000);
-
-    mmio_write32(dev, VIRTIO_MMIO_STATUS, VIRTIO_MMIO_STATUS_ACKNOWLEDGE);
-    __sync_synchronize();
-    mmio_write32(dev, VIRTIO_MMIO_STATUS,
-                 VIRTIO_MMIO_STATUS_ACKNOWLEDGE | VIRTIO_MMIO_STATUS_DRIVER);
-    __sync_synchronize();
-
-    mmio_write32(dev, VIRTIO_MMIO_DRIVER_FEATURES_SEL, 0);
-    mmio_write32(dev, VIRTIO_MMIO_DRIVER_FEATURES, 0);
-    mmio_write32(dev, VIRTIO_MMIO_DRIVER_FEATURES_SEL, 1);
-    mmio_write32(dev, VIRTIO_MMIO_DRIVER_FEATURES, 0);
-    __sync_synchronize();
-
-    mmio_write32(dev, VIRTIO_MMIO_STATUS,
-                 VIRTIO_MMIO_STATUS_ACKNOWLEDGE |
-                 VIRTIO_MMIO_STATUS_DRIVER |
-                 VIRTIO_MMIO_STATUS_FEATURES_OK);
-    __sync_synchronize();
-    usleep(5000);
-
-    uint32_t status = mmio_read32(dev, VIRTIO_MMIO_STATUS);
-    if (!(status & VIRTIO_MMIO_STATUS_FEATURES_OK))
-        return TEST_SKIP;
+    if (virtio_mmio_init(dev) < 0)
+        TFAIL("base feature negotiation rejected");
 
     mmio_write32(dev, VIRTIO_MMIO_STATUS,
                  VIRTIO_MMIO_STATUS_ACKNOWLEDGE |
@@ -76,7 +51,7 @@ static test_result_t do_test(struct virtio_mmio_dev *dev)
     __sync_synchronize();
 
     /* Device should survive all of this */
-    status = mmio_read32(dev, VIRTIO_MMIO_STATUS);
+    uint32_t status = mmio_read32(dev, VIRTIO_MMIO_STATUS);
     if (status == 0)
         TWEDGED("status == 0");
 
