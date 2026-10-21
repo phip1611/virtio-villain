@@ -8,6 +8,7 @@ import os
 from host_helpers import ch_command, qmp, wait_ready
 
 SUPPORTED_BACKENDS = ("ch", "qemu")
+REQUIRED_TOOLS = {"ch": ("ch-remote",)}
 
 
 def run(ctx):
