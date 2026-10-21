@@ -461,7 +461,7 @@ class CloudHypervisor(VmmBackend):
         arg = (f"path={disk_path},image_type={disk_fmt}"
                f",num_queues={blk_queues}")
         if opts.get("blk_iommu", True):
-            arg += ",iommu=on"
+            arg += ",iommu=virtio"
         if engine == "aio":
             arg += ",_disable_io_uring=on"
         elif engine == "sync":
@@ -532,7 +532,7 @@ class CloudHypervisor(VmmBackend):
             if net_rx_ip:
                 endpoint += f",ip={net_rx_ip},mask=255.255.255.0"
             cmd += ["--net", f"{endpoint},num_queues={net_queues}"
-                    f"{',iommu=on' if opts.get('net_iommu') else ''}"]
+                    f"{',iommu=virtio' if opts.get('net_iommu') else ''}"]
         if want("vsock") and opts.get("vsock_enabled", True):
             cmd += ["--vsock", f"cid={cid},socket={vsock_sock}"]
         if want("balloon"):
