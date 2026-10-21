@@ -3,7 +3,7 @@
  * E0029: pmem FLUSH after device reset and reinit.
  *
  * Spec 3.1 plus 5.19.6: After a reset the device must be ready
- * for fresh requests. Reset, renegotiate zero features, set
+ * for fresh requests. Reset, renegotiate base features, set
  * up the queue, and issue a single FLUSH.
  */
 #include "tests/test.h"
@@ -25,7 +25,8 @@ static test_result_t test_pmem_reset_flush(struct virtio_dev *dev,
     cfg->device_status = VIRTIO_STATUS_ACKNOWLEDGE | VIRTIO_STATUS_DRIVER;
     __sync_synchronize();
     cfg->driver_feature_select = 0; cfg->driver_feature = 0;
-    cfg->driver_feature_select = 1; cfg->driver_feature = 0;
+    cfg->driver_feature_select = 1;
+    cfg->driver_feature = virtio_pci_base_features_hi(dev);
     __sync_synchronize();
     cfg->device_status |= VIRTIO_STATUS_FEATURES_OK;
     __sync_synchronize();
