@@ -28,7 +28,7 @@ static test_result_t test_net_ctrl_rx_no_feature(struct virtio_dev *dev,
     /*
      * Format a control command: class=CTRL_RX, cmd=PROMISC, data=1
      * submitted without ever negotiating VIRTIO_NET_F_CTRL_VQ or
-     * VIRTIO_NET_F_CTRL_RX features (harness negotiates zero features).
+     * VIRTIO_NET_F_CTRL_RX features (harness accepts only base features).
      */
     ctrl->class = VIRTIO_NET_CTRL_RX;
     ctrl->command = VIRTIO_NET_CTRL_RX_PROMISC;
