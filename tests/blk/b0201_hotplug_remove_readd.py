@@ -5,6 +5,7 @@ from host_helpers import add_disk, ch_command, readd_disk, remove_disk, wait_rea
 import os
 
 SUPPORTED_BACKENDS = ("ch", "qemu")
+REQUIRED_TOOLS = {"ch": ("ch-remote",)}
 
 
 def run(ctx):
