@@ -64,7 +64,7 @@ static test_result_t test_device_reset_during_io(struct virtio_dev *dev,
     cfg->driver_feature_select = 0;
     cfg->driver_feature = 0;
     cfg->driver_feature_select = 1;
-    cfg->driver_feature = 0;
+    cfg->driver_feature = virtio_pci_base_features_hi(dev);
     __sync_synchronize();
 
     cfg->device_status |= VIRTIO_STATUS_FEATURES_OK;
