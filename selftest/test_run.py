@@ -2911,6 +2911,7 @@ def test_unit_sidecar_supported_backend_runs():
 
 def test_unit_sidecar_outcomes():
     import glob
+    import json
     import threading
     from types import SimpleNamespace
     from unittest.mock import Mock, patch
@@ -2977,6 +2978,13 @@ def test_unit_sidecar_outcomes():
                 vm_api=Mock(return_value=success))
 
             def successful_response(command, *args, **kwargs):
+                if command == "info":
+                    return subprocess.CompletedProcess([], 0, json.dumps({
+                        "config": {"memory": {
+                            "size": 512 * 1024 * 1024,
+                            "hotplug_size": 256 * 1024 * 1024,
+                        }},
+                    }), "")
                 if command == "human-monitor-command":
                     return {"return": ""}
                 return {"return": []} if command == "qom-list" else success
