@@ -142,9 +142,9 @@ static int iommu_bringup(struct virtio_dev *iommu, struct vring *reqvr,
 /*
  * Reset net and renegotiate with VIRTIO_F_ACCESS_PLATFORM (bit 33),
  * which also requires VIRTIO_F_VERSION_1 (bit 32). CH only routes a
- * virtio device's DMA through the vIOMMU when the driver acks bit 33;
- * the harness brings net up with zero features, so its buffers would
- * otherwise bypass the vIOMMU as identity and never be translated.
+ * virtio device DMA through the vIOMMU when the driver acks bit 33.
+ * Retain that feature across this reset and require it to be offered
+ * so the test cannot accidentally exercise identity DMA without a vIOMMU.
  *
  * Enable exactly the rx/tx pair (queue 0 and queue 1), which satisfies
  * net's activation (min two queues, no control queue for an even
