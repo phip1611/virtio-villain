@@ -6,6 +6,7 @@ that the watchdog device does not surface FAILED or NEEDS_RESET.
 import time
 
 SUPPORTED_BACKENDS = ("ch",)
+REQUIRED_TOOLS = {"ch": ("ch-remote",)}
 
 
 def run(ctx):
