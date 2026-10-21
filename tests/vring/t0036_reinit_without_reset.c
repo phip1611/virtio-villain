@@ -46,14 +46,7 @@ static test_result_t test_reinit_without_reset(struct virtio_dev *dev,
      */
     virtio_pci_reset(dev);
 
-    dev->common->device_status = VIRTIO_STATUS_ACKNOWLEDGE;
-    __sync_synchronize();
-    dev->common->device_status |= VIRTIO_STATUS_DRIVER;
-    __sync_synchronize();
-    dev->common->device_status |= VIRTIO_STATUS_FEATURES_OK;
-    __sync_synchronize();
-
-    if (!(dev->common->device_status & VIRTIO_STATUS_FEATURES_OK)) {
+    if (virtio_pci_init(dev) < 0) {
         vv_log("reinit without reset made device unresponsive");
         TFAIL("!(dev->common->device_status & VIRTIO_STATUS_FEATURES_OK)");
     }
