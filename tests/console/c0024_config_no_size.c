@@ -2,7 +2,7 @@
 /*
  * C0024: Console config readable without F_SIZE.
  *
- * The harness negotiates zero features so VIRTIO_CONSOLE_F_SIZE is
+ * The harness does not negotiate VIRTIO_CONSOLE_F_SIZE, so it is
  * inactive. Per spec 5.3.4 cols and rows fields are valid only
  * when F_SIZE is negotiated, but the config region itself must
  * still be readable. Read the first 4 bytes (cols, rows) and
