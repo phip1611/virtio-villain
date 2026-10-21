@@ -32,12 +32,14 @@ static test_result_t test_rapid_reset_cycle(struct virtio_dev *dev,
         cfg->device_status = 1 | 2;
         __sync_synchronize();
 
-        /* Read and accept offered features (word 0 only) */
+        /* Accept offered word 0 and the base transport features. */
         cfg->device_feature_select = 0;
         __sync_synchronize();
         uint32_t feat = cfg->device_feature;
         cfg->driver_feature_select = 0;
         cfg->driver_feature = feat;
+        cfg->driver_feature_select = 1;
+        cfg->driver_feature = virtio_pci_base_features_hi(dev);
         __sync_synchronize();
 
         /* FEATURES_OK */
@@ -59,6 +61,8 @@ static test_result_t test_rapid_reset_cycle(struct virtio_dev *dev,
     uint32_t feat = cfg->device_feature;
     cfg->driver_feature_select = 0;
     cfg->driver_feature = feat;
+    cfg->driver_feature_select = 1;
+    cfg->driver_feature = virtio_pci_base_features_hi(dev);
     __sync_synchronize();
     cfg->device_status = 1 | 2 | 8;
     __sync_synchronize();
