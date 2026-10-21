@@ -64,8 +64,8 @@ void vring_packed_attach(struct virtio_dev *dev, struct vring_packed *vr,
                          uint16_t queue);
 
 /*
- * Initialize a virtio device negotiating VIRTIO_F_RING_PACKED.
- * Returns 0 on success, -1 if device does not offer packed queues.
+ * Initialize with RING_PACKED and the offered base transport features.
+ * Returns 0 on success, -1 if packed queues are absent or init fails.
  */
 int virtio_pci_init_packed(struct virtio_dev *dev);
 

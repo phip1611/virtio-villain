@@ -107,10 +107,13 @@ static inline void mmio_write16(struct virtio_mmio_dev *dev, uint32_t offset,
 int virtio_mmio_find(struct virtio_mmio_dev *dev);
 
 /*
- * Perform MMIO virtio device initialization (reset → DRIVER_OK).
+ * Perform MMIO virtio device initialization through FEATURES_OK.
+ * Accepts VERSION_1 on modern transports and ACCESS_PLATFORM when offered.
+ * The caller must arrange platform bypass or suitable IOMMU mappings.
  * Returns 0 on success.
  */
 int virtio_mmio_init(struct virtio_mmio_dev *dev);
+/* Also accept the requested features, failing if any are not offered. */
 int virtio_mmio_init_features(struct virtio_mmio_dev *dev, uint64_t wanted);
 
 /* Reset MMIO device (write 0 to Status register). */

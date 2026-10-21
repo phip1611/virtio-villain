@@ -205,10 +205,8 @@ int virtio_pci_init_features(struct virtio_dev *dev, unsigned __int128 wanted)
         __sync_synchronize();
         offered |= (unsigned __int128)cfg->device_feature << (32 * w);
     }
-    /* Devices behind an IOMMU may require ACCESS_PLATFORM for FEATURES_OK. */
-    unsigned __int128 required =
-        (unsigned __int128)1 << VIRTIO_F_ACCESS_PLATFORM;
-    unsigned __int128 neg = (wanted | required) & offered;
+    unsigned __int128 neg =
+        (wanted | ((uint64_t)virtio_pci_base_features_hi(dev) << 32)) & offered;
 
     for (unsigned w = 0; w < 4; w++) {
         cfg->driver_feature_select = w;

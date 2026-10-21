@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "mmio.h"
+#include "virtio_spec.h"
 
 /* Virtio PCI capability types (spec 4.1.4) */
 #define VIRTIO_PCI_CAP_COMMON_CFG    1
@@ -129,14 +130,15 @@ int virtio_pci_find(uint16_t device_id, struct virtio_dev *dev);
 int virtio_pci_attach(uint16_t device_id, struct virtio_dev *dev);
 
 /*
- * Perform virtio device initialization sequence up to FEATURES_OK.
- * Negotiates ACCESS_PLATFORM when offered, but no optional features.
+ * Perform virtio device initialization through FEATURES_OK.
+ * Accepts VERSION_1 and ACCESS_PLATFORM when offered. The caller must
+ * provide identity DMA through platform bypass or suitable IOMMU mappings.
  */
 int virtio_pci_init(struct virtio_dev *dev);
 
 /*
- * Like virtio_pci_init, but also negotiates the requested feature bits
- * (restricted to those the device offers).
+ * Like virtio_pci_init, but negotiates the requested feature bits
+ * (restricted to those the device offers) in addition to the base features.
  */
 int virtio_pci_init_features(struct virtio_dev *dev, unsigned __int128 wanted);
 
@@ -152,6 +154,21 @@ static inline int virtio_pci_feature_offered(struct virtio_dev *dev,
     vv_mmio_write32(&cfg->device_feature_select, bit >> 5);
     __sync_synchronize();
     return (vv_mmio_read32(&cfg->device_feature) >> (bit & 31)) & 1u;
+}
+
+/*
+ * Base feature word for normal setup. Negative tests can write raw
+ * feature words instead when deliberately omitting these features.
+ */
+static inline uint32_t virtio_pci_base_features_hi(struct virtio_dev *dev)
+{
+    volatile struct virtio_pci_common_cfg *cfg = dev->common;
+
+    vv_mmio_write32(&cfg->device_feature_select, 1);
+    __sync_synchronize();
+    return vv_mmio_read32(&cfg->device_feature) &
+           ((1u << (VIRTIO_F_VERSION_1 - 32)) |
+            (1u << (VIRTIO_F_ACCESS_PLATFORM - 32)));
 }
 
 /* Reset device (set status to 0). */

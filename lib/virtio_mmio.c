@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 #include "virtio_mmio.h"
+#include "virtio_spec.h"
 #include "util.h"
 
 #include <dirent.h>
@@ -221,11 +222,12 @@ int virtio_mmio_init_features(struct virtio_mmio_dev *dev, uint64_t wanted)
 
     /* Modern transports require VERSION_1. */
     if (mmio_read32(dev, VIRTIO_MMIO_VERSION) >= 2)
-        wanted |= 1ULL << 32;
+        wanted |= 1ULL << VIRTIO_F_VERSION_1;
     mmio_write32(dev, VIRTIO_MMIO_DEVICE_FEATURES_SEL, 0);
     uint64_t offered = mmio_read32(dev, VIRTIO_MMIO_DEVICE_FEATURES);
     mmio_write32(dev, VIRTIO_MMIO_DEVICE_FEATURES_SEL, 1);
     offered |= (uint64_t)mmio_read32(dev, VIRTIO_MMIO_DEVICE_FEATURES) << 32;
+    wanted |= offered & (1ULL << VIRTIO_F_ACCESS_PLATFORM);
     if ((offered & wanted) != wanted)
         return -1;
     mmio_write32(dev, VIRTIO_MMIO_DRIVER_FEATURES_SEL, 0);

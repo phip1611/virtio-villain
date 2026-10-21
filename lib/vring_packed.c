@@ -82,11 +82,12 @@ int virtio_pci_init_packed(struct virtio_dev *dev)
     if (!(features_hi & (1u << (VIRTIO_F_RING_PACKED - 32))))
         return -1;
 
-    /* Negotiate only VIRTIO_F_RING_PACKED */
+    /* Negotiate RING_PACKED with the base transport features. */
     cfg->driver_feature_select = 0;
     cfg->driver_feature = 0;
     cfg->driver_feature_select = 1;
-    cfg->driver_feature = (1u << (VIRTIO_F_RING_PACKED - 32));
+    cfg->driver_feature = virtio_pci_base_features_hi(dev) |
+                          (1u << (VIRTIO_F_RING_PACKED - 32));
     cfg->device_status |= VIRTIO_STATUS_FEATURES_OK;
     __sync_synchronize();
 
