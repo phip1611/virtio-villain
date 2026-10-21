@@ -33,11 +33,13 @@ static test_result_t test_blk_cross_queue(struct virtio_dev *dev,
     cfg->device_status |= VIRTIO_STATUS_DRIVER;
     __sync_synchronize();
 
-    /* Accept whatever features the device offers (low word only) */
+    /* Accept offered word 0 and the base transport features. */
     cfg->device_feature_select = 0;
     __sync_synchronize();
     cfg->driver_feature_select = 0;
     cfg->driver_feature = cfg->device_feature;
+    cfg->driver_feature_select = 1;
+    cfg->driver_feature = virtio_pci_base_features_hi(dev);
     cfg->device_status |= VIRTIO_STATUS_FEATURES_OK;
     __sync_synchronize();
 
