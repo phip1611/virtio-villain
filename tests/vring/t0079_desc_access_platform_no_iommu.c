@@ -35,10 +35,10 @@ static test_result_t test_desc_access_platform_no_iommu(struct virtio_dev *dev,
     cfg->device_status = VIRTIO_STATUS_ACKNOWLEDGE | VIRTIO_STATUS_DRIVER;
     __sync_synchronize();
 
-    /* Accept ACCESS_PLATFORM */
+    /* Accept ACCESS_PLATFORM and VERSION_1 when offered. */
     cfg->driver_feature_select = VIRTIO_F_ACCESS_PLATFORM / 32;
     __sync_synchronize();
-    cfg->driver_feature = (1U << (VIRTIO_F_ACCESS_PLATFORM % 32));
+    cfg->driver_feature = virtio_pci_base_features_hi(dev);
     __sync_synchronize();
 
     /* Clear lower feature word */
