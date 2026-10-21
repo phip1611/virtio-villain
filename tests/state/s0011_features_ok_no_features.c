@@ -3,9 +3,9 @@
  * S0011: features_ok_no_features
  *
  * Write FEATURES_OK without having written any driver_features first.
- * While technically valid (negotiating zero features), this tests the
- * edge case where FEATURES_OK is set before driver_feature_select/
- * driver_feature have been touched at all - the driver_feature register
+ * This deliberately omits VERSION_1 and ACCESS_PLATFORM, which a device
+ * may require. FEATURES_OK is set before driver_feature_select and
+ * driver_feature have been touched at all. The driver_feature register
  * may contain stale PCI bus values.
  *
  * Then proceed to set DRIVER_OK and do I/O, verifying the VMM doesn't
