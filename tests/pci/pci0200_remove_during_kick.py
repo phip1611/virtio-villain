@@ -6,6 +6,7 @@ import time
 from host_helpers import add_disk, remove_disk, wait_ready
 
 SUPPORTED_BACKENDS = ("ch", "qemu")
+REQUIRED_TOOLS = {"ch": ("ch-remote",)}
 
 
 def run(ctx):
