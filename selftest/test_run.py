@@ -1182,12 +1182,37 @@ def test_unit_ch_io_engine_default_has_no_toggles():
     assert "_disable_aio" not in disk
 
 
+def test_unit_ch_block_iommu_defaults_to_virtio():
+    be = RUN_MOD.CloudHypervisor("/usr/bin/cloud-hypervisor")
+    disk = _ch_disk(be.build_cmd(
+        "/k", "/i", "/d.raw", "c",
+        {"blk_queues": 1, "net_queues": 1}))
+    assert "iommu=virtio" in disk.split(",")
+
+
 def test_unit_ch_block_iommu_can_be_disabled():
     be = RUN_MOD.CloudHypervisor("/usr/bin/cloud-hypervisor")
     disk = _ch_disk(be.build_cmd(
         "/k", "/i", "/d.raw", "c",
         {"blk_queues": 1, "net_queues": 1, "blk_iommu": False}))
-    assert "iommu=on" not in disk
+    assert "iommu=" not in disk
+
+
+def test_unit_ch_network_iommu_uses_virtio():
+    be = RUN_MOD.CloudHypervisor("/usr/bin/cloud-hypervisor")
+    cmd = be.build_cmd(
+        "/k", "/i", "/d.raw", "c",
+        {"blk_queues": 1, "net_queues": 1, "net_iommu": True})
+    net = cmd[cmd.index("--net") + 1]
+    assert "iommu=virtio" in net.split(",")
+
+
+def test_unit_ch_network_iommu_is_opt_in():
+    be = RUN_MOD.CloudHypervisor("/usr/bin/cloud-hypervisor")
+    for opts in ({}, {"net_iommu": False}):
+        cmd = be.build_cmd("/k", "/i", "/d.raw", "c", opts)
+        net = cmd[cmd.index("--net") + 1]
+        assert "iommu=" not in net
 
 
 def test_unit_ch_io_engine_aio_disables_io_uring():
@@ -4120,7 +4145,7 @@ def test_fuzz_vmm_command_provisions_auxiliary_devices():
 
     assert pair("--disk", "path=/disk,num_queues=2")
     # a throwaway disk behind the iommu instantiates virtio-iommu
-    assert pair("--disk", "path=/work/iommu.raw,iommu=on")
+    assert pair("--disk", "path=/work/iommu.raw,iommu=virtio")
     assert pair("--net", "tap=,num_queues=2")
     assert "--vsock" in cmd
     assert pair("--balloon", "size=0")
