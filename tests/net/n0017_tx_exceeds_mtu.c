@@ -6,7 +6,7 @@
  * if the driver negotiates VIRTIO_NET_F_MTU, it MUST NOT transmit
  * packets larger than the MTU. The device must handle safely.
  *
- * Since the harness negotiates zero features (no MTU negotiation), this
+ * Since the harness does not negotiate the MTU feature, this
  * test sends an unreasonably large frame that exceeds any sane MTU to
  * exercise the device's size validation path.
  */
