@@ -47,14 +47,7 @@ static test_result_t test_status_read_during_reset(struct virtio_dev *dev,
     /*
      * Re-initialize to prove device is still functional after reset.
      */
-    cfg->device_status = VIRTIO_STATUS_ACKNOWLEDGE;
-    __sync_synchronize();
-    cfg->device_status |= VIRTIO_STATUS_DRIVER;
-    __sync_synchronize();
-    cfg->device_status |= VIRTIO_STATUS_FEATURES_OK;
-    __sync_synchronize();
-
-    if (!(cfg->device_status & VIRTIO_STATUS_FEATURES_OK))
+    if (virtio_pci_init(dev) < 0)
         TREJECT("!(cfg->device_status & VIRTIO_STATUS_FEATURES_OK)");
 
     return TEST_PASS;
