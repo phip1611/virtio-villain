@@ -7,6 +7,7 @@ watches num_pages and config_generation for the change.
 from host_helpers import ch_command, qmp, wait_ready
 
 SUPPORTED_BACKENDS = ("ch", "qemu", "qemu-mmio")
+REQUIRED_TOOLS = {"ch": ("ch-remote",)}
 
 
 def vmm_config():
