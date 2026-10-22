@@ -13,41 +13,7 @@
 #include "../lib/vring.h"
 #include "../lib/vring_packed.h"
 
-/*
- * Diagnostic helpers. TFAIL/TWEDGED/TREJECT/TSKIP emit a single line
- * with the source location and a printf-style reason, then yield the
- * result. Use in place of bare `return TEST_FAIL;` etc. so console
- * logs identify which assertion fired.
- *
- * The "vv-*" prefixes deliberately differ from the "[FAIL]"/"[WEDGED]"/
- * "[REJECT]" verdict markers emitted by bin/init.c (which the host
- * runner scrapes to decide the test outcome). If we reused those
- * prefixes the runner would treat the diagnostic as the verdict and
- * kill the VMM mid-line.
- */
-#define TFAIL(fmt, ...) do { \
-    printf("vv-fail %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
-    fflush(stdout); \
-    return TEST_FAIL; \
-} while (0)
-
-#define TWEDGED(fmt, ...) do { \
-    printf("vv-wedged %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
-    fflush(stdout); \
-    return TEST_WEDGED; \
-} while (0)
-
-#define TREJECT(fmt, ...) do { \
-    printf("vv-reject %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
-    fflush(stdout); \
-    return TEST_REJECT; \
-} while (0)
-
-#define TSKIP(fmt, ...) do { \
-    printf("vv-skip %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
-    fflush(stdout); \
-    return TEST_SKIP; \
-} while (0)
+#include "../lib/test.h"
 
 /* Return the result of expr from the calling test unless it is TEST_PASS. */
 #define VV_TRY(expr) do { \
@@ -55,21 +21,6 @@
     if (vv_try_r_ != TEST_PASS) \
         return vv_try_r_; \
 } while (0)
-
-typedef enum {
-    TEST_PASS,
-    TEST_FAIL,
-    TEST_SKIP,
-    TEST_WEDGED,
-    TEST_REJECT,
-    /*
-     * Synthetic verdicts emitted by init when a test was registered
-     * with TEST_FLAG_XFAIL. Tests never return these directly; init
-     * remaps the test's PASS/FAIL/WEDGED outcome.
-     */
-    TEST_XFAIL,
-    TEST_XPASS
-} test_result_t;
 
 /* Default timeout for vv_kick_and_wait (ms). */
 #define VV_TIMEOUT_MS 2000
