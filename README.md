@@ -52,6 +52,13 @@ backend in `run`.
 
 ## Architecture
 
+Optional Linux images can be built from the latest stable release,
+pinned releases, local checkouts, Git repositories or HTTP and preloaded
+archives.
+Configuration is independent of source selection and offline builds are
+supported. See [kernel builds](docs/kernel.md). This does not change the
+default kernel used by the runner.
+
 ```
 virtio-villain/
   Makefile
