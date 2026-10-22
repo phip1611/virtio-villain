@@ -138,6 +138,7 @@ selftest: selftest/test_lib selftest/test_irq
 	@./selftest/test_lib
 	@./selftest/test_irq
 	@python3 -m unittest discover -s selftest -p 'test_msix_host.py'
+	@python3 -m unittest discover -s selftest -p 'test_kernel.py'
 	@echo ""
 	@echo "selftest/run:"
 	@python3 selftest/test_run.py
