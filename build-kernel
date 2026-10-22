@@ -1,0 +1,408 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+"""Build optional Linux images from releases, archives, local trees or Git."""
+
+import argparse
+from datetime import datetime, timezone
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import re
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+import urllib.parse
+import urllib.request
+
+
+ROOT = Path(__file__).resolve().parent
+CONFIG_DIR = ROOT / "kernel"
+RELEASES_URL = "https://www.kernel.org/releases.json"
+RELEASE_VERSION = r"[1-9][0-9]*\.[0-9]+(?:\.[0-9]+)?"
+
+
+def sha256(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def config_values(text):
+    values = {}
+    for line in text.splitlines():
+        if line.startswith("CONFIG_") and "=" in line:
+            key, value = line.split("=", 1)
+            values[key] = value
+        elif line.startswith("# CONFIG_") and line.endswith(" is not set"):
+            values[line.split()[1]] = "n"
+        elif line.strip() and not line.startswith("#"):
+            raise RuntimeError(f"Invalid configuration line: {line}")
+    return values
+
+
+def merge_configs(paths):
+    values = {}
+    for path in paths:
+        values.update(config_values(path.read_text()))
+    return "".join(f"# {key} is not set\n" if value == "n"
+                   else f"{key}={value}\n" for key, value in values.items())
+
+
+def verify_config(requested, actual):
+    values = config_values(actual)
+    missing = [f"{key}={value}"
+               for key, value in config_values(requested).items()
+               if values.get(key, "n") != value]
+    if missing:
+        raise RuntimeError("Kernel configuration did not retain requested options: "
+                           + ", ".join(missing))
+
+
+def kernel_url(version):
+    major = version.split(".", 1)[0]
+    return f"https://cdn.kernel.org/pub/linux/kernel/v{major}.x/linux-{version}.tar.xz"
+
+
+def latest_stable():
+    with urllib.request.urlopen(RELEASES_URL, timeout=30) as response:
+        data = json.load(response)
+    releases = data.get("releases") if isinstance(data, dict) else None
+    if not isinstance(releases, list):
+        raise RuntimeError("Invalid kernel.org release metadata")
+    stable = [entry for entry in releases
+              if isinstance(entry, dict) and entry.get("moniker") == "stable"
+              and not entry.get("iseol", False)
+              and isinstance(entry.get("version"), str)
+              and re.fullmatch(RELEASE_VERSION, entry["version"])]
+    if not stable:
+        raise RuntimeError("kernel.org did not report a stable release")
+    release = max(stable, key=lambda entry: tuple(map(int, entry["version"].split("."))))
+    released = release.get("released")
+    epoch = released.get("timestamp") if isinstance(released, dict) else None
+    if not isinstance(epoch, int) or epoch < 0:
+        raise RuntimeError("Stable release has no valid release timestamp")
+    return {"version": release["version"], "source_date_epoch": epoch}
+
+
+def kernel_checksum(version):
+    url = kernel_url(version).rsplit("/", 1)[0] + "/sha256sums.asc"
+    filename = f"linux-{version}.tar.xz"
+    with urllib.request.urlopen(url, timeout=30) as response:
+        for line in response:
+            match = re.fullmatch(r"([0-9a-fA-F]{64})\s+\*?" + re.escape(filename),
+                                 line.decode("utf-8").strip())
+            if match:
+                return match[1].lower()
+    raise RuntimeError(f"No SHA256 for {filename} in {url}")
+
+
+def resolve_release(args, manifest):
+    selection = ("pinned" if args.pinned else "version" if args.version else
+                 "latest-stable" if args.latest_stable else manifest.get("default"))
+    if selection == "latest-stable":
+        if args.offline:
+            raise RuntimeError("Latest stable resolution requires network access. "
+                               "Use --pinned, --version with --sha256 or a local source.")
+        release = latest_stable()
+    elif selection == "pinned":
+        release = {key: manifest[key] for key in
+                   ("version", "sha256", "source_date_epoch")}
+    elif selection == "version" and args.version:
+        release = {"version": args.version, "source_date_epoch": 0}
+        if args.version == manifest["version"]:
+            release.update(sha256=manifest["sha256"],
+                           source_date_epoch=manifest["source_date_epoch"])
+    else:
+        raise RuntimeError(f"Unknown default source selection: {selection}")
+    version = release["version"]
+    if not isinstance(version, str) or not re.fullmatch(RELEASE_VERSION, version):
+        raise RuntimeError(f"Invalid kernel release version: {version}")
+    if args.sha256:
+        release["sha256"] = args.sha256
+    if "sha256" not in release:
+        if args.offline:
+            raise RuntimeError("Offline --version requires --sha256 or the bundled pin")
+        release["sha256"] = kernel_checksum(version)
+    release.update(url=kernel_url(version), selection=selection, checksum_verified=True)
+    print(f"Resolved {selection}: Linux {version}", flush=True)
+    return release
+
+
+def download(url, destination):
+    print(f"Fetching {url}", flush=True)
+    with urllib.request.urlopen(url, timeout=30) as response, destination.open("wb") as stream:
+        shutil.copyfileobj(response, stream)
+
+
+def verify_archive(archive, expected):
+    digest = sha256(archive)
+    if expected and digest != expected:
+        raise RuntimeError(f"SHA256 mismatch for {archive}: {digest}, expected {expected}")
+    return digest
+
+
+def cached_download(cache, archive, url, expected=None, offline=False):
+    with (cache / "download.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if not archive.exists():
+            if offline:
+                raise RuntimeError(f"Offline source archive is missing: {archive}. "
+                                   "Preload it or use --archive.")
+            archive.parent.mkdir(parents=True, exist_ok=True)
+            partial = archive.with_name(archive.name + ".part")
+            try:
+                download(url, partial)
+                verify_archive(partial, expected)
+                partial.replace(archive)
+            finally:
+                partial.unlink(missing_ok=True)
+    return archive
+
+
+def archive_source(cache, archive, expected=None):
+    digest = verify_archive(archive, expected)
+    source = cache / "sources" / digest
+    with (cache / "source.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if not source.exists():
+            if not hasattr(tarfile, "data_filter"):
+                raise RuntimeError("Safe archive extraction requires Python "
+                                   "with tarfile.data_filter support")
+            with tempfile.TemporaryDirectory(prefix="extract-", dir=cache) as work:
+                extracted = Path(work) / "source"
+                extracted.mkdir()
+                with tarfile.open(archive, "r:*") as bundle:
+                    bundle.extractall(extracted, filter="data")
+                if not (extracted / "Makefile").is_file():
+                    entries = list(extracted.iterdir())
+                    if len(entries) != 1 or not entries[0].is_dir():
+                        raise RuntimeError("Archive must contain a Linux source root "
+                                           "or a single top level directory")
+                    extracted = entries[0]
+                if not (extracted / "Makefile").is_file():
+                    raise RuntimeError("Source archive contains no Linux Makefile")
+                source.parent.mkdir(parents=True, exist_ok=True)
+                extracted.rename(source)
+        if not (source / "Makefile").is_file():
+            raise RuntimeError(f"Cached archive source contains no Linux Makefile: {source}")
+    return source, digest
+
+
+def checked_source(cache, release, offline=False):
+    version = release["version"]
+    archive = cache / f"linux-{version}.tar.xz"
+    cached_download(cache, archive, kernel_url(version), release["sha256"], offline)
+    source, _ = archive_source(cache, archive, release["sha256"])
+    return source
+
+
+def git_output(*args):
+    return subprocess.check_output(["git", *map(str, args)], text=True).strip()
+
+
+def git_source(cache, url, ref):
+    identity = hashlib.sha256(url.encode()).hexdigest()
+    repository = cache / "git" / identity
+    repository.mkdir(parents=True, exist_ok=True)
+    with (repository / "source.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        bare = repository / "repository.git"
+        if not bare.exists():
+            subprocess.run(["git", "init", "--bare", str(bare)], check=True)
+        subprocess.run(["git", f"--git-dir={bare}", "fetch", "--depth=1",
+                        "--no-tags", "--", url, ref], check=True)
+        commit = git_output(f"--git-dir={bare}", "rev-parse", "FETCH_HEAD^{commit}")
+        epoch = int(git_output(f"--git-dir={bare}", "show", "-s", "--format=%ct",
+                               commit))
+        subprocess.run(["git", f"--git-dir={bare}", "update-ref",
+                        "refs/heads/source", commit], check=True)
+        source = repository / commit
+        if not source.exists():
+            with tempfile.TemporaryDirectory(prefix="checkout-",
+                                             dir=repository) as work:
+                checkout = Path(work) / "source"
+                subprocess.run(["git", "clone", "--no-checkout", "--branch",
+                                "source", str(bare), str(checkout)], check=True)
+                subprocess.run(["git", "-C", str(checkout), "checkout",
+                                "--detach", commit], check=True)
+                checkout.rename(source)
+        if (git_output("-C", source, "rev-parse", "HEAD") != commit
+                or git_output("-C", source, "status", "--porcelain")):
+            raise RuntimeError(f"Cached Git source has local changes: {source}")
+    return source, {"commit": commit, "source_date_epoch": epoch}
+
+
+def build(args):
+    manifest = json.loads((CONFIG_DIR / "manifest.json").read_text())
+    configs = args.config or [CONFIG_DIR / "common.config",
+                              CONFIG_DIR / f"{args.arch}.config"]
+    requested = merge_configs(configs)
+    if not config_values(requested):
+        raise RuntimeError("No configuration options were supplied")
+    cache = (args.cache_dir or ROOT / "target" / "guest-kernel").resolve()
+    cache.mkdir(parents=True, exist_ok=True)
+    if args.source:
+        source = args.source.resolve()
+        provenance = {"source": str(source), "source_date_epoch": 0}
+    elif args.git_url:
+        if args.offline:
+            raise RuntimeError("Offline mode does not fetch Git sources. "
+                               "Use --source with a prepared local checkout.")
+        source, provenance = git_source(cache, args.git_url, args.ref)
+        provenance.update(git_url=args.git_url, ref=args.ref)
+    elif args.archive or args.url:
+        if args.archive:
+            archive = args.archive.resolve()
+            provenance = {"archive": str(archive)}
+        else:
+            identity = hashlib.sha256(args.url.encode()).hexdigest()
+            archive = cache / "downloads" / identity / "archive"
+            cached_download(cache, archive, args.url, args.sha256, args.offline)
+            provenance = {"url": args.url}
+            if not args.sha256:
+                print("warning: no expected SHA256 supplied for --url. "
+                      "The computed digest records content but does not verify it.",
+                      file=sys.stderr)
+        source, digest = archive_source(cache, archive, args.sha256)
+        provenance.update(sha256=digest, checksum_verified=bool(args.sha256),
+                          source_date_epoch=0)
+    else:
+        provenance = resolve_release(args, manifest)
+        source = checked_source(cache, provenance, args.offline)
+    if not (source / "Makefile").is_file():
+        raise RuntimeError(f"Not a Linux source tree: {source}")
+    root = (args.output.resolve() if args.output else
+            cache / f"{provenance['version']}-{manifest['revision']}")
+    if root == source or root in source.parents or source in root.parents:
+        raise RuntimeError("Build output and kernel source must be separate trees")
+    output = root / args.arch
+    output.mkdir(parents=True, exist_ok=True)
+    with (output / "build.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        identity = {"source": str(source), "arch": args.arch,
+                    "cross_compile": args.cross_compile,
+                    "requested_sha256": hashlib.sha256(requested.encode()).hexdigest()}
+        identity_path = output / "inputs.json"
+        if identity_path.exists() and json.loads(identity_path.read_text()) != identity:
+            raise RuntimeError(f"Build inputs changed. Use a different --output: {root}")
+        identity_path.write_text(json.dumps(identity, indent=2) + "\n")
+        fragment = output / "requested.config"
+        fragment.write_text(requested)
+        epoch = (args.source_date_epoch if args.source_date_epoch is not None
+                 else provenance["source_date_epoch"])
+        timestamp = datetime.fromtimestamp(epoch, timezone.utc).strftime(
+            "%Y-%m-%d %H:%M:%S UTC")
+        env = dict(os.environ, KCONFIG_ALLCONFIG=str(fragment),
+                   KBUILD_BUILD_USER="virtio-villain", KBUILD_BUILD_HOST="guest",
+                   KBUILD_BUILD_VERSION="1", KBUILD_BUILD_TIMESTAMP=timestamp,
+                   SOURCE_DATE_EPOCH=str(epoch), LC_ALL="C", TZ="UTC")
+        arch = "x86" if args.arch == "x86_64" else "arm64"
+        command = ["make", "-C", str(source), f"O={output}", f"ARCH={arch}"]
+        if args.cross_compile:
+            command.append(f"CROSS_COMPILE={args.cross_compile}")
+        subprocess.run(command + ["allnoconfig"], env=env, check=True)
+        verify_config(requested, (output / ".config").read_text())
+        targets = ["vmlinux", "bzImage"] if arch == "x86" else ["Image"]
+        subprocess.run(command + [f"-j{args.jobs}"] + targets, env=env, check=True)
+        images = (
+            {"vmlinux-x86_64": output / "vmlinux",
+             "bzImage-x86_64": output / "arch/x86/boot/bzImage"}
+            if arch == "x86" else
+            {"Image-arm64": output / "arch/arm64/boot/Image"})
+        release = root / "images"
+        release.mkdir(exist_ok=True)
+        checksums = []
+        for name, image in images.items():
+            destination = release / name
+            partial = destination.with_suffix(".tmp")
+            try:
+                shutil.copyfile(image, partial)
+                checksum = sha256(partial)
+                partial.replace(destination)
+            finally:
+                partial.unlink(missing_ok=True)
+            destination.with_suffix(".sha256").write_text(f"{checksum}  {name}\n")
+            checksums.append(f"{checksum}  {name}\n")
+            print(destination, flush=True)
+        config = release / f"config-{args.arch}"
+        shutil.copyfile(output / ".config", config)
+        checksums.append(f"{sha256(config)}  {config.name}\n")
+        metadata = release / f"build-{args.arch}.json"
+        metadata.write_text(json.dumps(
+            dict(provenance, **identity, source_date_epoch=epoch),
+            indent=2) + "\n")
+        checksums.append(f"{sha256(metadata)}  {metadata.name}\n")
+        (release / f"SHA256SUMS-{args.arch}").write_text("".join(checksums))
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument("--source", type=Path, help="Local Linux source tree")
+    source.add_argument("--git-url", help="Git repository URL or local repository")
+    source.add_argument("--archive", type=Path, help="Preloaded local source tarball")
+    source.add_argument("--url", help="HTTP or HTTPS source tarball")
+    source.add_argument("--latest-stable", action="store_true",
+                        help="Resolve the current kernel.org stable release")
+    source.add_argument("--pinned", action="store_true", help="Use the bundled release pin")
+    source.add_argument("--version", help="Exact kernel.org release version")
+    parser.add_argument("--ref", help="Explicit Git branch, tag or commit")
+    parser.add_argument("--sha256", help="Expected archive SHA256")
+    parser.add_argument("--offline", action="store_true",
+                        help="Never resolve releases, fetch Git or download archives")
+    parser.add_argument("--cache-dir", type=Path, help="Writable source and download cache")
+    parser.add_argument("--config", type=Path, action="append",
+                        help="Config file or fragment, repeat to override values")
+    parser.add_argument("--output", type=Path, help="Separate build directory")
+    parser.add_argument("--arch", choices=("x86_64", "aarch64"),
+                        default=platform.machine())
+    parser.add_argument("--jobs", type=int, default=4)
+    parser.add_argument("--cross-compile", default="")
+    parser.add_argument("--source-date-epoch", type=int)
+    args = parser.parse_args(argv)
+    if args.arch not in ("x86_64", "aarch64"):
+        parser.error("specify a supported --arch")
+    if args.jobs < 1:
+        parser.error("--jobs must be positive")
+    if bool(args.git_url) != bool(args.ref):
+        parser.error("--git-url and --ref must be supplied together")
+    if args.ref and (args.ref.startswith("-") or re.search(r"\s", args.ref)):
+        parser.error("--ref must be a branch, tag or commit without whitespace")
+    custom = bool(args.source or args.git_url or args.archive or args.url)
+    if custom and not args.config:
+        parser.error("custom sources require at least one --config")
+    if (custom or args.config) and not args.output:
+        parser.error("custom builds require --output")
+    if args.version and not re.fullmatch(RELEASE_VERSION, args.version):
+        parser.error("--version must be a released kernel version such as 7.2.12")
+    if args.url and urllib.parse.urlsplit(args.url).scheme not in ("http", "https"):
+        parser.error("--url requires an HTTP or HTTPS URL")
+    if args.sha256:
+        if not (args.archive or args.url or args.version):
+            parser.error("--sha256 requires --archive, --url or --version")
+        if not re.fullmatch(r"[0-9a-fA-F]{64}", args.sha256):
+            parser.error("--sha256 must contain exactly 64 hexadecimal digits")
+        args.sha256 = args.sha256.lower()
+    if args.source_date_epoch is not None and args.source_date_epoch < 0:
+        parser.error("--source-date-epoch must not be negative")
+    return args
+
+
+def main():
+    args = parse_args()
+    try:
+        build(args)
+    except (OSError, RuntimeError, subprocess.CalledProcessError,
+            ValueError, tarfile.TarError) as error:
+        raise SystemExit(f"error: {error}") from error
+
+
+if __name__ == "__main__":
+    main()

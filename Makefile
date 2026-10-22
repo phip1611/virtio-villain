@@ -157,7 +157,7 @@ selftest/test_lib: selftest/test_lib.c \
 selftest/test_irq: selftest/test_irq.c lib/irq.c lib/irq.h lib/vfio.h
 	$(CC) -O2 -Wall -Wextra -Werror -I. -o $@ selftest/test_irq.c lib/irq.c
 
-PY_SRCS = run run-fuzz run-perf $(shell find selftest tests -name '*.py' 2>/dev/null)
+PY_SRCS = run run-fuzz run-perf build-kernel $(shell find selftest tests -name '*.py' 2>/dev/null)
 
 flake8-deps-check:
 	@command -v flake8 >/dev/null 2>&1 || python3 -m flake8 --version >/dev/null 2>&1 || { echo "error: flake8 not found. apt install flake8 or pip install flake8"; exit 1; }
@@ -173,6 +173,9 @@ init: $(TARGET)/init
 fuzz: $(TARGET)/fuzz
 perf: $(TARGET)/perf
 
+guest-kernel:
+	./build-kernel $(KERNEL_ARGS)
+
 help:
 	@echo "Targets:"
 	@echo "  init                Build the guest init binary at $(TARGET)/init"
@@ -182,6 +185,7 @@ help:
 	@echo "  perf                Build the performance guest at $(TARGET)/perf"
 	@echo "  perf-initramfs      Pack perf into $(TARGET)/perf-initramfs.cpio.gz"
 	@echo "  selftest            Build and run runner and lib self tests"
+	@echo "  guest-kernel        Build an optional Linux image with KERNEL_ARGS"
 	@echo "  flake8              Run flake8 across run, run-fuzz, selftest, tests"
 	@echo "  deps-check          Verify build dependencies are present"
 	@echo "  fuzz-deps-check     Verify fuzz build dependencies are present"
@@ -189,4 +193,4 @@ help:
 	@echo "  clean               Remove build outputs"
 	@echo "  help                Show this message"
 
-.PHONY: init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest flake8 flake8-deps-check help
+.PHONY: init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest flake8 flake8-deps-check help guest-kernel
