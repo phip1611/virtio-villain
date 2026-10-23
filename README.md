@@ -52,6 +52,11 @@ backend in `run`.
 
 ## Architecture
 
+For separate appliances that do not use virtio fixtures, see
+[external suite interfaces](docs/suites.md). They reuse generic registration,
+assertions, appliance builds and orchestration while keeping their tests and
+launch policy outside this repository.
+
 Optional Linux images can be built from the latest stable release,
 pinned releases, local checkouts, Git repositories or HTTP and preloaded
 archives.
