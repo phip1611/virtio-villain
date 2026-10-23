@@ -2708,7 +2708,7 @@ def main():
         add_help=False,
         epilog=(
             "examples\n"
-            "  run --suite /path/to/suite.py --list\n"
+            "  run --suite /path/to/suite --list\n"
             "        load an external appliance suite without virtio setup\n"
             "  run -m ./cloud-hypervisor\n"
             "        run all tests on Cloud Hypervisor\n"

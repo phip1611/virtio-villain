@@ -50,26 +50,35 @@ class Suite:
 
 def load_suite(path):
     path = Path(path).resolve()
-    spec = importlib.util.spec_from_file_location("vv_external_" + uuid.uuid4().hex, path)
+    if path.is_dir():
+        path = path / "lib/suite.py"
+    if not path.is_file():
+        raise RuntimeError(f"Suite definition not found: {path}")
+    spec = importlib.util.spec_from_file_location(
+        "vv_external_" + uuid.uuid4().hex, path,
+        submodule_search_locations=[str(path.parent)])
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Cannot load suite module: {path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
-    sys.path.insert(0, str(path.parent))
+    loaded = False
     try:
         spec.loader.exec_module(module)
         suite = module.create_suite()
+        if not isinstance(suite, Suite):
+            raise RuntimeError("Suite create_suite() must return lib.appliance.Suite")
+        if (not suite.name or not re.fullmatch(r"\S+", suite.contract)
+                or not re.fullmatch(r"[A-Z][A-Z0-9_]*", suite.protocol_prefix)):
+            raise RuntimeError("Invalid suite name, contract, or protocol prefix")
+        suite.binary = Path(suite.binary).resolve()
+        suite.initramfs = Path(suite.initramfs).resolve()
+        loaded = True
+        return suite
     finally:
-        sys.path.pop(0)
-        sys.modules.pop(spec.name, None)
-    if not isinstance(suite, Suite):
-        raise RuntimeError("Suite create_suite() must return lib.appliance.Suite")
-    if (not suite.name or not re.fullmatch(r"\S+", suite.contract)
-            or not re.fullmatch(r"[A-Z][A-Z0-9_]*", suite.protocol_prefix)):
-        raise RuntimeError("Invalid suite name, contract, or protocol prefix")
-    suite.binary = Path(suite.binary).resolve()
-    suite.initramfs = Path(suite.initramfs).resolve()
-    return suite
+        if not loaded:
+            for name in list(sys.modules):
+                if name == spec.name or name.startswith(spec.name + "."):
+                    sys.modules.pop(name, None)
 
 
 def executable(value):
@@ -474,7 +483,7 @@ def parse_args(suite, argv):
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     if len(argv) < 2 or argv[0] != "--suite":
-        print("usage: run --suite /path/to/suite.py [suite options]", file=sys.stderr)
+        print("usage: run --suite /path/to/suite [suite options]", file=sys.stderr)
         return 2
     try:
         suite = load_suite(argv[1])

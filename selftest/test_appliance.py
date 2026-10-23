@@ -110,6 +110,65 @@ class ResultTests(unittest.TestCase):
                     self.assertEqual(appliance.main(["--suite", str(plugin), "--list"]), 2)
 
 
+class SuiteLoadingTests(unittest.TestCase):
+    def test_directory_and_file_loading_isolate_private_and_deferred_imports(self):
+        search_path = list(sys.path)
+        framework = sys.modules["lib"]
+        package_path = list(framework.__path__)
+        with tempfile.TemporaryDirectory() as work:
+            suites = []
+            for name in ("first", "second"):
+                root = Path(work) / name
+                private = root / "lib"
+                private.mkdir(parents=True)
+                (private / "contract.py").write_text(f"VALUE = {name!r}\n")
+                (private / "deferred.py").write_text(f"VALUE = {name + '-later'!r}\n")
+                (private / "suite.py").write_text(
+                    "from lib.appliance import Suite\n"
+                    "from .contract import VALUE\n"
+                    "class ExampleSuite(Suite):\n"
+                    "    def list_tests(self, binary):\n"
+                    "        from .deferred import VALUE as later\n"
+                    "        return {self.contract: later}\n"
+                    "def create_suite():\n"
+                    "    return ExampleSuite(VALUE, VALUE, '.', '.')\n")
+                suites.append(appliance.load_suite(root))
+                suites.append(appliance.load_suite(private / "suite.py"))
+            for suite, name in zip(suites, ("first", "first", "second", "second")):
+                self.assertEqual(suite.contract, name)
+                self.assertEqual(suite.list_tests(None), {name: name + "-later"})
+            self.assertEqual(len({type(suite).__module__ for suite in suites}), 4)
+        self.assertEqual(sys.path, search_path)
+        self.assertIs(sys.modules["lib"], framework)
+        self.assertEqual(list(framework.__path__), package_path)
+        self.assertNotIn("lib.contract", sys.modules)
+        self.assertNotIn("lib.deferred", sys.modules)
+
+    def test_failed_load_removes_the_isolated_package_and_helpers(self):
+        search_path = list(sys.path)
+        before = {name for name in sys.modules if name.startswith("vv_external_")}
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            (root / "helper.py").write_text("VALUE = 1\n")
+            for text in (
+                    "from . import helper\nraise RuntimeError('import failed')\n",
+                    "from . import helper\ndef create_suite(): return object()\n"):
+                with self.subTest(text=text):
+                    plugin = root / "suite.py"
+                    plugin.write_text(text)
+                    with self.assertRaises(RuntimeError):
+                        appliance.load_suite(plugin)
+                    self.assertEqual(
+                        {name for name in sys.modules if name.startswith("vv_external_")},
+                        before)
+                    self.assertEqual(sys.path, search_path)
+
+    def test_directory_without_a_definition_reports_the_expected_path(self):
+        with tempfile.TemporaryDirectory() as work:
+            with self.assertRaisesRegex(RuntimeError, r"lib/suite\.py"):
+                appliance.load_suite(work)
+
+
 class SourceCatalogTests(unittest.TestCase):
     def test_source_ids_and_descriptions_without_building(self):
         with tempfile.TemporaryDirectory() as work:
