@@ -42,14 +42,10 @@ RUN_MOD = None
 
 
 def setup():
-    """Create symlink, dummy initramfs, and load run.py module."""
+    """Create the mock VMM symlink and load the runner module."""
     global RUN_MOD
     if not os.path.exists(MOCK_LINK):
         os.symlink("mock-vmm", MOCK_LINK)
-    initramfs = os.path.join(ROOT_DIR, "target", "initramfs.cpio.gz")
-    os.makedirs(os.path.dirname(initramfs), exist_ok=True)
-    if not os.path.exists(initramfs):
-        open(initramfs, "w").close()
     RUN_MOD = _load_run_module()
 
 
@@ -59,6 +55,7 @@ def run_runner(*args):
         sys.executable, RUN,
         "--vmm", MOCK_LINK,
         "--kernel", "/dev/null",
+        "--initramfs", MOCK_VMM,
         "--timeout", "5",
     ] + list(args)
     env = dict(os.environ)
