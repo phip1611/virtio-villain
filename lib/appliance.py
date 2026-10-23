@@ -2,6 +2,7 @@
 """Shared appliance orchestration for explicitly loaded external test suites."""
 
 import argparse
+from collections import Counter
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 import hashlib
@@ -17,6 +18,7 @@ import sys
 import threading
 import time
 import uuid
+from lib import reporting
 
 
 @dataclass
@@ -30,6 +32,10 @@ class Suite:
     protocol_prefix: str = "VV"
     requires_control: bool = False
     host_shutdown: bool = False
+
+    def list_tests(self, binary):
+        """Return the browsable catalog, optionally from source registrations."""
+        return catalog(binary)
 
     def add_arguments(self, parser):
         """Register suite-specific launch options without changing the core CLI."""
@@ -76,15 +82,49 @@ def executable(value):
 def catalog(binary):
     result = subprocess.run([executable(binary), "--list"], check=True,
                             capture_output=True, text=True, timeout=10)
+    return parse_catalog(result.stdout)
+
+
+def parse_catalog(text):
     tests = {}
-    for line in result.stdout.splitlines():
+    for line in text.splitlines():
         name, separator, description = line.partition("\t")
-        if not separator or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]*", name) or name in tests:
+        if (not separator or not description or "\t" in description
+                or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]*", name) or name in tests):
             raise RuntimeError(f"Invalid test catalog entry: {line!r}")
         tests[name] = description
     if not tests:
-        raise RuntimeError("Suite executable contains no tests")
+        raise RuntimeError("Suite catalog contains no tests")
     return dict(sorted(tests.items()))
+
+
+def source_catalog(paths, macro="VV_REGISTER_TEST"):
+    """Read literal three or four argument registrations without compiling C."""
+    identifier = r"[A-Za-z_][A-Za-z0-9_]*"
+    literal = r'"(?:[^"\\\r\n]|\\[^\r\n])*"'
+    start = rf"^[ \t]*{re.escape(macro)}\s*\("
+    registration = re.compile(
+        start + rf"\s*(?:{identifier}\s*,\s*)?({identifier})\s*,\s*"
+        + rf"{identifier}\s*,\s*({literal})\s*\)\s*;?[ \t]*$", re.MULTILINE)
+    comments = re.compile(r'"(?:\\.|[^"\\])*"|/\*.*?\*/|//[^\n]*', re.DOTALL)
+    entries = []
+    for path in sorted(map(Path, paths)):
+        text = comments.sub(
+            lambda match: match[0] if match[0].startswith('"') else
+            "\n" * match[0].count("\n"), path.read_text())
+        matches = list(registration.finditer(text))
+        if not matches or len(matches) != len(re.findall(start, text, re.MULTILINE)):
+            raise RuntimeError(f"Expected literal {macro} registrations in {path}")
+        for match in matches:
+            try:
+                description = json.loads(match[2])
+            except json.JSONDecodeError as error:
+                raise RuntimeError(f"Unsupported description literal in {path}: {error}") \
+                    from error
+            if not description or any(char in description for char in "\r\n\t"):
+                raise RuntimeError(f"Invalid test description in {path}")
+            entries.append(f"{match[1]}\t{description}")
+    return parse_catalog("\n".join(entries))
 
 
 def parse_results(text, selected, token, contract, prefix="VV"):
@@ -200,7 +240,7 @@ def wait_for_appliance(proc, suite, args, selected, run_id, log_path, outcome, s
             return returncode
 
 
-def launch(suite, args, selected):
+def launch(suite, args, selected, descriptions=None):
     if suite.requires_control and not args.control:
         raise RuntimeError("This suite requires external watchdog/recovery controls")
     token = uuid.uuid4().hex
@@ -216,8 +256,59 @@ def launch(suite, args, selected):
     policy_lock = threading.Lock()
     output_lock = threading.Lock()
     completed = {}
+    human_results = []
+    descriptions = descriptions or {}
+    color = sys.stdout.isatty()
+    total = len(selected) * args.repeat
+    suffix = f" (run {args.repeat})" if args.repeat > 1 else ""
+    longest_desc = max((len(descriptions.get(name, "")) + len(suffix)
+                        for name in selected), default=10)
     tasks = iter(enumerate((iteration, test) for iteration in range(args.repeat)
                            for test in selected))
+    launcher = getattr(args, "launcher", None) or getattr(args, "vmm", None) or suite.name
+    print(f"Running {total} test(s) against {launcher} ({suite.name})\n", flush=True)
+
+    def clear_progress():
+        if color:
+            sys.stdout.write("\r\033[K")
+            sys.stdout.flush()
+
+    def progress(current=""):
+        if color:
+            counts = Counter(status for _, status, _ in human_results)
+            sys.stdout.write(reporting.format_progress(
+                counts, len(human_results), total, current,
+                reporting.terminal_width(sys.stdout)))
+            sys.stdout.flush()
+
+    def show_outcome(outcome):
+        name = outcome["test"]
+        status = "INFRA" if outcome["status"] == 2 else outcome["tests"].get(name, "INFRA")
+        description = descriptions.get(name, "")
+        if args.repeat > 1:
+            description += f" (run {outcome['iteration']})"
+        info = (description, "", "")
+        with output_lock:
+            clear_progress()
+            human_results.append((name, status, info))
+            print(reporting.format_test_line(
+                name, status, info, longest_desc, reporting.terminal_width(sys.stdout),
+                color), flush=True)
+            if status in ("FAIL", "INFRA"):
+                for field in ("error", "termination_error", "recovery_error", "disarm_error"):
+                    if field in outcome:
+                        print(reporting.format_detail(outcome[field], color), flush=True)
+                if "console" in outcome:
+                    log_path = Path(outcome["console"])
+                    print(reporting.format_detail(f"log: {log_path}", color), flush=True)
+                    if log_path.is_file():
+                        with log_path.open("rb") as stream:
+                            stream.seek(max(0, log_path.stat().st_size - 8192))
+                            tail = stream.read().decode(errors="replace").splitlines()[-10:]
+                        for line in tail:
+                            if line:
+                                print(reporting.format_detail(line, color), flush=True)
+            progress()
 
     def record(index, outcome):
         if outcome is not None:
@@ -227,6 +318,8 @@ def launch(suite, args, selected):
         if report.get("interrupted"):
             report["status"] = 2
         (directory / "results.json").write_text(json.dumps(report, indent=2) + "\n")
+        if outcome is not None:
+            show_outcome(outcome)
 
     with (directory / "control.log").open("wb", buffering=0) as control_log:
         def run_one(iteration, test):
@@ -248,8 +341,7 @@ def launch(suite, args, selected):
                 log_path = directory / f"console-{iteration + 1}-{test}.log"
                 outcome.update(command=command, console=str(log_path))
                 with output_lock:
-                    print(f"[RUN] {test} (run {iteration + 1}, timeout {args.timeout:g}s) "
-                          f"console={log_path}", flush=True)
+                    progress(test)
                 if control_command:
                     control(control_command, "arm", run_id, args.timeout, control_log)
                     armed = True
@@ -300,14 +392,6 @@ def launch(suite, args, selected):
             if not control_ready or any(field in outcome for field in (
                     "interrupted", "termination_error", "recovery_error", "disarm_error")):
                 stopped.set()
-            with output_lock:
-                for name, verdict in outcome.get("tests", {}).items():
-                    print(f"[{verdict}] {name} (run {iteration + 1})", flush=True)
-                if not outcome["tests"]:
-                    print(f"[INFRA] {test} (run {iteration + 1})", flush=True)
-                for field in ("error", "termination_error", "recovery_error", "disarm_error"):
-                    if field in outcome:
-                        print(f"[INFRA] {test}: {outcome[field]}", file=sys.stderr)
             return outcome
 
         if args.jobs == 1:
@@ -339,8 +423,18 @@ def launch(suite, args, selected):
                             record(None, None)
                 finally:
                     stopped.set()
-    verdict = ("PASS", "FAIL", "INFRA")[report["status"]]
-    print(f"{suite.name} overall: {verdict}\nDiagnostics: {directory}")
+    clear_progress()
+    counts = Counter(status for _, status, _ in human_results)
+    if report.get("interrupted"):
+        print("\nInterrupted.")
+        if not counts["INFRA"]:
+            counts["INFRA"] = 1
+    print(reporting.format_summary(counts, len(human_results), color))
+    for status in ("FAIL", "INFRA"):
+        entries = [(name, info[0]) for name, verdict, info in human_results if verdict == status]
+        if entries:
+            print(reporting.format_failure_list(entries, status, color))
+    print(f"Diagnostics: {directory}", flush=True)
     return report["status"]
 
 
@@ -385,15 +479,16 @@ def main(argv=None):
     try:
         suite = load_suite(argv[1])
         args = parse_args(suite, argv[2:])
-        tests = catalog(args.binary)
         if args.list:
+            tests = suite.list_tests(args.binary)
             for name, description in tests.items():
                 print(f"{name}\t{description}")
             return 0
+        tests = catalog(args.binary)
         if len(set(args.tests)) != len(args.tests) or any(t not in tests for t in args.tests):
             raise RuntimeError("Unknown or duplicate test selection; use --list")
         suite.preflight(args)
-        return launch(suite, args, args.tests or list(tests))
+        return launch(suite, args, args.tests or list(tests), tests)
     except (OSError, RuntimeError, subprocess.SubprocessError, ImportError,
             AttributeError, ValueError, TypeError, SyntaxError) as error:
         print(f"[INFRA] {error}", file=sys.stderr)

@@ -19,7 +19,7 @@ from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from lib import appliance, initramfs  # noqa: E402
+from lib import appliance, initramfs, reporting  # noqa: E402
 
 
 def output(verdict="PASS"):
@@ -85,7 +85,8 @@ class ResultTests(unittest.TestCase):
         self.assertEqual(appliance.parse_args(suite, ["--list", "-j", "16"]).jobs, 16)
 
     def test_catalog_validation(self):
-        for text in ("", "EX001 missing-tab", "EX001\ta\nEX001\tb", "invalid id\ta"):
+        for text in ("", "EX001 missing-tab", "EX001\ta\nEX001\tb", "invalid id\ta",
+                     "EX001\t", "EX001\ta\tb"):
             with self.subTest(text=text), \
                  patch.object(appliance, "executable", return_value="init"), \
                  patch.object(appliance.subprocess, "run",
@@ -107,6 +108,70 @@ class ResultTests(unittest.TestCase):
                 plugin.write_text(text)
                 with contextlib.redirect_stderr(io.StringIO()):
                     self.assertEqual(appliance.main(["--suite", str(plugin), "--list"]), 2)
+
+
+class SourceCatalogTests(unittest.TestCase):
+    def test_source_ids_and_descriptions_without_building(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            first, second = root / "first.c", root / "second.c"
+            first.write_text(
+                '/*\nREGISTER_CASE(EX999, ignored, "commented out");\n*/\n'
+                '// REGISTER_CASE(EX998, ignored, "also ignored");\n'
+                'REGISTER_CASE(EX002, second, "second \\"quoted\\" case");\n')
+            second.write_text('REGISTER_CASE(EX001, first, "see https://example.org");\n')
+            self.assertEqual(appliance.source_catalog([first, second], "REGISTER_CASE"), {
+                "EX001": "see https://example.org",
+                "EX002": 'second "quoted" case',
+            })
+            second.write_text('VV_REGISTER_TEST(registry, EX003, third, "third case");\n')
+            self.assertEqual(appliance.source_catalog([second]), {"EX003": "third case"})
+
+    def test_empty_duplicate_and_nonliteral_registrations_are_errors(self):
+        with tempfile.TemporaryDirectory() as work:
+            source = Path(work) / "case.c"
+            for text in (
+                    "", '/* REGISTER_CASE(EX001, first, "disabled"); */',
+                    'REGISTER_CASE(EX001, first, DESCRIPTION);',
+                    'REGISTER_CASE(EX001, first, "");',
+                    'REGISTER_CASE(EX001, first, "one" "two");',
+                    'REGISTER_CASE(EX001, first, "bad\\nline");',
+                    'REGISTER_CASE(EX001, first, "one");\n'
+                    'REGISTER_CASE(EX001, second, "two");'):
+                source.write_text(text)
+                with self.subTest(text=text), self.assertRaises(RuntimeError):
+                    appliance.source_catalog([source], "REGISTER_CASE")
+            with self.assertRaises(RuntimeError):
+                appliance.source_catalog([], "REGISTER_CASE")
+
+    def test_cli_source_listing_needs_no_executable_but_execution_still_does(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            source = root / "case.c"
+            source.write_text('REGISTER_CASE(EX001, first, "first source case");\n')
+            image = root / "image"
+            image.write_bytes(b"image")
+
+            class SourceSuite(appliance.Suite):
+                def list_tests(self, binary):
+                    return appliance.source_catalog([source], "REGISTER_CASE")
+
+                def preflight(self, args):
+                    raise AssertionError("Source listing must not run host preflight")
+
+            suite = SourceSuite("example", "example-v1", root / "missing-init", image)
+            stdout, stderr = io.StringIO(), io.StringIO()
+            with patch.object(appliance, "load_suite", return_value=suite), \
+                 patch.object(appliance.subprocess, "run") as run, \
+                 contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                self.assertEqual(appliance.main([
+                    "--suite", "/unused", "--binary", str(root / "missing-init"), "--list"]), 0)
+                self.assertEqual(stdout.getvalue(), "EX001\tfirst source case\n")
+                self.assertEqual(stderr.getvalue(), "")
+                self.assertEqual(appliance.main([
+                    "--suite", "/unused", "--kernel", str(image), "EX001"]), 2)
+                self.assertIn("Executable not found", stderr.getvalue())
+                run.assert_not_called()
 
 
 class PackageTests(unittest.TestCase):
@@ -440,6 +505,70 @@ class ParallelTests(unittest.TestCase):
                 self.assertIn("arm failed", run["error"])
 
 
+class HumanOutputTests(unittest.TestCase):
+    def test_standard_rows_summary_and_failure_output_in_plain_and_tty_modes(self):
+        for tty in (False, True):
+            for mode in ("PASS", "FAIL", "infra", "disarm"):
+                with self.subTest(tty=tty, mode=mode), tempfile.TemporaryDirectory() as work:
+                    root = Path(work)
+                    image = root / "image"
+                    image.write_bytes(b"image")
+
+                    class Console(io.StringIO):
+                        def isatty(self):
+                            return tty
+
+                    class ExampleSuite(appliance.Suite):
+                        def build_command(self, args, selected, token):
+                            return [sys.executable, token]
+
+                    suite = ExampleSuite("example", "example-v1", root / "init", image)
+                    options = ["--control", sys.executable] if mode == "disarm" else []
+                    args = appliance.parse_args(suite, [
+                        "--kernel", str(image), "--output", str(root / "results"), *options])
+
+                    def popen(command, **kwargs):
+                        verdict = "FAIL" if mode == "FAIL" else "PASS"
+                        text = "operation: expected 0, actual -1\n" + output(verdict)
+                        kwargs["stdout"].write(text.replace("token", command[-1]).encode())
+                        proc = Mock()
+                        proc.wait.return_value = 1 if mode == "infra" else 0
+                        proc.poll.return_value = 0
+                        return proc
+
+                    def control(command, action, token, timeout, log):
+                        if action == "disarm":
+                            raise RuntimeError("disarm failed")
+
+                    captured = Console()
+                    description = "create initialized partition"
+                    with patch.object(appliance.subprocess, "Popen", side_effect=popen), \
+                         patch.object(appliance, "control", side_effect=control), \
+                         contextlib.redirect_stdout(captured):
+                        status = appliance.launch(suite, args, ["EX001"],
+                                                  {"EX001": description})
+                    expected = "INFRA" if mode in ("infra", "disarm") else mode
+                    counts = {expected: 1}
+                    self.assertEqual(status, 2 if expected == "INFRA" else
+                                     1 if expected == "FAIL" else 0)
+                    text = captured.getvalue()
+                    self.assertIn(reporting.format_test_line(
+                        "EX001", expected, (description, "", ""), len(description),
+                        color=tty), text)
+                    self.assertIn(reporting.format_summary(counts, 1, tty), text)
+                    self.assertNotIn("[RUN]", text)
+                    self.assertNotIn("overall:", text)
+                    self.assertEqual("\033[" in text, tty)
+                    if expected != "PASS":
+                        self.assertIn("log:", text)
+                        self.assertIn("operation: expected 0, actual -1", text)
+                        self.assertIn("INFRASTRUCTURE:" if expected == "INFRA" else
+                                      "FAILED:", text)
+                        if mode == "disarm":
+                            self.assertIn("disarm failed", text)
+                            self.assertNotIn("[PASS]", text)
+
+
 class ControlTests(unittest.TestCase):
     def test_each_case_has_its_own_boot_and_continues_after_guest_failure(self):
         class ExampleSuite(appliance.Suite):
@@ -482,8 +611,10 @@ class ControlTests(unittest.TestCase):
                 self.assertEqual([name for name, _ in boots],
                                  ["EX001", "EX002", "EX001", "EX002"])
                 self.assertEqual(len({token for _, token in boots}), 4)
-                self.assertEqual(progress.getvalue().count("[RUN]"), 4)
-                self.assertIn("[RUN] EX002 (run 2, timeout 120s)", progress.getvalue())
+                self.assertNotIn("[RUN]", progress.getvalue())
+                self.assertEqual(progress.getvalue().count("[PASS]"), 2)
+                self.assertIn("2/4 tests passed", progress.getvalue())
+                self.assertIn(" (run 2)", progress.getvalue())
                 report = json.loads((root / "results/results.json").read_text())
                 self.assertEqual(len(report["runs"]), 4)
                 self.assertEqual(len({run["console"] for run in report["runs"]}), 4)

@@ -8,6 +8,7 @@ and exit codes, prints a summary.
 """
 
 import argparse
+from collections import Counter
 import fnmatch
 import json
 import hashlib
@@ -31,6 +32,7 @@ import time
 import atexit
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from lib import reporting
 
 sys.stdout.reconfigure(line_buffering=True)
 
@@ -2667,7 +2669,7 @@ def _desc_column_width(cols, longest_desc, fixed):
     section columns, and floored at 10 so a narrow terminal still shows
     something. fixed is the width taken by the other columns.
     """
-    return max(10, min(cols - fixed, longest_desc))
+    return reporting.desc_column_width(cols, longest_desc, fixed)
 
 
 def _qemu_aio_forces_direct(backend_name, io_engine, direct):
@@ -3132,39 +3134,10 @@ def main():
         """Draw a progress line at the bottom (overwritten each time)."""
         if not is_tty or args.console:
             return
-        cols = os.get_terminal_size(sys.stdout.fileno()).columns
-        passed = sum(1 for _, s, _ in results if s == "PASS")
-        failed = sum(1 for _, s, _ in results if s == "FAIL")
-        wedged_cnt = sum(1 for _, s, _ in results if s == "WEDGED")
-        reject_cnt = sum(1 for _, s, _ in results if s == "REJECT")
-        skip_cnt = sum(1 for _, s, _ in results if s == "SKIP")
-        xfail_cnt = sum(1 for _, s, _ in results if s == "XFAIL")
-        xpass_cnt = sum(1 for _, s, _ in results if s == "XPASS")
-        retried_cnt = len(retried)
-        parts = [f"{done}/{total}"]
-        if passed:
-            parts.append(f"\033[32m{passed}P\033[0m")
-        if failed:
-            parts.append(f"\033[31m{failed}F\033[0m")
-        if reject_cnt:
-            parts.append(f"\033[35m{reject_cnt}R\033[0m")
-        if wedged_cnt:
-            parts.append(f"\033[33m{wedged_cnt}W\033[0m")
-        if skip_cnt:
-            parts.append(f"\033[36m{skip_cnt}S\033[0m")
-        if xfail_cnt:
-            parts.append(f"\033[34m{xfail_cnt}XF\033[0m")
-        if xpass_cnt:
-            parts.append(f"\033[31m{xpass_cnt}XP\033[0m")
-        if retried_cnt:
-            parts.append(f"\033[93m{retried_cnt}RT\033[0m")
-        status = " ".join(parts)
-        if current:
-            line = f"{status} | {current}"
-        else:
-            line = status
-        # Truncate to terminal width (accounting for ANSI escapes)
-        sys.stdout.write(f"\r\033[K{line[:cols]}")
+        cols = reporting.terminal_width(sys.stdout)
+        counts = Counter(status for _, status, _ in results)
+        counts["RETRIED"] = len(retried)
+        sys.stdout.write(reporting.format_progress(counts, done, total, current, cols))
         sys.stdout.flush()
 
     def _clear_progress():
@@ -3172,17 +3145,8 @@ def main():
             sys.stdout.write("\r\033[K")
             sys.stdout.flush()
 
-    _STATUS_COLORS = {
-        "PASS": "\033[32m",
-        "FAIL": "\033[31m",
-        "REJECT": "\033[35m",
-        "WEDGED": "\033[33m",
-        "SKIP": "\033[36m",
-        "XFAIL": "\033[34m",
-        "XPASS": "\033[31m",
-    }
-    _RESET = "\033[0m"
-    _DIM = "\033[2m"
+    _RESET = reporting.RESET
+    _DIM = reporting.DIM
 
     # Longest description among the tests in this run. The result table
     # pads the description column to this width so it stays aligned
@@ -3192,42 +3156,11 @@ def main():
          for t in tests + [name for name, _, _ in skipped_mmio]),
         default=10)
 
-    def _color_status(status):
-        if not is_tty:
-            return f"[{status}]"
-        c = _STATUS_COLORS.get(status, "")
-        return f"{c}[{status}]{_RESET}"
-
     def _format_test_line(name, status):
         """Format a full test result line fitting in terminal width."""
-        # Pad status tag to fixed 8 visual chars: [WEDGED] is longest
-        tag_fixed = 8
-        plain_tag = f"[{status}]"
-        padded_tag = plain_tag.ljust(tag_fixed)
-        if is_tty:
-            c = _STATUS_COLORS.get(status, "")
-            tag = f"{c}{padded_tag}{_RESET}"
-        else:
-            tag = padded_tag
-        # Fixed right columns: ver(4) + sp + sec(12)
-        ver_w = 4
-        sec_w = 12
-        name_w = 7
-        try:
-            cols = os.get_terminal_size(sys.stdout.fileno()).columns
-        except (OSError, ValueError):
-            cols = 80
-        # Layout: TAG(8) SP NAME(5) SP DESC SP VER(4) SP SEC(12)
-        fixed = tag_fixed + 1 + name_w + 1 + 1 + ver_w + 1 + sec_w
-        # Cap the description column at the longest description in the
-        # run so a wide terminal does not pad every line with a long run
-        # of spaces before the version and section columns.
-        desc_max = _desc_column_width(cols, _desc_col, fixed)
-        desc, ver, sec = test_info.get(name, ("", "", ""))
-        if len(desc) > desc_max:
-            desc = desc[:desc_max - 1] + "~"
-        body = f"{name:<{name_w}} {desc:<{desc_max}} {ver:<{ver_w}} {sec:<{sec_w}}"
-        return f"{tag} {body}"
+        cols = reporting.terminal_width(sys.stdout)
+        return reporting.format_test_line(
+            name, status, test_info.get(name, ("", "", "")), _desc_col, cols, is_tty)
 
     def _report(name, status, output):
         """Print one test result immediately."""
@@ -3244,8 +3177,7 @@ def main():
             print(_format_test_line(name, status), file=human)
 
         def _emit(line):
-            print(f"{_DIM}       {line}{_RESET}" if is_tty
-                  else f"       {line}", file=human)
+            print(reporting.format_detail(line, is_tty), file=human)
 
         if args.log_dir and output:
             log_path = os.path.join(args.log_dir, f"{name}.log")
@@ -3440,57 +3372,17 @@ def main():
         # Final safety net: anything still tracked gets SIGKILL'd.
         _kill_all_live_procs()
 
-    num_passed = sum(1 for _, s, _ in results if s == "PASS")
-    num_failed = sum(1 for _, s, _ in results if s == "FAIL")
-    num_reject = sum(1 for _, s, _ in results if s == "REJECT")
-    num_wedged = sum(1 for _, s, _ in results if s == "WEDGED")
-    num_skip = sum(1 for _, s, _ in results if s == "SKIP")
-    num_xfail = sum(1 for _, s, _ in results if s == "XFAIL")
-    num_xpass = sum(1 for _, s, _ in results if s == "XPASS")
-    num_retried = len(retried)
+    counts = Counter(status for _, status, _ in results)
+    counts["RETRIED"] = len(retried)
     total = len(results)
 
-    if is_tty:
-        summary = f"\n\033[1m{num_passed}/{total} tests passed\033[0m"
-        if num_failed:
-            summary += f", \033[31m{num_failed} failed\033[0m"
-        if num_reject:
-            summary += f", \033[35m{num_reject} rejected\033[0m"
-        if num_wedged:
-            summary += f", \033[33m{num_wedged} wedged\033[0m"
-        if num_skip:
-            summary += f", \033[36m{num_skip} skipped\033[0m"
-        if num_xfail:
-            summary += f", \033[34m{num_xfail} xfail\033[0m"
-        if num_xpass:
-            summary += f", \033[31m{num_xpass} xpass\033[0m"
-        if num_retried:
-            summary += f", \033[93m{num_retried} retried\033[0m"
-    else:
-        summary = f"\n{num_passed}/{total} tests passed"
-        if num_failed:
-            summary += f", {num_failed} failed"
-        if num_reject:
-            summary += f", {num_reject} rejected"
-        if num_wedged:
-            summary += f", {num_wedged} wedged"
-        if num_skip:
-            summary += f", {num_skip} skipped"
-        if num_xfail:
-            summary += f", {num_xfail} xfail"
-        if num_xpass:
-            summary += f", {num_xpass} xpass"
-        if num_retried:
-            summary += f", {num_retried} retried"
-    print(summary, file=human)
+    print(reporting.format_summary(counts, total, is_tty), file=human)
 
     failed = [name for name, s, _ in results if s == "FAIL"]
     if failed:
-        hdr = "\033[31mFAILED:\033[0m" if is_tty else "FAILED:"
-        print(f"\n{hdr}", file=human)
-        for name in failed:
-            desc, ver, sec = test_info.get(name, ("", "", ""))
-            print(f"  {name:<7} {desc}", file=human)
+        print(reporting.format_failure_list(
+            [(name, test_info.get(name, ("", "", ""))[0]) for name in failed],
+            color=is_tty), file=human)
 
     wedged = [name for name, s, _ in results if s == "WEDGED"]
     if wedged:
