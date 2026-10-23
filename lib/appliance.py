@@ -2,6 +2,7 @@
 """Shared appliance orchestration for explicitly loaded external test suites."""
 
 import argparse
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 import hashlib
 import importlib.util
@@ -13,6 +14,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import threading
 import time
 import uuid
 
@@ -151,12 +153,14 @@ def control(command, action, token, timeout, log):
         raise RuntimeError(f"External control {action} failed: exit {result.returncode}")
 
 
-def wait_for_appliance(proc, suite, args, selected, run_id, log_path, outcome):
-    if not suite.host_shutdown:
+def wait_for_appliance(proc, suite, args, selected, run_id, log_path, outcome, stop=None):
+    if not suite.host_shutdown and stop is None:
         return proc.wait(timeout=args.timeout)
     deadline = time.monotonic() + args.timeout
     marker = f"vv-appliance-stop {run_id}"
     while True:
+        if stop is not None and stop.is_set():
+            raise KeyboardInterrupt
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise subprocess.TimeoutExpired(proc.args, args.timeout)
@@ -164,6 +168,10 @@ def wait_for_appliance(proc, suite, args, selected, run_id, log_path, outcome):
             returncode = proc.wait(timeout=min(0.1, remaining))
         except subprocess.TimeoutExpired:
             returncode = None
+        if not suite.host_shutdown:
+            if returncode is not None:
+                return returncode
+            continue
         if log_path.stat().st_size > 16 * 1024 * 1024:
             raise RuntimeError("Console exceeds 16 MiB parsing limit; full log retained")
         text = log_path.read_text(errors="replace")
@@ -200,13 +208,30 @@ def launch(suite, args, selected):
                  (time.strftime("%Y%m%d-%H%M%S") + "-" + token[:8])).resolve()
     directory.mkdir(parents=True, exist_ok=False)
     report = {"suite": suite.name, "contract": suite.contract, "run_id": token,
-              "selected": selected, "runs": [], "status": 2,
+              "selected": selected, "jobs": args.jobs, "runs": [], "status": 2,
               "kernel": str(args.kernel), "kernel_sha256": digest(args.kernel),
               "initramfs": str(args.initramfs), "initramfs_sha256": digest(args.initramfs)}
     control_command = executable(args.control) if args.control else None
+    stopped = threading.Event()
+    policy_lock = threading.Lock()
+    output_lock = threading.Lock()
+    completed = {}
+    tasks = iter(enumerate((iteration, test) for iteration in range(args.repeat)
+                           for test in selected))
+
+    def record(index, outcome):
+        if outcome is not None:
+            completed[index] = outcome
+            report["runs"] = [completed[key] for key in sorted(completed)]
+            report["status"] = max(run["status"] for run in report["runs"])
+        if report.get("interrupted"):
+            report["status"] = 2
+        (directory / "results.json").write_text(json.dumps(report, indent=2) + "\n")
+
     with (directory / "control.log").open("wb", buffering=0) as control_log:
-        for iteration, test in ((iteration, test) for iteration in range(args.repeat)
-                                for test in selected):
+        def run_one(iteration, test):
+            if stopped.is_set():
+                return None
             run_id = token + f"-{iteration + 1}-{test}"
             outcome = {"run_id": run_id, "test": test, "iteration": iteration + 1,
                        "tests": {}, "status": 2}
@@ -214,25 +239,30 @@ def launch(suite, args, selected):
             control_ready = control_command is None
             proc = None
             try:
-                command = suite.build_command(args, [test], run_id)
+                with policy_lock:
+                    command = suite.build_command(args, [test], run_id)
                 if (not isinstance(command, list) or not command
                         or any(not isinstance(arg, str) for arg in command)):
                     raise RuntimeError("Suite build_command() must return a nonempty argv list")
                 command[0] = executable(command[0])
                 log_path = directory / f"console-{iteration + 1}-{test}.log"
                 outcome.update(command=command, console=str(log_path))
-                print(f"[RUN] {test} (run {iteration + 1}, timeout {args.timeout:g}s) "
-                      f"console={log_path}", flush=True)
+                with output_lock:
+                    print(f"[RUN] {test} (run {iteration + 1}, timeout {args.timeout:g}s) "
+                          f"console={log_path}", flush=True)
                 if control_command:
                     control(control_command, "arm", run_id, args.timeout, control_log)
                     armed = True
                     control_ready = True
+                if stopped.is_set():
+                    raise KeyboardInterrupt
                 with log_path.open("wb", buffering=0) as console:
                     proc = subprocess.Popen(command, stdout=console, stderr=subprocess.STDOUT,
                                             stdin=subprocess.DEVNULL)
                     try:
                         returncode = wait_for_appliance(
-                            proc, suite, args, [test], run_id, log_path, outcome)
+                            proc, suite, args, [test], run_id, log_path, outcome,
+                            stopped if args.jobs > 1 else None)
                     except subprocess.TimeoutExpired:
                         outcome["timed_out"] = True
                         raise RuntimeError(f"Appliance exceeded {args.timeout}s deadline")
@@ -267,19 +297,48 @@ def launch(suite, args, selected):
                         except (OSError, RuntimeError, subprocess.SubprocessError) as error:
                             outcome["disarm_error"] = str(error)
                             outcome["status"] = 2
-                report["runs"].append(outcome)
-                report["status"] = max(run["status"] for run in report["runs"])
-                (directory / "results.json").write_text(json.dumps(report, indent=2) + "\n")
-            for name, verdict in outcome.get("tests", {}).items():
-                print(f"[{verdict}] {name} (run {iteration + 1})", flush=True)
-            if not outcome["tests"]:
-                print(f"[INFRA] {test} (run {iteration + 1})", flush=True)
-            for field in ("error", "termination_error", "recovery_error", "disarm_error"):
-                if field in outcome:
-                    print(f"[INFRA] {test}: {outcome[field]}", file=sys.stderr)
             if not control_ready or any(field in outcome for field in (
                     "interrupted", "termination_error", "recovery_error", "disarm_error")):
-                break
+                stopped.set()
+            with output_lock:
+                for name, verdict in outcome.get("tests", {}).items():
+                    print(f"[{verdict}] {name} (run {iteration + 1})", flush=True)
+                if not outcome["tests"]:
+                    print(f"[INFRA] {test} (run {iteration + 1})", flush=True)
+                for field in ("error", "termination_error", "recovery_error", "disarm_error"):
+                    if field in outcome:
+                        print(f"[INFRA] {test}: {outcome[field]}", file=sys.stderr)
+            return outcome
+
+        if args.jobs == 1:
+            for index, (iteration, test) in tasks:
+                record(index, run_one(iteration, test))
+                if stopped.is_set():
+                    break
+        else:
+            with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+                pending = {}
+                try:
+                    while True:
+                        try:
+                            while not stopped.is_set() and len(pending) < args.jobs:
+                                task = next(tasks, None)
+                                if task is None:
+                                    break
+                                index, (iteration, test) = task
+                                pending[pool.submit(run_one, iteration, test)] = index
+                            if not pending:
+                                break
+                            done, _ = wait(pending, return_when=FIRST_COMPLETED)
+                            for future in done:
+                                outcome = future.result()
+                                record(pending.pop(future), outcome)
+                        except KeyboardInterrupt:
+                            report["interrupted"] = True
+                            stopped.set()
+                            record(None, None)
+                finally:
+                    stopped.set()
     verdict = ("PASS", "FAIL", "INFRA")[report["status"]]
     print(f"{suite.name} overall: {verdict}\nDiagnostics: {directory}")
     return report["status"]
@@ -296,11 +355,15 @@ def parse_args(suite, argv):
     parser.add_argument("--control", help="External watchdog/recovery control executable")
     parser.add_argument("--timeout", type=float, default=120)
     parser.add_argument("--repeat", type=int, default=1)
+    parser.add_argument("-j", "--jobs", type=int, default=1, metavar="N",
+                        help="Maximum concurrent appliance VMs (default: 1)")
     parser.add_argument("--output", type=Path, help="New diagnostics directory")
     suite.add_arguments(parser)
     args = parser.parse_args(argv)
     if args.repeat < 1 or not math.isfinite(args.timeout) or args.timeout <= 0:
         parser.error("--repeat and --timeout must be positive and finite")
+    if args.jobs < 1:
+        parser.error("--jobs must be a positive integer")
     if args.list and args.tests:
         parser.error("--list cannot be combined with test selection")
     if not args.list:
