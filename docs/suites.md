@@ -18,6 +18,7 @@ points contain no device or kernel interfaces specific to an external suite.
 | `lib/appliance_init.c` | PID 1 startup and mounts with kernel command line selection and shutdown |
 | `lib/initramfs.py` | Reproducible packaging of a static ELF executable as `/init` |
 | `lib/appliance.py` | Catalog discovery, launch supervision, console capture, result validation and JSON reporting |
+| `lib/reporting.py` | Shared human result rows, terminal progress, summaries and failure lists |
 | `run --suite FILE` | Explicitly load a trusted suite policy module |
 | `make appliance-initramfs` | Build an explicit external source list independently of virtio |
 
@@ -144,6 +145,14 @@ Put `--suite FILE` first. `--help` after it shows both common and suite
 options. `--list` does not run the host preflight, boot an appliance, or require
 a kernel or recovery control.
 
+A policy can override `list_tests(self, binary)` to return IDs and
+descriptions from its sources before an executable has been built.
+`lib.appliance.source_catalog(paths, macro)` reads literal registration
+descriptions with either three arguments or an initial registry argument.
+It ignores comments and rejects empty, duplicate or malformed entries.
+This is a source index, not a C preprocessor. Execution always uses the
+compiled executable's catalog, including its conditional build choices.
+
 Each selected test runs in a fresh appliance VM with its own run identifier,
 console log and timeout. `--repeat N` repeats that sequence N times.
 Use `--jobs N` or `-j N` to run up to N appliance VMs concurrently.
@@ -203,6 +212,13 @@ Exit codes are 0 (pass), 1 (assertion/cleanup failure), and 2 (infrastructure,
 including timeouts and entirely unexecuted suites). The diagnostics directory
 contains console logs, external control logs and `results.json`. The JSON
 report includes image hashes, exact launch arguments and test verdicts.
+
+Human output uses the same aligned result rows, terminal colors, progress,
+count summary and failure lists as the virtio runner. Test descriptions come
+from the suite catalog. External suites leave virtio specification columns
+empty. Infrastructure problems remain `INFRA`, including failures after an
+otherwise passing guest result. Failure output includes console paths and
+diagnostic excerpts. Repeated cases identify their run in the description.
 
 ## External timeout and recovery
 
