@@ -146,6 +146,10 @@ a kernel or recovery control.
 
 Each selected test runs in a fresh appliance VM with its own run identifier,
 console log and timeout. `--repeat N` repeats that sequence N times.
+Use `--jobs N` or `-j N` to run up to N appliance VMs concurrently.
+The default is one. Tests and repetitions share the concurrency limit.
+Completed results are saved as they arrive and listed in selection order
+in the JSON report. Each test retains its own VM and diagnostics.
 Assertion failures, guest crashes and timeouts do not prevent later tests
 from running once the previous launcher has been terminated.
 
@@ -153,6 +157,11 @@ Execution stops on interruption or failed launcher termination. It also
 stops if external control cannot arm, recover or disarm. Results completed
 before the stop remain in the report. Any failure keeps the overall result
 failing even when later tests pass.
+
+During parallel execution, interruption or a safety control failure stops
+new launches and cancels active VMs through the normal cleanup path.
+External controls used with parallel jobs must support independent run IDs
+and simultaneous control requests.
 
 ## Result and process contract
 
