@@ -144,6 +144,16 @@ Put `--suite FILE` first. `--help` after it shows both common and suite
 options. `--list` does not run the host preflight, boot an appliance, or require
 a kernel or recovery control.
 
+Each selected test runs in a fresh appliance VM with its own run identifier,
+console log and timeout. `--repeat N` repeats that sequence N times.
+Assertion failures, guest crashes and timeouts do not prevent later tests
+from running once the previous launcher has been terminated.
+
+Execution stops on interruption or failed launcher termination. It also
+stops if external control cannot arm, recover or disarm. Results completed
+before the stop remain in the report. Any failure keeps the overall result
+failing even when later tests pass.
+
 ## Result and process contract
 
 With protocol prefix `VV`, the guest emits:
