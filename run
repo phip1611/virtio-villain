@@ -2697,12 +2697,17 @@ class ShortFirstHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
 
 def main():
+    if sys.argv[1:2] == ["--suite"]:
+        from lib.appliance import main as run_appliance
+        sys.exit(run_appliance(sys.argv[1:]))
     parser = argparse.ArgumentParser(
         description="virtio-villain test runner",
         formatter_class=ShortFirstHelpFormatter,
         add_help=False,
         epilog=(
             "examples\n"
+            "  run --suite /path/to/suite.py --list\n"
+            "        load an external appliance suite without virtio setup\n"
             "  run -m ./cloud-hypervisor\n"
             "        run all tests on Cloud Hypervisor\n"
             "  run -m ./qemu-system-x86_64 --order fast -j 4\n"
