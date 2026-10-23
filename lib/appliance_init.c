@@ -39,7 +39,7 @@ int vv_appliance_main(int argc, char **argv, const struct vv_test_suite *suite)
     }
     if (stream)
         fclose(stream);
-    char *selection = NULL, *token = NULL, *save;
+    char *selection = NULL, *token = NULL, *shutdown = NULL, *save;
     for (char *arg = strtok_r(cmdline, " \n", &save); arg;
          arg = strtok_r(NULL, " \n", &save)) {
         if (!strncmp(arg, "vv.tests=", 9)) {
@@ -50,7 +50,15 @@ int vv_appliance_main(int argc, char **argv, const struct vv_test_suite *suite)
             if (token)
                 ready = 0;
             token = arg + 7;
+        } else if (!strncmp(arg, "vv.shutdown=", 12)) {
+            if (shutdown)
+                ready = 0;
+            shutdown = arg + 12;
         }
+    }
+    if (shutdown && strcmp(shutdown, "host") && strcmp(shutdown, "poweroff")) {
+        printf("vv-infra invalid vv.shutdown mode\n");
+        ready = 0;
     }
     if (!token || !*token) {
         printf("vv-infra missing vv.run token: launch through the host runner\n");
@@ -62,6 +70,11 @@ int vv_appliance_main(int argc, char **argv, const struct vv_test_suite *suite)
         printf("vv-kernel %s %s\n", kernel.release, kernel.version);
     vv_run_suite(suite, selection, token, ready);
     sync();
+    if (shutdown && !strcmp(shutdown, "host")) {
+        printf("vv-appliance-stop %s\n", token);
+        for (;;)
+            pause();
+    }
     if (reboot(RB_POWER_OFF) != 0)
         printf("vv-infra poweroff failed errno=%d; supervisor must stop appliance\n", errno);
     for (;;)

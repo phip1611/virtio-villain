@@ -6,6 +6,7 @@ import contextlib
 import gzip
 import io
 import json
+import os
 from pathlib import Path
 import shutil
 import struct
@@ -134,6 +135,130 @@ class PackageTests(unittest.TestCase):
                 initramfs.archive(value)
 
 
+@unittest.skipUnless(shutil.which("cc"), "C compiler required")
+class ApplianceStartupTests(unittest.TestCase):
+    def test_host_shutdown_waits_after_sync_without_poweroff(self):
+        source = r'''
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/mount.h>
+#include <sys/reboot.h>
+#include <unistd.h>
+#include "lib/test_runner.h"
+
+pid_t __wrap_getpid(void) { return 1; }
+int __wrap_mount(const char *source, const char *target, const char *type,
+                 unsigned long flags, const void *data)
+{
+    assert(source && target && type && flags == 0 && data == NULL);
+    return 0;
+}
+FILE *__wrap_fopen(const char *path, const char *mode)
+{
+    assert(!strcmp(path, "/proc/cmdline") && !strcmp(mode, "r"));
+    FILE *stream = tmpfile();
+    assert(stream);
+    fprintf(stream, "vv.run=token vv.tests=EX001 %s\n", getenv("VV_TEST_CMDLINE"));
+    rewind(stream);
+    return stream;
+}
+void __wrap_sync(void) { puts("SYNC"); }
+int __wrap_reboot(int command)
+{
+    assert(command == RB_POWER_OFF);
+    puts("POWEROFF");
+    return -1;
+}
+int __wrap_pause(void) { exit(0); }
+void vv_list_tests(const struct vv_test_suite *suite) { assert(suite); }
+int vv_run_suite(const struct vv_test_suite *suite, const char *selection,
+                 const char *token, int ready)
+{
+    assert(suite && !strcmp(selection, "EX001") && !strcmp(token, "token"));
+    printf("RUN ready=%d\n", ready);
+    return ready ? 0 : 2;
+}
+int main(int argc, char **argv)
+{
+    const struct vv_test_suite suite = {0};
+    return vv_appliance_main(argc, argv, &suite);
+}
+'''
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            fixture, binary = root / "startup.c", root / "startup"
+            fixture.write_text(source)
+            wrappers = ("getpid", "mount", "fopen", "sync", "reboot", "pause")
+            subprocess.run([
+                "cc", "-O2", "-Wall", "-Wextra", "-Werror", "-I", str(ROOT),
+                str(fixture), str(ROOT / "lib/appliance_init.c"),
+                *(f"-Wl,--wrap={name}" for name in wrappers), "-o", str(binary),
+            ], check=True, capture_output=True)
+            for cmdline, ready, host in (
+                    ("", 1, False), ("vv.shutdown=poweroff", 1, False),
+                    ("vv.shutdown=host", 1, True), ("vv.shutdown=invalid", 0, False),
+                    ("vv.shutdown=host vv.shutdown=host", 0, True)):
+                with self.subTest(cmdline=cmdline):
+                    result = subprocess.run([str(binary)], capture_output=True, text=True,
+                                            env={**os.environ, "VV_TEST_CMDLINE": cmdline},
+                                            check=True, timeout=5)
+                    self.assertIn(f"RUN ready={ready}\nSYNC\n", result.stdout)
+                    self.assertEqual("POWEROFF" in result.stdout, not host)
+                    self.assertEqual("SYNC\nvv-appliance-stop token\n" in result.stdout, host)
+
+
+class HostShutdownTests(unittest.TestCase):
+    def test_validated_completion_and_failure_paths(self):
+        for mode in ("PASS", "FAIL", "invalid", "missing", "stale", "duplicate",
+                     "panic", "exit", "crash"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as work:
+                root = Path(work)
+                image = root / "image"
+                image.write_bytes(b"image")
+                transcript = output("FAIL" if mode == "FAIL" else "PASS")
+                if mode == "invalid":
+                    transcript = transcript.replace("VV-END token 0\n", "")
+                marker = "vv-appliance-stop token\n"
+                if mode in ("missing", "exit"):
+                    marker = ""
+                elif mode == "stale":
+                    marker = "vv-appliance-stop stale\n"
+                elif mode == "duplicate":
+                    marker *= 2
+                elif mode == "panic":
+                    marker += "Kernel panic - not syncing: Fatal exception\n"
+                script = (
+                    "import signal, sys\n"
+                    f"print(({transcript + marker!r}).replace('token', sys.argv[1]), "
+                    "end='', flush=True)\n"
+                    + ("sys.exit(3)\n" if mode == "crash" else
+                       "sys.exit(0)\n" if mode == "exit" else "signal.pause()\n")
+                )
+
+                class ExampleSuite(appliance.Suite):
+                    def build_command(self, args, selected, token):
+                        return [sys.executable, "-u", "-c", script, token]
+
+                suite = ExampleSuite("example", "example-v1", root / "init", image,
+                                     host_shutdown=True)
+                args = appliance.parse_args(suite, [
+                    "--kernel", str(image), "--timeout", "1",
+                    "--output", str(root / "results")])
+                with contextlib.redirect_stdout(io.StringIO()), \
+                     contextlib.redirect_stderr(io.StringIO()):
+                    status = appliance.launch(suite, args, ["EX001"])
+                expected = 0 if mode == "PASS" else 1 if mode == "FAIL" else 2
+                self.assertEqual(status, expected)
+                run = json.loads((root / "results/results.json").read_text())["runs"][0]
+                self.assertEqual(run.get("host_shutdown", False), mode in ("PASS", "FAIL"))
+                if mode in ("missing", "stale"):
+                    self.assertTrue(run["timed_out"])
+                elif mode == "panic":
+                    self.assertIn("kernel panic", run["error"])
+
+
 class ControlTests(unittest.TestCase):
     def test_each_case_has_its_own_boot_and_continues_after_guest_failure(self):
         class ExampleSuite(appliance.Suite):
@@ -169,13 +294,15 @@ class ControlTests(unittest.TestCase):
                     return proc
 
                 with patch.object(appliance.subprocess, "Popen", side_effect=popen), \
-                     contextlib.redirect_stdout(io.StringIO()), \
+                     contextlib.redirect_stdout(io.StringIO()) as progress, \
                      contextlib.redirect_stderr(io.StringIO()):
                     status = appliance.launch(suite, args, ["EX001", "EX002"])
                 self.assertEqual(status, 1 if failure == "assertion" else 2)
                 self.assertEqual([name for name, _ in boots],
                                  ["EX001", "EX002", "EX001", "EX002"])
                 self.assertEqual(len({token for _, token in boots}), 4)
+                self.assertEqual(progress.getvalue().count("[RUN]"), 4)
+                self.assertIn("[RUN] EX002 (run 2, timeout 120s)", progress.getvalue())
                 report = json.loads((root / "results/results.json").read_text())
                 self.assertEqual(len(report["runs"]), 4)
                 self.assertEqual(len({run["console"] for run in report["runs"]}), 4)

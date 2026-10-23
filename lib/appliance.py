@@ -10,6 +10,7 @@ import math
 from pathlib import Path
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -26,6 +27,7 @@ class Suite:
     initramfs: Path
     protocol_prefix: str = "VV"
     requires_control: bool = False
+    host_shutdown: bool = False
 
     def add_arguments(self, parser):
         """Register suite-specific launch options without changing the core CLI."""
@@ -149,6 +151,47 @@ def control(command, action, token, timeout, log):
         raise RuntimeError(f"External control {action} failed: exit {result.returncode}")
 
 
+def wait_for_appliance(proc, suite, args, selected, run_id, log_path, outcome):
+    if not suite.host_shutdown:
+        return proc.wait(timeout=args.timeout)
+    deadline = time.monotonic() + args.timeout
+    marker = f"vv-appliance-stop {run_id}"
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise subprocess.TimeoutExpired(proc.args, args.timeout)
+        try:
+            returncode = proc.wait(timeout=min(0.1, remaining))
+        except subprocess.TimeoutExpired:
+            returncode = None
+        if log_path.stat().st_size > 16 * 1024 * 1024:
+            raise RuntimeError("Console exceeds 16 MiB parsing limit; full log retained")
+        text = log_path.read_text(errors="replace")
+        if "Kernel panic - not syncing:" in text:
+            raise RuntimeError(f"Guest kernel panic; inspect {log_path}")
+        markers = text.splitlines().count(marker)
+        if markers > 1:
+            raise RuntimeError("Duplicate host shutdown marker")
+        if markers == 1:
+            parse_results(text, selected, run_id, suite.contract, suite.protocol_prefix)
+            if returncode is None:
+                proc.terminate()
+                try:
+                    returncode = proc.wait(timeout=5)
+                except subprocess.TimeoutExpired as error:
+                    raise RuntimeError("Launcher did not stop within 5s of guest completion") \
+                        from error
+                if returncode not in (0, -signal.SIGTERM):
+                    raise RuntimeError(f"Launcher exited {returncode} during host shutdown")
+                outcome["host_shutdown"] = True
+                return 0
+            return returncode
+        if returncode is not None:
+            if returncode == 0:
+                raise RuntimeError("Launcher exited without the host shutdown marker")
+            return returncode
+
+
 def launch(suite, args, selected):
     if suite.requires_control and not args.control:
         raise RuntimeError("This suite requires external watchdog/recovery controls")
@@ -178,6 +221,8 @@ def launch(suite, args, selected):
                 command[0] = executable(command[0])
                 log_path = directory / f"console-{iteration + 1}-{test}.log"
                 outcome.update(command=command, console=str(log_path))
+                print(f"[RUN] {test} (run {iteration + 1}, timeout {args.timeout:g}s) "
+                      f"console={log_path}", flush=True)
                 if control_command:
                     control(control_command, "arm", run_id, args.timeout, control_log)
                     armed = True
@@ -186,7 +231,8 @@ def launch(suite, args, selected):
                     proc = subprocess.Popen(command, stdout=console, stderr=subprocess.STDOUT,
                                             stdin=subprocess.DEVNULL)
                     try:
-                        returncode = proc.wait(timeout=args.timeout)
+                        returncode = wait_for_appliance(
+                            proc, suite, args, [test], run_id, log_path, outcome)
                     except subprocess.TimeoutExpired:
                         outcome["timed_out"] = True
                         raise RuntimeError(f"Appliance exceeded {args.timeout}s deadline")
@@ -225,9 +271,9 @@ def launch(suite, args, selected):
                 report["status"] = max(run["status"] for run in report["runs"])
                 (directory / "results.json").write_text(json.dumps(report, indent=2) + "\n")
             for name, verdict in outcome.get("tests", {}).items():
-                print(f"[{verdict}] {name} (run {iteration + 1})")
+                print(f"[{verdict}] {name} (run {iteration + 1})", flush=True)
             if not outcome["tests"]:
-                print(f"[INFRA] {test} (run {iteration + 1})")
+                print(f"[INFRA] {test} (run {iteration + 1})", flush=True)
             for field in ("error", "termination_error", "recovery_error", "disarm_error"):
                 if field in outcome:
                     print(f"[INFRA] {test}: {outcome[field]}", file=sys.stderr)
