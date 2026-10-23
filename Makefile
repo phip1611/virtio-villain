@@ -112,6 +112,33 @@ $(OBJDIR)/perf/%.o: %.c
 
 -include $(PERF_DEPS)
 
+# External appliances supply an explicit source list; never extend virtio SRCS.
+APPLIANCE_SRCS ?=
+APPLIANCE_TARGET ?= $(TARGET)/appliance
+APPLIANCE_CPPFLAGS ?=
+APPLIANCE_ALL_SRCS = $(APPLIANCE_SRCS) lib/test_runner.c lib/appliance_init.c
+APPLIANCE_OBJS = $(patsubst %.c,$(APPLIANCE_TARGET)/obj/%.o,$(APPLIANCE_ALL_SRCS))
+
+appliance-check:
+	@test -n "$(APPLIANCE_SRCS)" || { echo "error: set APPLIANCE_SRCS explicitly"; exit 1; }
+
+$(APPLIANCE_OBJS): | appliance-check
+
+$(APPLIANCE_TARGET)/obj/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(Q)$(CC) $(CFLAGS) $(DEPFLAGS) -I. $(APPLIANCE_CPPFLAGS) -c -o $@ $<
+
+$(APPLIANCE_TARGET)/init: $(APPLIANCE_OBJS) appliance-check
+	@mkdir -p $(dir $@)
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(APPLIANCE_OBJS)
+
+appliance: $(APPLIANCE_TARGET)/init
+
+appliance-initramfs: $(APPLIANCE_TARGET)/init
+	$(Q)python3 lib/initramfs.py --init "$<" --output "$(APPLIANCE_TARGET)/initramfs.cpio.gz"
+
+-include $(APPLIANCE_OBJS:.o=.d)
+
 fuzz-initramfs: $(TARGET)/fuzz
 	@rm -rf $(TARGET)/.fuzzfs
 	@mkdir -p $(TARGET)/.fuzzfs/proc $(TARGET)/.fuzzfs/sys $(TARGET)/.fuzzfs/dev
@@ -151,14 +178,14 @@ selftest/test_lib: selftest/test_lib.c \
 		   lib/perf_engine.c lib/perf_engine.h \
 		   lib/vring.c lib/vring.h \
 		   lib/vring_packed.c lib/vring_packed.h \
-		   tests/test.h
+		   tests/test.h lib/test.h
 	$(CC) -O2 -Wall -Wextra -I. -o $@ selftest/test_lib.c \
 	  lib/perf_engine.c lib/vring.c lib/vring_packed.c
 
 selftest/test_irq: selftest/test_irq.c lib/irq.c lib/irq.h lib/vfio.h
 	$(CC) -O2 -Wall -Wextra -Werror -I. -o $@ selftest/test_irq.c lib/irq.c
 
-PY_SRCS = run run-fuzz run-perf build-kernel $(shell find selftest tests -name '*.py' 2>/dev/null)
+PY_SRCS = run run-fuzz run-perf build-kernel $(shell find selftest tests lib -name '*.py' 2>/dev/null)
 
 flake8-deps-check:
 	@command -v flake8 >/dev/null 2>&1 || python3 -m flake8 --version >/dev/null 2>&1 || { echo "error: flake8 not found. apt install flake8 or pip install flake8"; exit 1; }
@@ -185,6 +212,8 @@ help:
 	@echo "  fuzz-initramfs      Pack fuzz into $(TARGET)/fuzz-initramfs.cpio.gz"
 	@echo "  perf                Build the performance guest at $(TARGET)/perf"
 	@echo "  perf-initramfs      Pack perf into $(TARGET)/perf-initramfs.cpio.gz"
+	@echo "  appliance           Build explicit APPLIANCE_SRCS independently"
+	@echo "  appliance-initramfs Pack the external appliance as /init"
 	@echo "  selftest            Build and run runner and lib self tests"
 	@echo "  guest-kernel        Build an optional Linux image with KERNEL_ARGS"
 	@echo "  flake8              Run flake8 across run, run-fuzz, selftest, tests"
@@ -195,3 +224,4 @@ help:
 	@echo "  help                Show this message"
 
 .PHONY: init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest flake8 flake8-deps-check help guest-kernel
+.PHONY: appliance appliance-initramfs appliance-check
