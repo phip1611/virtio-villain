@@ -179,6 +179,17 @@ zero for a completed boot/shutdown. Test failures are conveyed by guest
 records, not by the exit code of the launcher. A nonzero launcher exit is an
 infrastructure failure.
 
+Suites whose guests cannot power off can opt into `host_shutdown=True` and
+pass `vv.shutdown=host` on the kernel command line. After result reporting,
+cleanup and synchronization, the guest emits `vv-appliance-stop RUN_ID` and
+waits without requesting poweroff. The runner validates the complete result
+protocol and matching stop marker before terminating the attached launcher.
+The launcher must support SIGTERM without leaving subordinate processes.
+The report records `host_shutdown` when the runner stops the launcher.
+Missing completion markers, malformed results and kernel panics remain
+infrastructure failures. This mode does not validate guest poweroff.
+The default shutdown mode and virtio appliance operation are unchanged.
+
 Exit codes are 0 (pass), 1 (assertion/cleanup failure), and 2 (infrastructure,
 including timeouts and entirely unexecuted suites). The diagnostics directory
 contains console logs, external control logs and `results.json`. The JSON
