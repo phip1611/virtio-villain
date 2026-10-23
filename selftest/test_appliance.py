@@ -135,6 +135,56 @@ class PackageTests(unittest.TestCase):
 
 
 class ControlTests(unittest.TestCase):
+    def test_each_case_has_its_own_boot_and_continues_after_guest_failure(self):
+        class ExampleSuite(appliance.Suite):
+            def build_command(self, args, selected, token):
+                assert len(selected) == 1
+                return [sys.executable, selected[0], token]
+
+        for failure in ("assertion", "crash", "timeout", "incomplete"):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as work:
+                root = Path(work)
+                image = root / "image"
+                image.write_bytes(b"image")
+                suite = ExampleSuite("example", "example-v1", root / "init", image)
+                args = appliance.parse_args(suite, [
+                    "--kernel", str(image), "--initramfs", str(image), "--repeat", "2",
+                    "--output", str(root / "results")])
+                boots = []
+
+                def popen(command, **kwargs):
+                    name, token = command[-2:]
+                    boots.append((name, token))
+                    verdict = "FAIL" if name == "EX001" and failure == "assertion" else "PASS"
+                    text = output(verdict).replace("token", token).replace("EX001", name)
+                    if name == "EX001" and failure == "incomplete":
+                        text = ""
+                    kwargs["stdout"].write(text.encode())
+                    proc = Mock()
+                    proc.poll.return_value = 0
+                    proc.wait.return_value = 1 if name == "EX001" and failure == "crash" else 0
+                    if name == "EX001" and failure == "timeout":
+                        proc.poll.return_value = None
+                        proc.wait.side_effect = [subprocess.TimeoutExpired(command, 0.01), 0]
+                    return proc
+
+                with patch.object(appliance.subprocess, "Popen", side_effect=popen), \
+                     contextlib.redirect_stdout(io.StringIO()), \
+                     contextlib.redirect_stderr(io.StringIO()):
+                    status = appliance.launch(suite, args, ["EX001", "EX002"])
+                self.assertEqual(status, 1 if failure == "assertion" else 2)
+                self.assertEqual([name for name, _ in boots],
+                                 ["EX001", "EX002", "EX001", "EX002"])
+                self.assertEqual(len({token for _, token in boots}), 4)
+                report = json.loads((root / "results/results.json").read_text())
+                self.assertEqual(len(report["runs"]), 4)
+                self.assertEqual(len({run["console"] for run in report["runs"]}), 4)
+                for run in report["runs"]:
+                    if run["test"] == "EX002":
+                        self.assertEqual(run["tests"], {"EX002": "PASS"})
+                        self.assertEqual(run["status"], 0)
+                self.assertEqual(report["status"], status)
+
     def test_launch_failure_and_recovery_controls(self):
         class ExampleSuite(appliance.Suite):
             def build_command(self, args, selected, token):
@@ -253,6 +303,20 @@ class IntegrationTests(unittest.TestCase):
         self.assertEqual(len(report["runs"]), 2)
         for run in report["runs"]:
             self.assertEqual(run["tests"], {"EX002": "PASS"})
+
+    def test_existing_runner_boots_each_selected_case_separately(self):
+        directory = self.root / "isolated-results"
+        result = subprocess.run([str(ROOT / "run"), "--suite", str(self.plugin),
+                                 "--kernel", str(self.binary), "--output", str(directory),
+                                 "--repeat", "2", "EX001", "EX002"],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads((directory / "results.json").read_text())
+        self.assertEqual([run["test"] for run in report["runs"]],
+                         ["EX001", "EX002", "EX001", "EX002"])
+        for run in report["runs"]:
+            self.assertEqual(run["tests"], {run["test"]: "PASS"})
+            self.assertEqual(run["command"][-2], run["test"])
 
     def test_no_implicit_source_wildcard(self):
         result = subprocess.run(["make", "-s", "-C", str(ROOT), "appliance",

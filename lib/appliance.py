@@ -162,22 +162,26 @@ def launch(suite, args, selected):
               "initramfs": str(args.initramfs), "initramfs_sha256": digest(args.initramfs)}
     control_command = executable(args.control) if args.control else None
     with (directory / "control.log").open("wb", buffering=0) as control_log:
-        for iteration in range(args.repeat):
-            run_id = token + f"-{iteration + 1}"
-            outcome = {"run_id": run_id, "status": 2}
+        for iteration, test in ((iteration, test) for iteration in range(args.repeat)
+                                for test in selected):
+            run_id = token + f"-{iteration + 1}-{test}"
+            outcome = {"run_id": run_id, "test": test, "iteration": iteration + 1,
+                       "tests": {}, "status": 2}
             armed = False
+            control_ready = control_command is None
             proc = None
             try:
-                command = suite.build_command(args, selected, run_id)
+                command = suite.build_command(args, [test], run_id)
                 if (not isinstance(command, list) or not command
                         or any(not isinstance(arg, str) for arg in command)):
                     raise RuntimeError("Suite build_command() must return a nonempty argv list")
                 command[0] = executable(command[0])
-                log_path = directory / f"console-{iteration + 1}.log"
+                log_path = directory / f"console-{iteration + 1}-{test}.log"
                 outcome.update(command=command, console=str(log_path))
                 if control_command:
                     control(control_command, "arm", run_id, args.timeout, control_log)
                     armed = True
+                    control_ready = True
                 with log_path.open("wb", buffering=0) as console:
                     proc = subprocess.Popen(command, stdout=console, stderr=subprocess.STDOUT,
                                             stdin=subprocess.DEVNULL)
@@ -190,11 +194,13 @@ def launch(suite, args, selected):
                     raise RuntimeError(f"Launcher exited {returncode}; inspect {log_path}")
                 if log_path.stat().st_size > 16 * 1024 * 1024:
                     raise RuntimeError("Console exceeds 16 MiB parsing limit; full log retained")
-                outcome.update(parse_results(log_path.read_text(errors="replace"), selected,
+                outcome.update(parse_results(log_path.read_text(errors="replace"), [test],
                                              run_id, suite.contract, suite.protocol_prefix))
             except (OSError, RuntimeError, subprocess.SubprocessError, KeyboardInterrupt) as error:
                 outcome["error"] = str(error) or "Interrupted"
                 outcome["status"] = 2
+                if isinstance(error, KeyboardInterrupt):
+                    outcome["interrupted"] = True
             finally:
                 if proc is not None and proc.poll() is None:
                     try:
@@ -220,10 +226,13 @@ def launch(suite, args, selected):
                 (directory / "results.json").write_text(json.dumps(report, indent=2) + "\n")
             for name, verdict in outcome.get("tests", {}).items():
                 print(f"[{verdict}] {name} (run {iteration + 1})")
+            if not outcome["tests"]:
+                print(f"[INFRA] {test} (run {iteration + 1})")
             for field in ("error", "termination_error", "recovery_error", "disarm_error"):
                 if field in outcome:
-                    print(f"[INFRA] {outcome[field]}", file=sys.stderr)
-            if outcome["status"]:
+                    print(f"[INFRA] {test}: {outcome[field]}", file=sys.stderr)
+            if not control_ready or any(field in outcome for field in (
+                    "interrupted", "termination_error", "recovery_error", "disarm_error")):
                 break
     verdict = ("PASS", "FAIL", "INFRA")[report["status"]]
     print(f"{suite.name} overall: {verdict}\nDiagnostics: {directory}")
