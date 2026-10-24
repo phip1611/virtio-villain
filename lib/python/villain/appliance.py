@@ -359,8 +359,6 @@ def launch(suite, args, selected, descriptions=None):
                 command[0] = executable(command[0])
                 log_path = directory / f"console-{iteration + 1}-{test}.log"
                 outcome.update(command=command, console=str(log_path))
-                with output_lock:
-                    progress(test)
                 if control_command:
                     control(control_command, "arm", run_id, args.timeout, control_log)
                     armed = True
@@ -425,11 +423,13 @@ def launch(suite, args, selected, descriptions=None):
 
         if jobs == 1:
             for index, (iteration, test) in tasks:
+                progress(test)
                 record(index, run_one(iteration, test))
                 if stopped.is_set():
                     break
         else:
             with ThreadPoolExecutor(max_workers=jobs) as pool:
+                progress("starting...")
                 pending = {}
                 try:
                     while True:
