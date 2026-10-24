@@ -15,6 +15,7 @@ import tempfile
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, ROOT_DIR)
+sys.path.insert(0, os.path.join(ROOT_DIR, "lib", "python"))
 INIT_BINARY = os.path.join(ROOT_DIR, "target", "init")
 RUN = os.path.join(ROOT_DIR, "run")
 RUN_FUZZ = os.path.join(ROOT_DIR, "run-fuzz")

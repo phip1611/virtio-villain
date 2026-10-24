@@ -18,8 +18,8 @@ import unittest
 from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from lib import appliance, initramfs, reporting  # noqa: E402
+sys.path.insert(0, str(ROOT / "lib/python"))
+from villain import appliance, initramfs, reporting  # noqa: E402
 
 
 def output(verdict="PASS"):
@@ -99,7 +99,7 @@ class ResultTests(unittest.TestCase):
             "def create_suite(): return object()\n",
             "# no factory\n",
             "def broken syntax\n",
-            "from lib.appliance import Suite\n"
+            "from villain.appliance import Suite\n"
             "def create_suite(): return Suite('example', 'invalid contract', '.', '.')\n",
         )
         for text in modules:
@@ -113,7 +113,7 @@ class ResultTests(unittest.TestCase):
 class SuiteLoadingTests(unittest.TestCase):
     def test_directory_and_file_loading_isolate_private_and_deferred_imports(self):
         search_path = list(sys.path)
-        framework = sys.modules["lib"]
+        framework = sys.modules["villain"]
         package_path = list(framework.__path__)
         with tempfile.TemporaryDirectory() as work:
             suites = []
@@ -124,7 +124,7 @@ class SuiteLoadingTests(unittest.TestCase):
                 (private / "contract.py").write_text(f"VALUE = {name!r}\n")
                 (private / "deferred.py").write_text(f"VALUE = {name + '-later'!r}\n")
                 (private / "suite.py").write_text(
-                    "from lib.appliance import Suite\n"
+                    "from villain.appliance import Suite\n"
                     "from .contract import VALUE\n"
                     "class ExampleSuite(Suite):\n"
                     "    def list_tests(self, binary):\n"
@@ -139,10 +139,10 @@ class SuiteLoadingTests(unittest.TestCase):
                 self.assertEqual(suite.list_tests(None), {name: name + "-later"})
             self.assertEqual(len({type(suite).__module__ for suite in suites}), 4)
         self.assertEqual(sys.path, search_path)
-        self.assertIs(sys.modules["lib"], framework)
+        self.assertIs(sys.modules["villain"], framework)
         self.assertEqual(list(framework.__path__), package_path)
-        self.assertNotIn("lib.contract", sys.modules)
-        self.assertNotIn("lib.deferred", sys.modules)
+        self.assertNotIn("villain.contract", sys.modules)
+        self.assertNotIn("villain.deferred", sys.modules)
 
     def test_failed_load_removes_the_isolated_package_and_helpers(self):
         search_path = list(sys.path)
@@ -753,7 +753,7 @@ class IntegrationTests(unittest.TestCase):
         cls.plugin = cls.root / "suite.py"
         cls.plugin.write_text(
             "from pathlib import Path\n"
-            "from lib.appliance import Suite\n"
+            "from villain.appliance import Suite\n"
             "class Example(Suite):\n"
             "    def build_command(self, args, selected, token):\n"
             "        return [str(args.binary), '--launcher', 'pass', ','.join(selected), token]\n"

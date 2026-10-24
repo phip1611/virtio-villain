@@ -8,8 +8,8 @@ import re
 import sys
 import unittest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from lib import reporting  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib/python"))
+from villain import reporting  # noqa: E402
 
 
 class ReportingTests(unittest.TestCase):

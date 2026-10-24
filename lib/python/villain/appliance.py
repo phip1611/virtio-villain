@@ -18,7 +18,7 @@ import sys
 import threading
 import time
 import uuid
-from lib import reporting
+from villain import reporting
 
 
 @dataclass
@@ -66,7 +66,7 @@ def load_suite(path):
         spec.loader.exec_module(module)
         suite = module.create_suite()
         if not isinstance(suite, Suite):
-            raise RuntimeError("Suite create_suite() must return lib.appliance.Suite")
+            raise RuntimeError("Suite create_suite() must return villain.appliance.Suite")
         if (not suite.name or not re.fullmatch(r"\S+", suite.contract)
                 or not re.fullmatch(r"[A-Z][A-Z0-9_]*", suite.protocol_prefix)):
             raise RuntimeError("Invalid suite name, contract, or protocol prefix")

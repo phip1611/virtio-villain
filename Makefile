@@ -135,7 +135,7 @@ $(APPLIANCE_TARGET)/init: $(APPLIANCE_OBJS) appliance-check
 appliance: $(APPLIANCE_TARGET)/init
 
 appliance-initramfs: $(APPLIANCE_TARGET)/init
-	$(Q)python3 lib/initramfs.py --init "$<" --output "$(APPLIANCE_TARGET)/initramfs.cpio.gz"
+	$(Q)python3 lib/python/villain/initramfs.py --init "$<" --output "$(APPLIANCE_TARGET)/initramfs.cpio.gz"
 
 -include $(APPLIANCE_OBJS:.o=.d)
 
