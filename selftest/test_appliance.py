@@ -233,6 +233,62 @@ class SourceCatalogTests(unittest.TestCase):
                 run.assert_not_called()
 
 
+class PackageLocationTests(unittest.TestCase):
+    def setUp(self):
+        self.environment = os.environ.copy()
+        self.environment.pop("PYTHONPATH", None)
+
+    def test_entry_points_find_the_package_from_another_directory(self):
+        with tempfile.TemporaryDirectory() as work:
+            for entry in ("run", "run-fuzz", "run-perf", "build-kernel"):
+                with self.subTest(entry=entry):
+                    result = subprocess.run(
+                        [sys.executable, str(ROOT / entry), "--help"],
+                        cwd=work, env=self.environment, capture_output=True,
+                        text=True, timeout=20)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("usage:", result.stdout)
+
+    def test_directory_and_file_policies_import_the_package_without_pythonpath(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            private = root / "suite/lib"
+            private.mkdir(parents=True)
+            (private / "helper.py").write_text('DESCRIPTION = "Source case"\n')
+            (private / "suite.py").write_text(
+                "from villain.appliance import Suite\n"
+                "from .helper import DESCRIPTION\n"
+                "class Example(Suite):\n"
+                "    def list_tests(self, binary):\n"
+                "        from .helper import DESCRIPTION as deferred\n"
+                "        return {'EX001': deferred}\n"
+                "def create_suite():\n"
+                "    return Example(DESCRIPTION, 'example-v1', "
+                "'/missing/init', '/missing/archive')\n")
+            for selection in (private.parent, private / "suite.py"):
+                with self.subTest(selection=selection):
+                    result = subprocess.run(
+                        [sys.executable, str(ROOT / "run"), "--suite", str(selection),
+                         "--list"], cwd=work, env=self.environment,
+                        capture_output=True, text=True, timeout=20)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout, "EX001\tSource case\n")
+
+    def test_packager_runs_from_another_directory_without_pythonpath(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            elf = bytearray(64)
+            elf[:6] = b"\x7fELF\x02\x01"
+            struct.pack_into("<HH", elf, 54, 56, 0)
+            (root / "init").write_bytes(elf)
+            result = subprocess.run(
+                [sys.executable, str(ROOT / "lib/python/villain/initramfs.py"),
+                 "--init", "init", "--output", "archive.cpio.gz"],
+                cwd=work, env=self.environment, capture_output=True, text=True, timeout=20)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual((root / "archive.cpio.gz").read_bytes(), initramfs.archive(elf))
+
+
 class PackageTests(unittest.TestCase):
     def test_static_elf_and_reproducible_archive(self):
         elf = bytearray(64)
