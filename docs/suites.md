@@ -19,7 +19,7 @@ points contain no device or kernel interfaces specific to an external suite.
 | `lib/initramfs.py` | Reproducible packaging of a static ELF executable as `/init` |
 | `lib/appliance.py` | Catalog discovery, launch supervision, console capture, result validation and JSON reporting |
 | `lib/reporting.py` | Shared human result rows, terminal progress, summaries and failure lists |
-| `run --suite FILE` | Explicitly load a trusted suite policy module |
+| `run --suite PATH` | Load a trusted suite directory or explicit policy file |
 | `make appliance-initramfs` | Build an explicit external source list independently of virtio |
 
 ## Guest interface
@@ -94,13 +94,13 @@ fetch a default.
 
 ## Host policy interface
 
-Create a trusted Python file outside the repository:
+Create `lib/suite.py` inside an external suite directory:
 
 ```python
 from pathlib import Path
 from lib.appliance import Suite
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 class ExampleSuite(Suite):
     def add_arguments(self, parser):
@@ -135,13 +135,21 @@ and reporting. The policy supplies launch arguments and prerequisite checks.
 Only explicitly requested modules are loaded. Do not load untrusted code.
 
 ```sh
-./run --suite /work/example/suite.py --list
-./run --suite /work/example/suite.py \
+./run --suite /work/example --list
+./run --suite /work/example \
   --kernel /work/kernel/image --launcher /work/bin/start-appliance \
   --control /work/bin/external-control --repeat 3 EX001
 ```
 
-Put `--suite FILE` first. `--help` after it shows both common and suite
+Put `--suite PATH` first. A directory selects its `lib/suite.py`.
+Explicit policy file paths are also supported.
+Private Python helpers belong beside the policy and use relative imports,
+such as `from .contract import CONTRACT`. Each loaded policy has a unique
+package namespace, separate from the framework's `lib` package and from
+other suites. Relative imports also work inside hooks called after loading.
+The loader does not add private directories to `sys.path`.
+
+`--help` after `--suite PATH` shows both common and suite
 options. `--list` does not run the host preflight, boot an appliance, or require
 a kernel or recovery control.
 
