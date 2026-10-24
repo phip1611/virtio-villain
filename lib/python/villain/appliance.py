@@ -19,6 +19,7 @@ import threading
 import time
 import uuid
 from villain import reporting
+from villain.console import FileFollower
 
 
 @dataclass
@@ -202,8 +203,9 @@ def control(command, action, token, timeout, log):
         raise RuntimeError(f"External control {action} failed: exit {result.returncode}")
 
 
-def wait_for_appliance(proc, suite, args, selected, run_id, log_path, outcome, stop=None):
-    if not suite.host_shutdown and stop is None:
+def wait_for_appliance(proc, suite, args, selected, run_id, log_path, outcome, stop=None,
+                       follower=None):
+    if not suite.host_shutdown and stop is None and follower is None:
         return proc.wait(timeout=args.timeout)
     deadline = time.monotonic() + args.timeout
     marker = f"vv-appliance-stop {run_id}"
@@ -217,6 +219,8 @@ def wait_for_appliance(proc, suite, args, selected, run_id, log_path, outcome, s
             returncode = proc.wait(timeout=min(0.1, remaining))
         except subprocess.TimeoutExpired:
             returncode = None
+        if follower is not None:
+            follower.pump()
         if not suite.host_shutdown:
             if returncode is not None:
                 return returncode
@@ -256,8 +260,9 @@ def launch(suite, args, selected, descriptions=None):
     directory = (args.output or suite.binary.parent / "results" /
                  (time.strftime("%Y%m%d-%H%M%S") + "-" + token[:8])).resolve()
     directory.mkdir(parents=True, exist_ok=False)
+    jobs = 1 if args.console else args.jobs
     report = {"suite": suite.name, "contract": suite.contract, "run_id": token,
-              "selected": selected, "jobs": args.jobs, "runs": [], "status": 2,
+              "selected": selected, "jobs": jobs, "runs": [], "status": 2,
               "kernel": str(args.kernel), "kernel_sha256": digest(args.kernel),
               "initramfs": str(args.initramfs), "initramfs_sha256": digest(args.initramfs)}
     control_command = executable(args.control) if args.control else None
@@ -278,12 +283,12 @@ def launch(suite, args, selected, descriptions=None):
     print(f"Running {total} test(s) against {launcher} ({suite.name})\n", flush=True)
 
     def clear_progress():
-        if color:
+        if color and not args.console:
             sys.stdout.write("\r\033[K")
             sys.stdout.flush()
 
     def progress(current=""):
-        if color:
+        if color and not args.console:
             counts = Counter(status for _, status, _ in human_results)
             sys.stdout.write(reporting.format_progress(
                 counts, len(human_results), total, current,
@@ -300,14 +305,16 @@ def launch(suite, args, selected, descriptions=None):
         with output_lock:
             clear_progress()
             human_results.append((name, status, info))
-            print(reporting.format_test_line(
-                name, status, info, longest_desc, reporting.terminal_width(sys.stdout),
-                color), flush=True)
+            if not args.console:
+                print(reporting.format_test_line(
+                    name, status, info, longest_desc, reporting.terminal_width(sys.stdout),
+                    color), flush=True)
             if status in ("FAIL", "INFRA"):
-                for field in ("error", "termination_error", "recovery_error", "disarm_error"):
+                for field in ("error", "termination_error", "console_error",
+                              "recovery_error", "disarm_error"):
                     if field in outcome:
                         print(reporting.format_detail(outcome[field], color), flush=True)
-                if "console" in outcome:
+                if "console" in outcome and not args.console:
                     log_path = Path(outcome["console"])
                     print(reporting.format_detail(f"log: {log_path}", color), flush=True)
                     if log_path.is_file():
@@ -322,6 +329,8 @@ def launch(suite, args, selected, descriptions=None):
     def record(index, outcome):
         if outcome is not None:
             completed[index] = outcome
+            if outcome.get("interrupted"):
+                report["interrupted"] = True
             report["runs"] = [completed[key] for key in sorted(completed)]
             report["status"] = max(run["status"] for run in report["runs"])
         if report.get("interrupted"):
@@ -340,6 +349,7 @@ def launch(suite, args, selected, descriptions=None):
             armed = False
             control_ready = control_command is None
             proc = None
+            follower = None
             try:
                 with policy_lock:
                     command = suite.build_command(args, [test], run_id)
@@ -358,12 +368,14 @@ def launch(suite, args, selected, descriptions=None):
                 if stopped.is_set():
                     raise KeyboardInterrupt
                 with log_path.open("wb", buffering=0) as console:
+                    if args.console:
+                        follower = FileFollower(log_path, sys.stdout)
                     proc = subprocess.Popen(command, stdout=console, stderr=subprocess.STDOUT,
                                             stdin=subprocess.DEVNULL)
                     try:
                         returncode = wait_for_appliance(
                             proc, suite, args, [test], run_id, log_path, outcome,
-                            stopped if args.jobs > 1 else None)
+                            stopped if jobs > 1 else None, follower)
                     except subprocess.TimeoutExpired:
                         outcome["timed_out"] = True
                         raise RuntimeError(f"Appliance exceeded {args.timeout}s deadline")
@@ -373,7 +385,8 @@ def launch(suite, args, selected, descriptions=None):
                     raise RuntimeError("Console exceeds 16 MiB parsing limit; full log retained")
                 outcome.update(parse_results(log_path.read_text(errors="replace"), [test],
                                              run_id, suite.contract, suite.protocol_prefix))
-            except (OSError, RuntimeError, subprocess.SubprocessError, KeyboardInterrupt) as error:
+            except (OSError, RuntimeError, ValueError,
+                    subprocess.SubprocessError, KeyboardInterrupt) as error:
                 outcome["error"] = str(error) or "Interrupted"
                 outcome["status"] = 2
                 if isinstance(error, KeyboardInterrupt):
@@ -385,6 +398,12 @@ def launch(suite, args, selected, descriptions=None):
                         proc.wait(timeout=5)
                     except (OSError, subprocess.TimeoutExpired) as error:
                         outcome["termination_error"] = str(error)
+                        outcome["status"] = 2
+                if follower is not None:
+                    try:
+                        follower.close()
+                    except (OSError, ValueError) as error:
+                        outcome["console_error"] = str(error)
                         outcome["status"] = 2
                 if armed:
                     if outcome["status"] == 2:
@@ -399,22 +418,23 @@ def launch(suite, args, selected, descriptions=None):
                             outcome["disarm_error"] = str(error)
                             outcome["status"] = 2
             if not control_ready or any(field in outcome for field in (
-                    "interrupted", "termination_error", "recovery_error", "disarm_error")):
+                    "interrupted", "termination_error", "console_error",
+                    "recovery_error", "disarm_error")):
                 stopped.set()
             return outcome
 
-        if args.jobs == 1:
+        if jobs == 1:
             for index, (iteration, test) in tasks:
                 record(index, run_one(iteration, test))
                 if stopped.is_set():
                     break
         else:
-            with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+            with ThreadPoolExecutor(max_workers=jobs) as pool:
                 pending = {}
                 try:
                     while True:
                         try:
-                            while not stopped.is_set() and len(pending) < args.jobs:
+                            while not stopped.is_set() and len(pending) < jobs:
                                 task = next(tasks, None)
                                 if task is None:
                                     break
@@ -452,6 +472,8 @@ def parse_args(suite, argv):
                                      allow_abbrev=False)
     parser.add_argument("tests", nargs="*", help="Exact test IDs; default: all")
     parser.add_argument("--list", action="store_true")
+    parser.add_argument("-c", "--console", action="store_true",
+                        help="Stream VM output directly to stdout (runs serially)")
     parser.add_argument("--binary", type=Path, default=suite.binary)
     parser.add_argument("--kernel", type=Path, help="Explicit kernel image; never downloaded")
     parser.add_argument("--initramfs", type=Path, default=suite.initramfs)

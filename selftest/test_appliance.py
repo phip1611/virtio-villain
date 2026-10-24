@@ -83,6 +83,8 @@ class ResultTests(unittest.TestCase):
                 appliance.parse_args(suite, ["--list", "--jobs", value])
         self.assertEqual(appliance.parse_args(suite, ["--list"]).jobs, 1)
         self.assertEqual(appliance.parse_args(suite, ["--list", "-j", "16"]).jobs, 16)
+        for option in ("-c", "--console"):
+            self.assertTrue(appliance.parse_args(suite, ["--list", option]).console)
 
     def test_catalog_validation(self):
         for text in ("", "EX001 missing-tab", "EX001\ta\nEX001\tb", "invalid id\ta",
@@ -444,6 +446,236 @@ class HostShutdownTests(unittest.TestCase):
                     self.assertTrue(run["timed_out"])
                 elif mode == "panic":
                     self.assertIn("kernel panic", run["error"])
+
+
+class ConsoleExecutionTests(unittest.TestCase):
+    def test_live_output_precedes_exit_and_console_runs_serially(self):
+        for host in (False, True):
+            for tty in (False, True):
+                with self.subTest(host=host, tty=tty), tempfile.TemporaryDirectory() as work:
+                    root = Path(work)
+                    image = root / "image"
+                    image.write_bytes(b"image")
+                    seen = set()
+                    boots = []
+                    case = self
+
+                    class LiveOutput(io.StringIO):
+                        def isatty(self):
+                            return tty
+
+                        def write(self, text):
+                            count = super().write(text)
+                            for line in self.getvalue().splitlines():
+                                if line.startswith("LIVE "):
+                                    token = line.split(" ", 1)[1]
+                                    if token not in seen:
+                                        case.assertFalse((root / f"done-{token}").exists())
+                                        seen.add(token)
+                                        (root / f"release-{token}").touch()
+                            return count
+
+                    script = (
+                        "import signal, sys, time\n"
+                        "from pathlib import Path\n"
+                        f"root = Path({str(root)!r})\n"
+                        "name, token = sys.argv[1:]\n"
+                        "print('LIVE ' + token, flush=True)\n"
+                        "while not (root / f'release-{token}').exists(): time.sleep(0.01)\n"
+                        "(root / f'done-{token}').touch()\n"
+                        f"print({output()!r}.replace('token', token).replace('EX001', name), "
+                        "end='', flush=True)\n"
+                        + ("print('vv-appliance-stop ' + token, flush=True)\n"
+                           "signal.pause()\n" if host else "")
+                    )
+
+                    class ExampleSuite(appliance.Suite):
+                        def build_command(self, args, selected, token):
+                            case.assertEqual(len(list(root.glob("done-*"))), len(boots))
+                            boots.append(selected[0])
+                            return [sys.executable, "-u", "-c", script, selected[0], token]
+
+                    suite = ExampleSuite("example", "example-v1", root / "init", image,
+                                         host_shutdown=host)
+                    args = appliance.parse_args(suite, [
+                        "--kernel", str(image), "--console", "--jobs", "16",
+                        "--timeout", "2", "--output", str(root / "results")])
+                    captured = LiveOutput()
+                    with contextlib.redirect_stdout(captured):
+                        status = appliance.launch(suite, args, ["EX001", "EX002"])
+                    self.assertEqual(status, 0, captured.getvalue())
+                    self.assertEqual(boots, ["EX001", "EX002"])
+                    self.assertEqual(len(seen), 2)
+                    report = json.loads((root / "results/results.json").read_text())
+                    self.assertEqual(report["jobs"], 1)
+                    self.assertEqual(len(report["runs"]), 2)
+                    for run in report["runs"]:
+                        log = Path(run["console"]).read_text()
+                        self.assertIn("LIVE " + run["run_id"], log)
+                        self.assertIn("VV-END " + run["run_id"] + " 0", log)
+                        self.assertEqual(run.get("host_shutdown", False), host)
+                    self.assertNotIn("[PASS]", captured.getvalue())
+                    self.assertNotIn("\r\033[K", captured.getvalue())
+                    self.assertIn("2/2 tests passed", captured.getvalue())
+
+    def test_timeout_retains_output_recovers_and_continues(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            image = root / "image"
+            image.write_bytes(b"image")
+            script = (
+                "import os, sys, time\n"
+                "from pathlib import Path\n"
+                "name, token = sys.argv[1:]\n"
+                f"(Path({str(root)!r}) / name).write_text(str(os.getpid()))\n"
+                "print('Starting ' + name, flush=True)\n"
+                "if name == 'EX001': time.sleep(10)\n"
+                f"print({output()!r}.replace('token', token).replace('EX001', name), "
+                "end='', flush=True)\n"
+            )
+
+            class ExampleSuite(appliance.Suite):
+                def build_command(self, args, selected, token):
+                    return [sys.executable, "-u", "-c", script, selected[0], token]
+
+            suite = ExampleSuite("example", "example-v1", root / "init", image)
+            args = appliance.parse_args(suite, [
+                "--kernel", str(image), "-c", "--timeout", "0.5",
+                "--control", sys.executable, "--output", str(root / "results")])
+            captured = io.StringIO()
+            with patch.object(appliance, "control") as control, \
+                 contextlib.redirect_stdout(captured):
+                status = appliance.launch(suite, args, ["EX001", "EX002"])
+            self.assertEqual(status, 2)
+            report = json.loads((root / "results/results.json").read_text())
+            self.assertEqual([run["status"] for run in report["runs"]], [2, 0])
+            self.assertTrue(report["runs"][0]["timed_out"])
+            self.assertIn("Starting EX001", captured.getvalue())
+            self.assertIn("1/2 tests passed", captured.getvalue())
+            self.assertEqual(Path(report["runs"][0]["console"]).read_text(), "Starting EX001\n")
+            self.assertEqual([call.args[1] for call in control.call_args_list],
+                             ["arm", "recover", "disarm", "arm", "disarm"])
+            with self.assertRaises(ProcessLookupError):
+                os.kill(int((root / "EX001").read_text()), 0)
+
+    def test_interrupt_retains_output_reaps_launcher_and_stops_new_boots(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            image = root / "image"
+            image.write_bytes(b"image")
+            script = (
+                "import os, signal\n"
+                "from pathlib import Path\n"
+                f"Path({str(root / 'pid')!r}).write_text(str(os.getpid()))\n"
+                "print('Interrupt here', flush=True)\n"
+                "signal.pause()\n"
+            )
+            boots = []
+
+            class InterruptOutput(io.StringIO):
+                interrupted = False
+
+                def write(self, text):
+                    count = super().write(text)
+                    if "Interrupt here" in text and not self.interrupted:
+                        self.interrupted = True
+                        raise KeyboardInterrupt
+                    return count
+
+            class ExampleSuite(appliance.Suite):
+                def build_command(self, args, selected, token):
+                    boots.append(selected[0])
+                    return [sys.executable, "-u", "-c", script]
+
+            suite = ExampleSuite("example", "example-v1", root / "init", image)
+            args = appliance.parse_args(suite, [
+                "--kernel", str(image), "--console", "--jobs", "16",
+                "--timeout", "2", "--control", sys.executable,
+                "--output", str(root / "results")])
+            with patch.object(appliance, "control") as control, \
+                 contextlib.redirect_stdout(InterruptOutput()) as captured:
+                status = appliance.launch(suite, args, ["EX001", "EX002"])
+            self.assertEqual(status, 2)
+            self.assertEqual(boots, ["EX001"])
+            report = json.loads((root / "results/results.json").read_text())
+            self.assertTrue(report["interrupted"])
+            self.assertTrue(report["runs"][0]["interrupted"])
+            self.assertIn("Interrupted.", captured.getvalue())
+            self.assertEqual(Path(report["runs"][0]["console"]).read_text(), "Interrupt here\n")
+            self.assertEqual([call.args[1] for call in control.call_args_list],
+                             ["arm", "recover", "disarm"])
+            with self.assertRaises(ProcessLookupError):
+                os.kill(int((root / "pid").read_text()), 0)
+
+    def test_host_shutdown_failures_remain_failures_during_streaming(self):
+        for mode in ("FAIL", "duplicate", "missing"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as work:
+                root = Path(work)
+                image = root / "image"
+                image.write_bytes(b"image")
+                transcript = output("FAIL" if mode == "FAIL" else "PASS")
+                marker = "vv-appliance-stop token\n"
+                marker = "" if mode == "missing" else marker * (2 if mode == "duplicate" else 1)
+                script = (
+                    "import signal, sys\n"
+                    f"print({transcript + marker!r}.replace('token', sys.argv[1]), "
+                    "end='', flush=True)\n"
+                    "signal.pause()\n"
+                )
+
+                class ExampleSuite(appliance.Suite):
+                    def build_command(self, args, selected, token):
+                        return [sys.executable, "-u", "-c", script, token]
+
+                suite = ExampleSuite("example", "example-v1", root / "init", image,
+                                     host_shutdown=True)
+                args = appliance.parse_args(suite, [
+                    "--kernel", str(image), "--console", "--timeout", "0.5",
+                    "--output", str(root / "results")])
+                with contextlib.redirect_stdout(io.StringIO()):
+                    status = appliance.launch(suite, args, ["EX001"])
+                self.assertEqual(status, 1 if mode == "FAIL" else 2)
+                report = json.loads((root / "results/results.json").read_text())
+                run = report["runs"][0]
+                self.assertEqual(run.get("host_shutdown", False), mode == "FAIL")
+                if mode == "missing":
+                    self.assertTrue(run["timed_out"])
+                elif mode == "duplicate":
+                    self.assertIn("Duplicate host shutdown marker", run["error"])
+
+    def test_console_close_failure_is_infrastructure_and_stops_new_boots(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            image = root / "image"
+            image.write_bytes(b"image")
+            boots = []
+
+            class BrokenFollower(appliance.FileFollower):
+                def close(self):
+                    super().close()
+                    raise OSError("Console flush failed")
+
+            class ExampleSuite(appliance.Suite):
+                def build_command(self, args, selected, token):
+                    boots.append(selected[0])
+                    script = f"print({output()!r}.replace('token', {token!r}), end='')"
+                    return [sys.executable, "-u", "-c", script]
+
+            suite = ExampleSuite("example", "example-v1", root / "init", image)
+            args = appliance.parse_args(suite, [
+                "--kernel", str(image), "--console", "--control", sys.executable,
+                "--output", str(root / "results")])
+            with patch.object(appliance, "FileFollower", BrokenFollower), \
+                 patch.object(appliance, "control") as control, \
+                 contextlib.redirect_stdout(io.StringIO()) as captured:
+                status = appliance.launch(suite, args, ["EX001", "EX002"])
+            self.assertEqual(status, 2)
+            self.assertEqual(boots, ["EX001"])
+            report = json.loads((root / "results/results.json").read_text())
+            self.assertEqual(report["runs"][0]["console_error"], "Console flush failed")
+            self.assertIn("Console flush failed", captured.getvalue())
+            self.assertEqual([call.args[1] for call in control.call_args_list],
+                             ["arm", "recover", "disarm"])
 
 
 class ParallelTests(unittest.TestCase):
