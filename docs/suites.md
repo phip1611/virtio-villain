@@ -186,6 +186,11 @@ Each selected test runs in a fresh appliance VM with its own run identifier,
 console log and timeout. `--repeat N` repeats that sequence N times.
 Use `--jobs N` or `-j N` to run up to N appliance VMs concurrently.
 The default is one. Tests and repetitions share the concurrency limit.
+Use `--console` or `-c` to stream VM output live while retaining each complete
+console log. Console mode runs serially even when `--jobs` requests more VMs.
+It suppresses progress updates and individual host result rows, as in the
+virtio runner. The final summary, failure list and diagnostics location remain
+available. Without `--console`, execution and reporting are unchanged.
 Completed results are saved as they arrive and listed in selection order
 in the JSON report. Each test retains its own VM and diagnostics.
 Assertion failures, guest crashes and timeouts do not prevent later tests
