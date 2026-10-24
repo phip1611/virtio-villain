@@ -27,6 +27,22 @@ The runner locates it from its own checkout, including when invoked from
 another working directory. No package installation or `PYTHONPATH` setting
 is required. C sources and headers remain directly under `lib`.
 
+Shared host helpers are available in these modules:
+
+| Module | Interface |
+| --- | --- |
+| `villain.cli` | Banner, help formatter and memory argument normalization |
+| `villain.console` | Separate diagnostic capture, terminal handling and stream merging |
+| `villain.process` | Process tracking and termination helpers |
+| `villain.vmm` | Existing virtio VMM command builders and bundled guest kernel selection |
+| `villain.diagnostics` | VMM output classification shared by tests and fuzzing |
+| `villain.host` | Capability inspection and explicitly requested host tuning |
+
+Importing these modules does not launch a VM or apply host tuning.
+VMM command builders describe the existing virtio environments. They do not
+establish the privileges required by another suite. Completion protocols,
+deadlines and external recovery remain the responsibility of the caller.
+
 ## Guest interface
 
 Include `lib/test_runner.h` and register tests in a dedicated linker section:
