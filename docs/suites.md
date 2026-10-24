@@ -16,11 +16,16 @@ points contain no device or kernel interfaces specific to an external suite.
 | `lib/test.h` | Result types and diagnostic return helpers with typed test registration |
 | `lib/test_runner.h` / `.c` | Test selection and contexts with cleanup and result reporting |
 | `lib/appliance_init.c` | PID 1 startup and mounts with kernel command line selection and shutdown |
-| `lib/initramfs.py` | Reproducible packaging of a static ELF executable as `/init` |
-| `lib/appliance.py` | Catalog discovery, launch supervision, console capture, result validation and JSON reporting |
-| `lib/reporting.py` | Shared human result rows, terminal progress, summaries and failure lists |
+| `lib/python/villain/initramfs.py` | Reproducible packaging of a static ELF executable as `/init` |
+| `lib/python/villain/appliance.py` | Catalog discovery, launch supervision, console capture, result validation and JSON reporting |
+| `lib/python/villain/reporting.py` | Shared human result rows, terminal progress, summaries and failure lists |
 | `run --suite PATH` | Load a trusted suite directory or explicit policy file |
 | `make appliance-initramfs` | Build an explicit external source list independently of virtio |
+
+The shared Python package is `villain`, located under `lib/python`.
+The runner locates it from its own checkout, including when invoked from
+another working directory. No package installation or `PYTHONPATH` setting
+is required. C sources and headers remain directly under `lib`.
 
 ## Guest interface
 
@@ -98,7 +103,7 @@ Create `lib/suite.py` inside an external suite directory:
 
 ```python
 from pathlib import Path
-from lib.appliance import Suite
+from villain.appliance import Suite
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -145,7 +150,7 @@ Put `--suite PATH` first. A directory selects its `lib/suite.py`.
 Explicit policy file paths are also supported.
 Private Python helpers belong beside the policy and use relative imports,
 such as `from .contract import CONTRACT`. Each loaded policy has a unique
-package namespace, separate from the framework's `lib` package and from
+package namespace, separate from the framework's `villain` package and from
 other suites. Relative imports also work inside hooks called after loading.
 The loader does not add private directories to `sys.path`.
 
@@ -155,7 +160,7 @@ a kernel or recovery control.
 
 A policy can override `list_tests(self, binary)` to return IDs and
 descriptions from its sources before an executable has been built.
-`lib.appliance.source_catalog(paths, macro)` reads literal registration
+`villain.appliance.source_catalog(paths, macro)` reads literal registration
 descriptions with either three arguments or an initial registry argument.
 It ignores comments and rejects empty, duplicate or malformed entries.
 This is a source index, not a C preprocessor. Execution always uses the
