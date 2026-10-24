@@ -1,10 +1,45 @@
 # SPDX-License-Identifier: Apache-2.0
 """Separate console stream capture and terminal handling."""
 
+import codecs
 import fcntl
 import os
 import sys
 import termios
+
+
+class FileFollower:
+    """Display appended log bytes while leaving the complete log on disk."""
+
+    def __init__(self, path, destination):
+        self.stream = path.open("rb")
+        self.destination = destination
+        self.decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+
+    def pump(self):
+        remaining = os.fstat(self.stream.fileno()).st_size - self.stream.tell()
+        while remaining > 0:
+            chunk = self.stream.read(min(remaining, 4096))
+            if not chunk:
+                break
+            remaining -= len(chunk)
+            binary = getattr(self.destination, "buffer", None)
+            if binary is not None:
+                binary.write(chunk)
+                binary.flush()
+            else:
+                self.destination.write(self.decoder.decode(chunk))
+                self.destination.flush()
+
+    def close(self):
+        try:
+            self.pump()
+            text = self.decoder.decode(b"", final=True)
+            if text:
+                self.destination.write(text)
+                self.destination.flush()
+        finally:
+            self.stream.close()
 
 
 def save_terminal():

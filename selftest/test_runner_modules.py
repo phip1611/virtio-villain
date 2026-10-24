@@ -7,9 +7,10 @@ from pathlib import Path
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "lib/python"))
@@ -58,6 +59,49 @@ class ModuleTests(unittest.TestCase):
 
 
 class ConsoleTests(unittest.TestCase):
+    def test_file_following_retains_split_utf8_and_the_final_bytes(self):
+        with tempfile.TemporaryDirectory() as work:
+            path = Path(work) / "console"
+            path.write_bytes(b"First \xe2")
+            destination = io.StringIO()
+            follower = console.FileFollower(path, destination)
+            follower.pump()
+            self.assertEqual(destination.getvalue(), "First ")
+            with path.open("ab") as stream:
+                stream.write(b"\x82\xac\nLast \xff")
+            follower.close()
+            self.assertEqual(destination.getvalue(), "First \u20ac\nLast \ufffd")
+            self.assertTrue(follower.stream.closed)
+            self.assertEqual(path.read_bytes(), b"First \xe2\x82\xac\nLast \xff")
+
+    def test_file_following_preserves_raw_console_bytes(self):
+        with tempfile.TemporaryDirectory() as work:
+            path = Path(work) / "console"
+            content = b"Guest \xff\x00\n" * 1000
+            path.write_bytes(content)
+            destination = Mock()
+            destination.buffer = io.BytesIO()
+            follower = console.FileFollower(path, destination)
+            follower.pump()
+            follower.close()
+            self.assertEqual(destination.buffer.getvalue(), content)
+            destination.write.assert_not_called()
+
+    def test_file_follower_closes_the_log_when_output_fails(self):
+        with tempfile.TemporaryDirectory() as work:
+            path = Path(work) / "console"
+            path.write_bytes(b"Guest output\n")
+
+            class BrokenOutput(io.StringIO):
+                def write(self, text):
+                    raise OSError("Console sink failed")
+
+            follower = console.FileFollower(path, BrokenOutput())
+            with self.assertRaisesRegex(OSError, "Console sink failed"):
+                follower.close()
+            self.assertTrue(follower.stream.closed)
+            self.assertEqual(path.read_bytes(), b"Guest output\n")
+
     def test_drain_retains_bytes_and_streams_diagnostics_without_rewriting(self):
         content = b"diagnostic\xff\n" * 600
         captured = []
