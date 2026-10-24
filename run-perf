@@ -4,8 +4,6 @@
 
 import argparse
 import hashlib
-import importlib.machinery
-import importlib.util
 import json
 import math
 import os
@@ -24,6 +22,9 @@ import time
 import uuid
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(ROOT, "lib", "python"))
+from villain import console, host, vmm  # noqa: E402
+
 DEVICE_INITCALL = {
     "blk": "virtio_blk_init",
     "net": "virtio_net_driver_init",
@@ -312,15 +313,6 @@ def has_effective_capability(capabilities, capability):
             if "e" in match.group(2) and "p" in match.group(2):
                 return True
     return False
-
-
-def load_runner():
-    path = os.path.join(ROOT, "run")
-    loader = importlib.machinery.SourceFileLoader("vv_run_perf", path)
-    spec = importlib.util.spec_from_loader("vv_run_perf", loader)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 def create_disk_image(path, disk_type, size_mib):
@@ -637,7 +629,7 @@ def create_work_directory(work_dir):
             f"{error}") from error
 
 
-def run_guest(args, runner):
+def run_guest(args, runner=vmm):
     backend = runner.detect_vmm(args.vmm)
     if args.device not in BACKEND_DEVICES.get(backend.name, set()):
         raise RuntimeError(
@@ -683,7 +675,7 @@ def run_guest(args, runner):
         network_sender = None
         if args.device == "net" and args.net_operation == "receive":
             if backend.name == "ch":
-                capabilities = runner._getcap(args.vmm)
+                capabilities = host.get_capabilities(args.vmm)
                 if not has_effective_capability(capabilities,
                                                 "cap_net_admin"):
                     raise RuntimeError(
@@ -724,7 +716,7 @@ def run_guest(args, runner):
         if backend.name == "openvmm":
             master_fd, slave_fd = pty.openpty()
             spawn["stdin"] = slave_fd
-            spawn["preexec_fn"] = runner._ctty_preexec(
+            spawn["preexec_fn"] = console.ctty_preexec(
                 os.ttyname(slave_fd).encode())
         else:
             spawn["stdin"] = subprocess.DEVNULL
@@ -1207,9 +1199,9 @@ def main(argv=None):
     build_result = build_guest()
     if build_result:
         return build_result
-    runner = load_runner()
+    sys.stdout.reconfigure(line_buffering=True)
     try:
-        backend, samples, kernel = run_guest(args, runner)
+        backend, samples, kernel = run_guest(args)
     except RuntimeError as error:
         sys.exit(str(error))
     report = make_report(args, backend, samples, kernel)

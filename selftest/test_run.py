@@ -16,6 +16,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, ROOT_DIR)
 sys.path.insert(0, os.path.join(ROOT_DIR, "lib", "python"))
+from villain import diagnostics, host as HOST_MOD, vmm as VMM_MOD  # noqa: E402
 INIT_BINARY = os.path.join(ROOT_DIR, "target", "init")
 RUN = os.path.join(ROOT_DIR, "run")
 RUN_FUZZ = os.path.join(ROOT_DIR, "run-fuzz")
@@ -255,7 +256,7 @@ def test_unit_probe_cache_hit_prepares_nothing():
         argv = [RUN, "--vmm", MOCK_LINK, "--kernel", "/dev/null",
                 "--initramfs", RUN, "--skip-unsupported", "RTC0200"]
         with patch.object(RUN_MOD, "_PROBE_CACHE_DIR", directory), \
-             patch.object(RUN_MOD, "_SCRIPT_DIR", directory), \
+             patch.object(VMM_MOD, "_SCRIPT_DIR", directory), \
              patch.object(RUN_MOD, "_probe_cache_key", return_value="f" * 64), \
              patch.object(RUN_MOD, "detect_vmm", return_value=backend), \
              patch.object(RUN_MOD, "print_banner"), \
@@ -427,7 +428,7 @@ def test_unit_mmio_probe_filters_each_launch_configuration():
 
             output = io.StringIO()
             with patch.object(RUN_MOD, "_PROBE_CACHE_DIR", directory), \
-                 patch.object(RUN_MOD, "_SCRIPT_DIR", directory), \
+                 patch.object(VMM_MOD, "_SCRIPT_DIR", directory), \
                  patch.object(RUN_MOD, "detect_vmm", return_value=backend), \
                  patch.object(RUN_MOD, "print_banner"), \
                  patch.object(RUN_MOD, "_install_termination_as_interrupt"), \
@@ -511,7 +512,7 @@ def test_unit_openvmm_probe_filters_capabilities_and_releases_terminal():
             output = io.StringIO()
             errors = io.StringIO()
             with patch.object(RUN_MOD, "_PROBE_CACHE_DIR", directory), \
-                 patch.object(RUN_MOD, "_SCRIPT_DIR", directory), \
+                 patch.object(VMM_MOD, "_SCRIPT_DIR", directory), \
                  patch.object(RUN_MOD, "detect_vmm", return_value=backend), \
                  patch.object(RUN_MOD, "print_banner"), \
                  patch.object(RUN_MOD, "_install_termination_as_interrupt"), \
@@ -1278,7 +1279,7 @@ def _openvmm_ports(cmd):
 
 def test_unit_openvmm_detect_by_name():
     be = RUN_MOD.detect_vmm("/opt/openvmm/openvmm")
-    assert isinstance(be, RUN_MOD.OpenVmm)
+    assert isinstance(be, VMM_MOD.OpenVmm)
     assert be.name == "openvmm"
 
 
@@ -1287,7 +1288,7 @@ def test_unit_openvmm_build_cmd_direct_boot_layout():
     original = RUN_MOD.platform.machine
     try:
         RUN_MOD.platform.machine = lambda: "x86_64"
-        be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+        be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
         cmd = be.build_cmd(
             "/k", "/i", "/d.raw", "console=ttyS0 vv.test=T0001",
             {"cpus": 2, "memory": "256M"})
@@ -1313,7 +1314,7 @@ def test_unit_openvmm_aarch64_disables_hv():
     original = RUN_MOD.platform.machine
     try:
         RUN_MOD.platform.machine = lambda: "aarch64"
-        be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+        be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
         cmd = be.build_cmd("/k", "/i", "/d.raw", "console=ttyAMA0", {})
     finally:
         RUN_MOD.platform.machine = original
@@ -1321,14 +1322,14 @@ def test_unit_openvmm_aarch64_disables_hv():
 
 
 def test_unit_openvmm_build_cmd_blk_on_pcie_port():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     cmd = be.build_cmd("/k", "/i", "/d.raw", "c", {})
     blk = _openvmm_opt(cmd, "--virtio-blk")
     assert blk == "file:/d.raw,pcie_port=disk"
 
 
 def test_unit_openvmm_build_cmd_blk_direct():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     cmd = be.build_cmd("/k", "/i", "/d.raw", "c", {"direct": True})
     assert _openvmm_opt(cmd, "--virtio-blk") == "file:/d.raw;direct,pcie_port=disk"
 
@@ -1343,7 +1344,7 @@ def test_unit_block_readonly_configuration():
             (RUN_MOD.CloudHypervisor, "--disk", "readonly=on"),
             (RUN_MOD.Qemu, "-drive", "readonly=on"),
             (RUN_MOD.QemuMicrovm, "-drive", "readonly=on"),
-            (RUN_MOD.OpenVmm, "--virtio-blk", "ro")):
+            (VMM_MOD.OpenVmm, "--virtio-blk", "ro")):
         instance = backend("vmm")
         for direct in (False, True):
             options = {"direct": direct}
@@ -1389,7 +1390,7 @@ def test_unit_readonly_probe_and_batch_configuration():
                     "--initramfs", RUN, "--skip-unsupported", "--batch", "2",
                     "-j", "1", *names]
             with patch.object(RUN_MOD, "_PROBE_CACHE_DIR", directory), \
-                 patch.object(RUN_MOD, "_SCRIPT_DIR", directory), \
+                 patch.object(VMM_MOD, "_SCRIPT_DIR", directory), \
                  patch.object(RUN_MOD, "detect_vmm", return_value=backend), \
                  patch.object(RUN_MOD, "print_banner"), \
                  patch.object(RUN_MOD, "_install_termination_as_interrupt"), \
@@ -1413,13 +1414,13 @@ def test_unit_readonly_probe_and_batch_configuration():
 
 
 def test_unit_openvmm_build_cmd_accepts_io_uring():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     cmd = be.build_cmd("/k", "/i", "/d.raw", "c", {"io_engine": "io_uring"})
     assert _openvmm_opt(cmd, "--virtio-blk") == "file:/d.raw,pcie_port=disk"
 
 
 def test_unit_openvmm_build_cmd_rejects_unsupported_io_engines():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     for engine in ("aio", "sync"):
         try:
             be.build_cmd("/k", "/i", "/d.raw", "c", {"io_engine": engine})
@@ -1431,13 +1432,13 @@ def test_unit_openvmm_build_cmd_rejects_unsupported_io_engines():
 
 
 def test_unit_openvmm_build_cmd_net_consomme():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     cmd = be.build_cmd("/k", "/i", "/d.raw", "c", {})
     assert _openvmm_opt(cmd, "--virtio-net") == "pcie_port=net:consomme"
 
 
 def test_unit_openvmm_net_receive_uses_consomme_forwarding():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     cmd = be.build_cmd("/k", "/i", "/d.raw", "c",
                        {"net_rx_port": 41000})
     assert _openvmm_opt(cmd, "--virtio-net") == (
@@ -1446,7 +1447,7 @@ def test_unit_openvmm_net_receive_uses_consomme_forwarding():
 
 def test_unit_openvmm_fuzz_device_attaches_only_that_device():
     """A focused fuzz device attaches only that device and its port."""
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     cmd = be.build_cmd("/k", "/i", "/d.raw", "c", {"fuzz_device": "blk"})
     assert _openvmm_ports(cmd) == ["disk"]
     assert "--virtio-blk" in cmd
@@ -1456,7 +1457,7 @@ def test_unit_openvmm_fuzz_device_attaches_only_that_device():
 
 def test_unit_openvmm_exit_on_guest_end_sets_actions():
     """Fuzzing makes the VMM exit on guest power off or reset."""
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     cmd = be.build_cmd("/k", "/i", "/d.raw", "c", {"exit_on_guest_end": True})
     assert _openvmm_opt(cmd, "--guest-shutdown-action") == "exit"
     assert _openvmm_opt(cmd, "--guest-reset-action") == "exit"
@@ -1464,14 +1465,14 @@ def test_unit_openvmm_exit_on_guest_end_sets_actions():
 
 def test_unit_openvmm_default_keeps_guest_actions_unset():
     """Conformance runs do not force exit actions."""
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     cmd = be.build_cmd("/k", "/i", "/d.raw", "c", {})
     assert "--guest-shutdown-action" not in cmd
     assert "--guest-reset-action" not in cmd
 
 
 def test_unit_openvmm_build_cmd_vsock_on_pcie_port():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     cmd = be.build_cmd("/k", "/i", "/d.raw", "c", {})
     assert _openvmm_opt(cmd, "--virtio-vsock-path") == "/d.vsock"
     assert _openvmm_opt(cmd, "--virtio-vsock-bus") == "pcie"
@@ -1479,7 +1480,7 @@ def test_unit_openvmm_build_cmd_vsock_on_pcie_port():
 
 
 def test_unit_openvmm_build_cmd_pmem_optional():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     without = be.build_cmd("/k", "/i", "/d.raw", "c", {})
     assert "--virtio-pmem" not in without
     assert "pmem" not in _openvmm_ports(without)
@@ -1490,7 +1491,7 @@ def test_unit_openvmm_build_cmd_pmem_optional():
 
 
 def test_unit_openvmm_build_cmd_fs_optional():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     without = be.build_cmd("/k", "/i", "/d.raw", "c", {})
     assert "--vhost-user" not in without
     with_fs = be.build_cmd("/k", "/i", "/d.raw", "c",
@@ -1501,7 +1502,7 @@ def test_unit_openvmm_build_cmd_fs_optional():
 
 
 def test_unit_openvmm_build_cmd_p9_optional():
-    be = RUN_MOD.OpenVmm("/opt/openvmm/openvmm")
+    be = VMM_MOD.OpenVmm("/opt/openvmm/openvmm")
     without = be.build_cmd("/k", "/i", "/d.raw", "c", {})
     assert "--virtio-9p" not in without
     with_p9 = be.build_cmd("/k", "/i", "/d.raw", "c",
@@ -1801,13 +1802,13 @@ def test_unit_fetch_kernel_selects_mmio_image():
     from unittest.mock import patch
 
     with tempfile.TemporaryDirectory() as directory, \
-         patch.object(RUN_MOD, "_SCRIPT_DIR", directory), \
+         patch.object(VMM_MOD, "_SCRIPT_DIR", directory), \
          patch.object(RUN_MOD.platform, "machine", return_value="x86_64"):
         os.mkdir(os.path.join(directory, "target"))
         for name in ("bzImage-x86_64", "vmlinux-x86_64"):
             with open(os.path.join(directory, "target", name), "wb") as image:
                 image.write(b"kernel")
-        with patch.object(RUN_MOD.urllib.request, "urlretrieve") as retrieve:
+        with patch.object(VMM_MOD.urllib.request, "urlretrieve") as retrieve:
             assert RUN_MOD.fetch_kernel(mmio=True).endswith("/bzImage-x86_64")
             assert RUN_MOD.fetch_kernel().endswith("/vmlinux-x86_64")
         retrieve.assert_not_called()
@@ -1852,7 +1853,7 @@ def test_unit_mmio_unsupported_backend_reports_skips_without_fallback():
                         argv.append("--skip-unsupported")
                     output = io.StringIO()
                     errors = io.StringIO()
-                    with patch.object(RUN_MOD, "_SCRIPT_DIR", directory), \
+                    with patch.object(VMM_MOD, "_SCRIPT_DIR", directory), \
                          patch.object(RUN_MOD, "detect_vmm",
                                       return_value=backend), \
                          patch.object(RUN_MOD, "print_banner"), \
@@ -1953,7 +1954,7 @@ def test_unit_skip_unsupported_filters_sidecar_backends_before_probing():
                 "--jobs", "12", *names]
             output = io.StringIO()
             errors = io.StringIO()
-            with patch.object(RUN_MOD, "_SCRIPT_DIR", directory), \
+            with patch.object(VMM_MOD, "_SCRIPT_DIR", directory), \
                  patch.object(RUN_MOD, "detect_vmm", return_value=backend), \
                  patch.object(RUN_MOD, "print_banner"), \
                  patch.object(RUN_MOD, "_install_termination_as_interrupt"), \
@@ -2009,7 +2010,7 @@ def test_unit_mmio_selected_transport_uses_only_selected_vmm():
             if explicit_qemu:
                 argv.extend(["--transport", "mmio"])
             output = io.StringIO()
-            with patch.object(RUN_MOD, "_SCRIPT_DIR", directory), \
+            with patch.object(VMM_MOD, "_SCRIPT_DIR", directory), \
                  patch.object(RUN_MOD, "detect_vmm", return_value=detected), \
                  patch.object(RUN_MOD, "print_banner"), \
                  patch.object(RUN_MOD, "_install_termination_as_interrupt"), \
@@ -4472,11 +4473,11 @@ def test_classify_real_error_after_ptrace_noise():
 
 def test_sanitizer_noise_matches_tracer_child_exit():
     """The residual sanitizer tracer exit line counts as teardown noise."""
-    assert RUN_MOD._is_sanitizer_noise_line(
+    assert diagnostics.is_sanitizer_noise_line(
         "==1497092==Child exited with signal 42.") is True
     # A plain VMM log line that happens to mention a child exit, without
     # the sanitizer == prefix, is not swallowed.
-    assert RUN_MOD._is_sanitizer_noise_line(
+    assert diagnostics.is_sanitizer_noise_line(
         "worker: Child exited with signal 9") is False
 
 
@@ -4664,7 +4665,7 @@ def test_security_triage_critical_outranks_benign_rejection():
 
 def test_sysctl_path_mapping():
     """Dotted sysctl names map to their /proc/sys path."""
-    assert (RUN_MOD._sysctl_path("kernel.yama.ptrace_scope")
+    assert (HOST_MOD._sysctl_path("kernel.yama.ptrace_scope")
             == "/proc/sys/kernel/yama/ptrace_scope")
 
 
@@ -4672,14 +4673,14 @@ def test_apply_sysconfigs_changes_only_differing():
     """Only entries whose value differs from want are changed."""
     reads = {"kernel.a": "1", "kernel.b": "0"}
     writes = []
-    RUN_MOD._sysctl_read = lambda key: reads.get(key)
-    RUN_MOD._sysctl_write = lambda key, val: (writes.append((key, val))
-                                              or True)
+    HOST_MOD._sysctl_read = lambda key: reads.get(key)
+    HOST_MOD._sysctl_write = lambda key, val: (writes.append((key, val))
+                                               or True)
     configs = [
         {"key": "kernel.a", "want": "0", "why": "x"},
         {"key": "kernel.b", "want": "0", "why": "y"},
     ]
-    restore = RUN_MOD.apply_sysconfigs(configs)
+    restore = HOST_MOD.apply_sysconfigs(configs)
     # kernel.a differed (1 -> 0) and was changed; kernel.b already 0.
     assert writes == [("kernel.a", "0")]
     assert restore == {"kernel.a": "1"}
@@ -4688,21 +4689,21 @@ def test_apply_sysconfigs_changes_only_differing():
 def test_apply_sysconfigs_skips_absent():
     """Absent sysctls are skipped, not changed."""
     writes = []
-    RUN_MOD._sysctl_read = lambda key: None
-    RUN_MOD._sysctl_write = lambda key, val: (writes.append((key, val))
-                                              or True)
+    HOST_MOD._sysctl_read = lambda key: None
+    HOST_MOD._sysctl_write = lambda key, val: (writes.append((key, val))
+                                               or True)
     configs = [{"key": "kernel.missing", "want": "0", "why": "x"}]
-    restore = RUN_MOD.apply_sysconfigs(configs)
+    restore = HOST_MOD.apply_sysconfigs(configs)
     assert writes == []
     assert restore == {}
 
 
 def test_apply_sysconfigs_records_only_successful_writes():
     """A failed write is not recorded for revert."""
-    RUN_MOD._sysctl_read = lambda key: "1"
-    RUN_MOD._sysctl_write = lambda key, val: False
+    HOST_MOD._sysctl_read = lambda key: "1"
+    HOST_MOD._sysctl_write = lambda key, val: False
     configs = [{"key": "kernel.a", "want": "0", "why": "x"}]
-    restore = RUN_MOD.apply_sysconfigs(configs)
+    restore = HOST_MOD.apply_sysconfigs(configs)
     assert restore == {}
 
 
@@ -4710,12 +4711,12 @@ def test_apply_sysconfigs_warns_on_failure():
     """A needed change that fails to write emits a warning summary."""
     import io
     import contextlib
-    RUN_MOD._sysctl_read = lambda key: "1"
-    RUN_MOD._sysctl_write = lambda key, val: False
+    HOST_MOD._sysctl_read = lambda key: "1"
+    HOST_MOD._sysctl_write = lambda key, val: False
     configs = [{"key": "kernel.a", "want": "0", "why": "x"}]
     buf = io.StringIO()
     with contextlib.redirect_stderr(buf):
-        restore = RUN_MOD.apply_sysconfigs(configs)
+        restore = HOST_MOD.apply_sysconfigs(configs)
     assert restore == {}
     text = buf.getvalue()
     assert "WARNING" in text
@@ -4725,10 +4726,10 @@ def test_apply_sysconfigs_warns_on_failure():
 def test_revert_sysconfigs_restores_values():
     """revert_sysconfigs writes back the saved old values and clears."""
     writes = []
-    RUN_MOD._sysctl_write = lambda key, val: (writes.append((key, val))
-                                              or True)
+    HOST_MOD._sysctl_write = lambda key, val: (writes.append((key, val))
+                                               or True)
     restore = {"kernel.a": "1", "kernel.b": "2"}
-    RUN_MOD.revert_sysconfigs(restore)
+    HOST_MOD.revert_sysconfigs(restore)
     assert sorted(writes) == [("kernel.a", "1"), ("kernel.b", "2")]
     assert restore == {}
 
@@ -4961,7 +4962,7 @@ def test_getcap_parses_expression():
         RUN_MOD.shutil.which = lambda c: "/usr/sbin/" + c
         RUN_MOD.subprocess.run = lambda *a, **k: _CP(
             0, "/path/to/vmm cap_net_admin=ep\n")
-        assert RUN_MOD._getcap("/path/to/vmm") == "cap_net_admin=ep"
+        assert HOST_MOD.get_capabilities("/path/to/vmm") == "cap_net_admin=ep"
     finally:
         RUN_MOD.shutil.which = orig_which
         RUN_MOD.subprocess.run = orig_run
@@ -4975,7 +4976,7 @@ def test_getcap_strips_equals_form():
         RUN_MOD.shutil.which = lambda c: "/usr/sbin/" + c
         RUN_MOD.subprocess.run = lambda *a, **k: _CP(
             0, "/path/to/vmm = cap_net_admin+ep\n")
-        assert RUN_MOD._getcap("/path/to/vmm") == "cap_net_admin+ep"
+        assert HOST_MOD.get_capabilities("/path/to/vmm") == "cap_net_admin+ep"
     finally:
         RUN_MOD.shutil.which = orig_which
         RUN_MOD.subprocess.run = orig_run
@@ -4988,7 +4989,7 @@ def test_getcap_empty_when_no_caps():
     try:
         RUN_MOD.shutil.which = lambda c: "/usr/sbin/" + c
         RUN_MOD.subprocess.run = lambda *a, **k: _CP(0, "")
-        assert RUN_MOD._getcap("/path/to/vmm") == ""
+        assert HOST_MOD.get_capabilities("/path/to/vmm") == ""
     finally:
         RUN_MOD.shutil.which = orig_which
         RUN_MOD.subprocess.run = orig_run
@@ -4997,135 +4998,135 @@ def test_getcap_empty_when_no_caps():
 def test_apply_ptrace_cap_appends_clause():
     """The grant appends cap_sys_ptrace, preserving existing caps."""
     orig_which = RUN_MOD.shutil.which
-    orig_lsan = RUN_MOD._is_leak_sanitized
-    orig_getcap = RUN_MOD._getcap
-    orig_apply = RUN_MOD._setcap_apply
+    orig_lsan = HOST_MOD._is_leak_sanitized
+    orig_getcap = HOST_MOD.get_capabilities
+    orig_apply = HOST_MOD._setcap_apply
     captured = []
     try:
         RUN_MOD.shutil.which = lambda c: "/usr/sbin/" + c
-        RUN_MOD._is_leak_sanitized = lambda p: True
-        RUN_MOD._getcap = lambda p: "cap_net_admin=ep"
-        RUN_MOD._setcap_apply = lambda expr, p: (captured.append(expr) or True)
-        orig = RUN_MOD.apply_ptrace_cap(__file__)
+        HOST_MOD._is_leak_sanitized = lambda p: True
+        HOST_MOD.get_capabilities = lambda p: "cap_net_admin=ep"
+        HOST_MOD._setcap_apply = lambda expr, p: (captured.append(expr) or True)
+        orig = HOST_MOD.apply_ptrace_cap(__file__)
         assert captured == ["cap_net_admin=ep cap_sys_ptrace=ep"]
         assert orig == "cap_net_admin=ep"
     finally:
         RUN_MOD.shutil.which = orig_which
-        RUN_MOD._is_leak_sanitized = orig_lsan
-        RUN_MOD._getcap = orig_getcap
-        RUN_MOD._setcap_apply = orig_apply
+        HOST_MOD._is_leak_sanitized = orig_lsan
+        HOST_MOD.get_capabilities = orig_getcap
+        HOST_MOD._setcap_apply = orig_apply
 
 
 def test_apply_ptrace_cap_no_existing_caps():
     """With no existing caps the grant is the sole clause."""
     orig_which = RUN_MOD.shutil.which
-    orig_lsan = RUN_MOD._is_leak_sanitized
-    orig_getcap = RUN_MOD._getcap
-    orig_apply = RUN_MOD._setcap_apply
+    orig_lsan = HOST_MOD._is_leak_sanitized
+    orig_getcap = HOST_MOD.get_capabilities
+    orig_apply = HOST_MOD._setcap_apply
     captured = []
     try:
         RUN_MOD.shutil.which = lambda c: "/usr/sbin/" + c
-        RUN_MOD._is_leak_sanitized = lambda p: True
-        RUN_MOD._getcap = lambda p: ""
-        RUN_MOD._setcap_apply = lambda expr, p: (captured.append(expr) or True)
-        orig = RUN_MOD.apply_ptrace_cap(__file__)
+        HOST_MOD._is_leak_sanitized = lambda p: True
+        HOST_MOD.get_capabilities = lambda p: ""
+        HOST_MOD._setcap_apply = lambda expr, p: (captured.append(expr) or True)
+        orig = HOST_MOD.apply_ptrace_cap(__file__)
         assert captured == ["cap_sys_ptrace=ep"]
         assert orig == ""
     finally:
         RUN_MOD.shutil.which = orig_which
-        RUN_MOD._is_leak_sanitized = orig_lsan
-        RUN_MOD._getcap = orig_getcap
-        RUN_MOD._setcap_apply = orig_apply
+        HOST_MOD._is_leak_sanitized = orig_lsan
+        HOST_MOD.get_capabilities = orig_getcap
+        HOST_MOD._setcap_apply = orig_apply
 
 
 def test_apply_ptrace_cap_skips_when_already_present():
     """If the cap is already set, nothing is changed or recorded."""
     orig_which = RUN_MOD.shutil.which
-    orig_lsan = RUN_MOD._is_leak_sanitized
-    orig_getcap = RUN_MOD._getcap
-    orig_apply = RUN_MOD._setcap_apply
+    orig_lsan = HOST_MOD._is_leak_sanitized
+    orig_getcap = HOST_MOD.get_capabilities
+    orig_apply = HOST_MOD._setcap_apply
     called = []
     try:
         RUN_MOD.shutil.which = lambda c: "/usr/sbin/" + c
-        RUN_MOD._is_leak_sanitized = lambda p: True
-        RUN_MOD._getcap = lambda p: "cap_sys_ptrace=ep"
-        RUN_MOD._setcap_apply = lambda expr, p: (called.append(expr) or True)
-        assert RUN_MOD.apply_ptrace_cap(__file__) is None
+        HOST_MOD._is_leak_sanitized = lambda p: True
+        HOST_MOD.get_capabilities = lambda p: "cap_sys_ptrace=ep"
+        HOST_MOD._setcap_apply = lambda expr, p: (called.append(expr) or True)
+        assert HOST_MOD.apply_ptrace_cap(__file__) is None
         assert called == []
     finally:
         RUN_MOD.shutil.which = orig_which
-        RUN_MOD._is_leak_sanitized = orig_lsan
-        RUN_MOD._getcap = orig_getcap
-        RUN_MOD._setcap_apply = orig_apply
+        HOST_MOD._is_leak_sanitized = orig_lsan
+        HOST_MOD.get_capabilities = orig_getcap
+        HOST_MOD._setcap_apply = orig_apply
 
 
 def test_apply_ptrace_cap_skips_non_lsan():
     """A VMM without the LeakSanitizer runtime is not touched."""
     orig_which = RUN_MOD.shutil.which
-    orig_lsan = RUN_MOD._is_leak_sanitized
-    orig_apply = RUN_MOD._setcap_apply
+    orig_lsan = HOST_MOD._is_leak_sanitized
+    orig_apply = HOST_MOD._setcap_apply
     called = []
     try:
         RUN_MOD.shutil.which = lambda c: "/usr/sbin/" + c
-        RUN_MOD._is_leak_sanitized = lambda p: False
-        RUN_MOD._setcap_apply = lambda expr, p: (called.append(expr) or True)
-        assert RUN_MOD.apply_ptrace_cap(__file__) is None
+        HOST_MOD._is_leak_sanitized = lambda p: False
+        HOST_MOD._setcap_apply = lambda expr, p: (called.append(expr) or True)
+        assert HOST_MOD.apply_ptrace_cap(__file__) is None
         assert called == []
     finally:
         RUN_MOD.shutil.which = orig_which
-        RUN_MOD._is_leak_sanitized = orig_lsan
-        RUN_MOD._setcap_apply = orig_apply
+        HOST_MOD._is_leak_sanitized = orig_lsan
+        HOST_MOD._setcap_apply = orig_apply
 
 
 def test_revert_ptrace_cap_reapplies_original():
     """A non empty original is restored with setcap."""
-    orig_apply = RUN_MOD._setcap_apply
-    orig_remove = RUN_MOD._setcap_remove
+    orig_apply = HOST_MOD._setcap_apply
+    orig_remove = HOST_MOD._setcap_remove
     applied = []
     removed = []
     try:
-        RUN_MOD._setcap_apply = lambda expr, p: (applied.append((expr, p))
-                                                 or True)
-        RUN_MOD._setcap_remove = lambda p: (removed.append(p) or True)
-        RUN_MOD.revert_ptrace_cap("/path/vmm", "cap_net_admin=ep")
+        HOST_MOD._setcap_apply = lambda expr, p: (applied.append((expr, p))
+                                                  or True)
+        HOST_MOD._setcap_remove = lambda p: (removed.append(p) or True)
+        HOST_MOD.revert_ptrace_cap("/path/vmm", "cap_net_admin=ep")
         assert applied == [("cap_net_admin=ep", "/path/vmm")]
         assert removed == []
     finally:
-        RUN_MOD._setcap_apply = orig_apply
-        RUN_MOD._setcap_remove = orig_remove
+        HOST_MOD._setcap_apply = orig_apply
+        HOST_MOD._setcap_remove = orig_remove
 
 
 def test_revert_ptrace_cap_clears_when_originally_none():
     """An empty original means the VMM had no caps; clear them."""
-    orig_apply = RUN_MOD._setcap_apply
-    orig_remove = RUN_MOD._setcap_remove
+    orig_apply = HOST_MOD._setcap_apply
+    orig_remove = HOST_MOD._setcap_remove
     applied = []
     removed = []
     try:
-        RUN_MOD._setcap_apply = lambda expr, p: (applied.append((expr, p))
-                                                 or True)
-        RUN_MOD._setcap_remove = lambda p: (removed.append(p) or True)
-        RUN_MOD.revert_ptrace_cap("/path/vmm", "")
+        HOST_MOD._setcap_apply = lambda expr, p: (applied.append((expr, p))
+                                                  or True)
+        HOST_MOD._setcap_remove = lambda p: (removed.append(p) or True)
+        HOST_MOD.revert_ptrace_cap("/path/vmm", "")
         assert removed == ["/path/vmm"]
         assert applied == []
     finally:
-        RUN_MOD._setcap_apply = orig_apply
-        RUN_MOD._setcap_remove = orig_remove
+        HOST_MOD._setcap_apply = orig_apply
+        HOST_MOD._setcap_remove = orig_remove
 
 
 def test_revert_ptrace_cap_noop_when_unchanged():
     """A None token means nothing was granted, so nothing is reverted."""
-    orig_apply = RUN_MOD._setcap_apply
-    orig_remove = RUN_MOD._setcap_remove
+    orig_apply = HOST_MOD._setcap_apply
+    orig_remove = HOST_MOD._setcap_remove
     touched = []
     try:
-        RUN_MOD._setcap_apply = lambda expr, p: (touched.append(1) or True)
-        RUN_MOD._setcap_remove = lambda p: (touched.append(1) or True)
-        RUN_MOD.revert_ptrace_cap("/path/vmm", None)
+        HOST_MOD._setcap_apply = lambda expr, p: (touched.append(1) or True)
+        HOST_MOD._setcap_remove = lambda p: (touched.append(1) or True)
+        HOST_MOD.revert_ptrace_cap("/path/vmm", None)
         assert touched == []
     finally:
-        RUN_MOD._setcap_apply = orig_apply
-        RUN_MOD._setcap_remove = orig_remove
+        HOST_MOD._setcap_apply = orig_apply
+        HOST_MOD._setcap_remove = orig_remove
 
 
 # ---------------------------------------------------------------------------

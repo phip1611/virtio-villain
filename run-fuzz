@@ -33,17 +33,17 @@ _fuzz_vsock_cid = 3
 _fuzz_vsock_cid_lock = threading.Lock()
 
 
-# Reuse the banner helper from the test runner so the artwork is
-# defined in exactly one place (target/init --banner).
-import importlib.util as _ilu
-import importlib.machinery as _ilm
-_run_path = os.path.join(_SCRIPT_DIR, "run")
-_run_spec = _ilu.spec_from_loader(
-    "vv_run", _ilm.SourceFileLoader("vv_run", _run_path))
-_run_mod = _ilu.module_from_spec(_run_spec)
-_run_spec.loader.exec_module(_run_mod)
-print_banner = _run_mod.print_banner
-ShortFirstHelpFormatter = _run_mod.ShortFirstHelpFormatter
+sys.path.insert(0, os.path.join(_SCRIPT_DIR, "lib", "python"))
+from villain import host, vmm
+from villain.cli import ShortFirstHelpFormatter, normalize_memory, print_banner
+from villain.console import ctty_preexec
+from villain.diagnostics import (
+    CORRUPTION_MARKERS as _CORRUPTION_MARKERS, SECURITY_ORDER as _SECURITY_ORDER,
+    is_sanitizer_noise_line as _is_sanitizer_noise_line,
+    security_triage as _security_triage,
+)
+
+sys.stdout.reconfigure(line_buffering=True)
 
 
 # --- Blob Format ---
@@ -1499,12 +1499,12 @@ def _detect_backend(vmm_path):
     """Return the VMM backend for a binary, cached and thread safe.
 
     Only CH is special cased with a fuzz tuned command; QEMU and OpenVMM
-    are built through the run module backends.
+    are built through the shared backends.
     """
     with _BACKEND_CACHE_LOCK:
         backend = _BACKEND_CACHE.get(vmm_path)
         if backend is None:
-            backend = _run_mod.detect_vmm(vmm_path)
+            backend = vmm.detect_vmm(vmm_path)
             _BACKEND_CACHE[vmm_path] = backend
         return backend
 
@@ -1557,7 +1557,7 @@ def run_vmm(vmm_path, initramfs_path, profraw_dir, timeout=3,
         cmd = _fuzz_vmm_cmd(vmm_path, kernel, initramfs_path, disk, pmem_path,
                             profraw_dir, cpus, memory)
     else:
-        # QEMU and OpenVMM reuse the run module backends, which stand up
+        # QEMU and OpenVMM reuse the shared backends, which stand up
         # the same virtio devices. QEMU adds isa-debug-exit and -no-reboot
         # so the guest reboot ends the VM. Drop the guest virtio-pci
         # transport initcall so the kernel binds no virtio driver at all:
@@ -1576,7 +1576,7 @@ def run_vmm(vmm_path, initramfs_path, profraw_dir, timeout=3,
     if backend.name == "openvmm":
         master_fd, slave_fd = pty.openpty()
         spawn["stdin"] = slave_fd
-        spawn["preexec_fn"] = _run_mod._ctty_preexec(
+        spawn["preexec_fn"] = ctty_preexec(
             os.ttyname(slave_fd).encode())
     else:
         # QEMU -nographic muxes the serial console onto stdio and puts the
@@ -1983,10 +1983,6 @@ def _annotate_blob(blob):
 # module so the test runner and the fuzzer share one classification.
 # Re-export them here for local use and for the selftest, which loads
 # this module by path.
-_is_sanitizer_noise_line = _run_mod._is_sanitizer_noise_line
-_SECURITY_ORDER = _run_mod._SECURITY_ORDER
-_CORRUPTION_MARKERS = _run_mod._CORRUPTION_MARKERS
-_security_triage = _run_mod._security_triage
 
 
 def _is_benign_rejection_line(line):
@@ -3184,7 +3180,7 @@ def main():
     g.add_argument("--cpus", type=int, default=2, metavar="N",
                    help="vCPUs per VM (default: 2)")
     g.add_argument("--memory", default="128M",
-                   type=_run_mod._normalize_mem, metavar="SIZE",
+                   type=normalize_memory, metavar="SIZE",
                    help="RAM per VM (default: 128M)")
     g.add_argument("--timeout", type=int, default=3, metavar="SEC",
                    help="VMM boot timeout in seconds (default: 3)")
@@ -3321,7 +3317,7 @@ def main():
     args = parser.parse_args()
 
     if getattr(args, "apply_sysconfig", False):
-        _run_mod.enable_sysconfigs(getattr(args, "vmm", None))
+        host.enable_sysconfigs(getattr(args, "vmm", None))
 
     if args.command == "decode":
         cmd_decode(args)

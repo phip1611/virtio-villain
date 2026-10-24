@@ -686,22 +686,23 @@ def main():
     ch_backend.name = "ch"
     ch_backend.console_device = "ttyS0"
     ch_backend.build_cmd.return_value = ["cloud-hypervisor"]
-    expect_runtime_error(
-        lambda: module.run_guest(net_rx_args, mock.Mock(
-            detect_vmm=mock.Mock(return_value=ch_backend),
-            fetch_kernel=mock.Mock(return_value="kernel"),
-            _getcap=mock.Mock(return_value=""))),
-        "requires cap_net_admin+ep")
+    with mock.patch.object(module.host, "get_capabilities", return_value=""):
+        expect_runtime_error(
+            lambda: module.run_guest(net_rx_args, mock.Mock(
+                detect_vmm=mock.Mock(return_value=ch_backend),
+                fetch_kernel=mock.Mock(return_value="kernel"))),
+            "requires cap_net_admin+ep")
     with mock.patch.object(module, "run_vmm",
                            return_value=network_receive_samples), \
             mock.patch.object(module, "unused_udp_port",
                               side_effect=[41001, 41000]), \
             mock.patch.object(module.os, "getpid", return_value=6), \
-            mock.patch.object(module, "NetworkSender") as sender:
+            mock.patch.object(module, "NetworkSender") as sender, \
+            mock.patch.object(module.host, "get_capabilities",
+                              return_value="cap_net_admin=ep"):
         module.run_guest(net_rx_args, mock.Mock(
             detect_vmm=mock.Mock(return_value=ch_backend),
-            fetch_kernel=mock.Mock(return_value="kernel"),
-            _getcap=mock.Mock(return_value="cap_net_admin=ep")))
+            fetch_kernel=mock.Mock(return_value="kernel")))
     net_rx_cmdline = ch_backend.build_cmd.call_args.args[3]
     net_rx_opts = ch_backend.build_cmd.call_args.args[4]
     assert "vv.perf_net_header_size=12" in net_rx_cmdline
