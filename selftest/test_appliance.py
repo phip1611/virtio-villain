@@ -679,6 +679,66 @@ class ConsoleExecutionTests(unittest.TestCase):
 
 
 class ParallelTests(unittest.TestCase):
+    def test_parallel_progress_matches_virtio_and_reports_each_completion_immediately(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            image = root / "image"
+            image.write_bytes(b"image")
+            script = (
+                "import sys, time\n"
+                "from pathlib import Path\n"
+                f"root = Path({str(root)!r})\n"
+                "name, token = sys.argv[1:]\n"
+                "(root / name).touch()\n"
+                "while not all((root / case).exists() for case in ('EX001', 'EX002')):\n"
+                "    time.sleep(0.01)\n"
+                "if name == 'EX002':\n"
+                "    while not (root / 'release').exists(): time.sleep(0.01)\n"
+                "(root / f'done-{name}').touch()\n"
+                f"print({output()!r}.replace('token', token).replace('EX001', name), "
+                "end='', flush=True)\n"
+            )
+
+            class ExampleSuite(appliance.Suite):
+                def build_command(self, args, selected, token):
+                    return [sys.executable, "-u", "-c", script, selected[0], token]
+
+            class ProgressOutput(io.StringIO):
+                released = False
+
+                def __init__(self):
+                    super().__init__()
+                    self.frames = []
+
+                def isatty(self):
+                    return True
+
+                def write(self, text):
+                    count = super().write(text)
+                    if text.startswith("\r\033[K") and text != "\r\033[K":
+                        self.frames.append(text)
+                    if "[PASS]" in text and "EX001" in text:
+                        self.released = not (root / "done-EX002").exists()
+                        (root / "release").touch()
+                    return count
+
+            suite = ExampleSuite("example", "example-v1", root / "init", image)
+            args = appliance.parse_args(suite, [
+                "--kernel", str(image), "--jobs", "16", "--timeout", "3",
+                "--output", str(root / "results")])
+            captured = ProgressOutput()
+            with contextlib.redirect_stdout(captured):
+                status = appliance.launch(suite, args, ["EX001", "EX002"])
+            self.assertTrue(captured.released, captured.getvalue())
+            self.assertEqual(status, 0, captured.getvalue())
+            self.assertEqual(captured.frames, [
+                reporting.format_progress({}, 0, 2, "starting..."),
+                reporting.format_progress({"PASS": 1}, 1, 2),
+                reporting.format_progress({"PASS": 2}, 2, 2),
+            ])
+            self.assertIn("2/2 tests passed", captured.getvalue())
+            self.assertEqual(captured.getvalue().count("[PASS]"), 2)
+
     def test_interruption_cleans_up_active_vms_and_stops_new_boots(self):
         with tempfile.TemporaryDirectory() as work:
             root = Path(work)
