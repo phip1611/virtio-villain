@@ -171,6 +171,98 @@ class SuiteLoadingTests(unittest.TestCase):
                 appliance.load_suite(work)
 
 
+class SuiteExecutionTests(unittest.TestCase):
+    def test_execution_requires_a_loaded_suite_definition(self):
+        suite = appliance.Suite("example", "example-v1", Path("init"), Path("archive"))
+        with self.assertRaisesRegex(RuntimeError, "Load the suite"):
+            suite.execution_command([])
+
+    def test_preparation_is_supervised_and_cannot_report_a_false_success(self):
+        for mode in ("pass", "fail", "return", "timeout"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as work:
+                root = Path(work)
+                image = root / "image"
+                image.write_bytes(b"image")
+                private = root / "lib"
+                private.mkdir()
+                (private / "helper.py").write_text(f"ROOT = {str(root)!r}\n")
+                (private / "suite.py").write_text(
+                    "import os, sys, time\n"
+                    "from pathlib import Path\n"
+                    "from villain.appliance import Suite\n"
+                    "class Example(Suite):\n"
+                    "    def build_command(self, args, selected, token):\n"
+                    f"        return self.execution_command([selected[0], token, {mode!r}])\n"
+                    "    def execute(self, argv):\n"
+                    "        from .helper import ROOT\n"
+                    "        name, token, mode = argv\n"
+                    "        (Path(ROOT) / 'pid').write_text(str(os.getpid()))\n"
+                    "        print('Preparing appliance', flush=True)\n"
+                    "        if mode == 'fail': raise RuntimeError('Preparation failed')\n"
+                    "        if mode == 'return': return\n"
+                    "        if mode == 'timeout': time.sleep(10)\n"
+                    f"        text = {output()!r}.replace('token', token)\n"
+                    "        os.execvp(sys.executable, [sys.executable, '-c', "
+                    "\"print(\" + repr(text) + \", end='')\"])\n"
+                    "def create_suite():\n"
+                    f"    return Example('example', 'example-v1', "
+                    f"{str(image)!r}, {str(image)!r})\n")
+                suite = appliance.load_suite(root)
+                args = appliance.parse_args(suite, [
+                    "--kernel", str(image), "--console", "--timeout", "0.5",
+                    "--output", str(root / "results")])
+                with contextlib.redirect_stdout(io.StringIO()) as captured:
+                    status = appliance.launch(suite, args, ["EX001"])
+                self.assertEqual(status, 0 if mode == "pass" else 2, captured.getvalue())
+                run = json.loads((root / "results/results.json").read_text())["runs"][0]
+                log = Path(run["console"]).read_text()
+                self.assertIn("Preparing appliance", log)
+                self.assertIn("Preparing appliance", captured.getvalue())
+                if mode == "fail":
+                    self.assertIn("[INFRA] Preparation failed", log)
+                elif mode == "return":
+                    self.assertIn("returned without replacing the process", log)
+                elif mode == "timeout":
+                    self.assertTrue(run["timed_out"])
+                with self.assertRaises(ProcessLookupError):
+                    os.kill(int((root / "pid").read_text()), 0)
+
+    def test_preparation_runs_in_parallel_instead_of_blocking_command_construction(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            image = root / "image"
+            image.write_bytes(b"image")
+            private = root / "lib"
+            private.mkdir()
+            (private / "suite.py").write_text(
+                "import os, sys, time\n"
+                "from pathlib import Path\n"
+                "from villain.appliance import Suite\n"
+                "class Example(Suite):\n"
+                "    def build_command(self, args, selected, token):\n"
+                "        return self.execution_command([selected[0], token])\n"
+                "    def execute(self, argv):\n"
+                "        name, token = argv\n"
+                f"        root = Path({str(root)!r})\n"
+                "        (root / name).touch()\n"
+                "        while not all((root / case).exists() for case in ('EX001', 'EX002')):\n"
+                "            time.sleep(0.01)\n"
+                f"        text = {output()!r}.replace('token', token).replace('EX001', name)\n"
+                "        os.execvp(sys.executable, [sys.executable, '-c', "
+                "\"print(\" + repr(text) + \", end='')\"])\n"
+                "def create_suite():\n"
+                f"    return Example('example', 'example-v1', {str(image)!r}, {str(image)!r})\n")
+            suite = appliance.load_suite(root)
+            args = appliance.parse_args(suite, [
+                "--kernel", str(image), "--jobs", "2", "--timeout", "2",
+                "--output", str(root / "results")])
+            with contextlib.redirect_stdout(io.StringIO()) as captured:
+                status = appliance.launch(suite, args, ["EX001", "EX002"])
+            self.assertEqual(status, 0, captured.getvalue())
+            runs = json.loads((root / "results/results.json").read_text())["runs"]
+            self.assertEqual([run["status"] for run in runs], [0, 0])
+
+
 class SourceCatalogTests(unittest.TestCase):
     def test_source_ids_and_descriptions_without_building(self):
         with tempfile.TemporaryDirectory() as work:
