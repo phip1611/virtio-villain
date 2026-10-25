@@ -8,6 +8,7 @@ import importlib.machinery
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -530,6 +531,36 @@ class BuildTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which("make"), "Make unavailable")
 class FixtureBuildTests(unittest.TestCase):
+    def test_explicit_rust_compiler_reaches_configuration_and_compilation(self):
+        for compiler in (None, "false"):
+            with self.subTest(compiler=compiler), tempfile.TemporaryDirectory() as work:
+                root = Path(work)
+                source = root / "source"
+                source.mkdir()
+                (source / "Makefile").write_text(
+                    "RUSTC = rustc\n" + FIXTURE_MAKEFILE
+                    + "\n.PHONY: record-compiler\n"
+                    "allnoconfig vmlinux bzImage: record-compiler\n"
+                    "record-compiler:\n"
+                    '\tmkdir -p "$(O)"\n'
+                    '\tprintf "%s\\n" "$(RUSTC)" >> "$(O)/compiler.log"\n')
+                config = root / "config"
+                config.write_text("CONFIG_FIXTURE=y\n")
+                args = BUILD.parse_args([
+                    "--source", str(source), "--config", str(config),
+                    "--output", str(root / "output"), "--cache-dir", str(root / "cache"),
+                    "--offline", "--arch", "x86_64", "--jobs", "2"])
+                environment = dict(os.environ)
+                for name in ("MAKEFLAGS", "MAKEOVERRIDES", "RUSTC"):
+                    environment.pop(name, None)
+                if compiler is not None:
+                    environment["RUSTC"] = compiler
+                with mock.patch.dict(os.environ, environment, clear=True):
+                    BUILD.build(args)
+                recorded = (root / "output/x86_64/compiler.log").read_text().splitlines()
+                self.assertEqual(recorded, [compiler or "rustc"] * 2)
+                self.assertTrue((root / "output/images/bzImage-x86_64").is_file())
+
     def test_preloaded_official_releases_accept_independent_configs(self):
         with tempfile.TemporaryDirectory() as work:
             root = Path(work)
