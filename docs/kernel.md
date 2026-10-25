@@ -61,6 +61,27 @@ VFIO support for the existing appliance. A new kernel release may change
 Kconfig dependencies. If requested values cannot be retained, the
 builder fails rather than silently dropping them.
 
+### Custom configs through make
+
+`make guest-kernel` accepts `KERNEL_CONFIGS` as a space separated list of
+config files and fragments. Later files override earlier values. Leaving
+the list empty preserves the bundled profile unless `KERNEL_ARGS` supplies
+explicit configs.
+
+```sh
+make guest-kernel \
+  KERNEL_CONFIGS="/path/base.config /path/extra.config" \
+  KERNEL_ARGS="--source /path/linux --output /path/kernel-build --offline"
+```
+
+`KERNEL_ARGS` supplies additional builder options after `KERNEL_CONFIGS`.
+Any `--config` options in those arguments are applied last. Custom configs
+require an explicit output directory. Use a new directory when changing
+the source, configuration or toolchain.
+
+Use `make help` for Make variables and `./build-kernel --help` for all
+source and build options.
+
 ## Preloaded archives and offline pipelines
 
 A pipeline can preload the source archive and configuration itself. Pass
