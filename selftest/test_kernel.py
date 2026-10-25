@@ -531,6 +531,60 @@ class BuildTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which("make"), "Make unavailable")
 class FixtureBuildTests(unittest.TestCase):
+    def test_make_config_selection_and_argument_precedence(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            source = root / "source"
+            source.mkdir()
+            (source / "Makefile").write_text(FIXTURE_MAKEFILE)
+            wrapper = root / "build-kernel"
+            wrapper.write_text(
+                "#!/usr/bin/env python3\nimport runpy\n"
+                f"runpy.run_path({str(ROOT / 'build-kernel')!r}, run_name='__main__')\n")
+            wrapper.chmod(0o755)
+            base, fragment, last = (root / name for name in (
+                "base.config", "fragment.config", "last.config"))
+            base.write_text("CONFIG_FIXTURE=m\n")
+            fragment.write_text("CONFIG_FIXTURE=y\n")
+            last.write_text("# CONFIG_FIXTURE is not set\n")
+            for index, expected in enumerate(("m", "y", "n")):
+                with self.subTest(expected=expected):
+                    output = root / f"output-{index}"
+                    arguments = (f"--source {source} --output {output} "
+                                 f"--cache-dir {root / 'cache'} --offline --jobs 2")
+                    variables = []
+                    if index == 0:
+                        arguments += f" --config {base}"
+                    else:
+                        variables.append(f"KERNEL_CONFIGS={base} {fragment}")
+                    if index == 2:
+                        arguments += f" --config {last}"
+                    subprocess.run([
+                        "make", "--no-print-directory", "-C", str(root),
+                        "-f", str(ROOT / "Makefile"), "guest-kernel",
+                        *variables, f"KERNEL_ARGS={arguments}",
+                    ], check=True, capture_output=True, text=True, timeout=20)
+                    config = (output / "images/config-x86_64").read_text()
+                    self.assertEqual(BUILD.config_values(config)["CONFIG_FIXTURE"], expected)
+                    self.assertTrue((output / "images/bzImage-x86_64").is_file())
+
+    def test_make_and_builder_help_explain_config_selection(self):
+        commands = (
+            ["make", "--no-print-directory", "-C", str(ROOT), "help"],
+            [str(ROOT / "build-kernel"), "--help"])
+        for command in commands:
+            with self.subTest(command=command):
+                result = subprocess.run(command, check=True, capture_output=True,
+                                        text=True, timeout=20)
+                text = " ".join(result.stdout.split())
+                for expected in ("--output", "RUSTC", "Later files override earlier values"):
+                    self.assertIn(expected, text)
+                if command[0] == "make":
+                    self.assertIn("KERNEL_CONFIGS", text)
+                    self.assertIn("KERNEL_ARGS", text)
+                else:
+                    self.assertIn("--config", text)
+
     def test_explicit_rust_compiler_reaches_configuration_and_compilation(self):
         for compiler in (None, "false"):
             with self.subTest(compiler=compiler), tempfile.TemporaryDirectory() as work:
