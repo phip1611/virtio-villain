@@ -345,7 +345,10 @@ def build(args):
 
 
 def parse_args(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    parser = argparse.ArgumentParser(
+        description=__doc__, allow_abbrev=False,
+        epilog="Set RUSTC in the environment to select the Rust compiler. "
+        "Use a new --output when changing the source, configuration or toolchain.")
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--source", type=Path, help="Local Linux source tree")
     source.add_argument("--git-url", help="Git repository URL or local repository")
@@ -361,13 +364,16 @@ def parse_args(argv=None):
                         help="Never resolve releases, fetch Git or download archives")
     parser.add_argument("--cache-dir", type=Path, help="Writable source and download cache")
     parser.add_argument("--config", type=Path, action="append",
-                        help="Config file or fragment, repeat to override values")
-    parser.add_argument("--output", type=Path, help="Separate build directory")
+                        help="Config file or fragment. Repeat in order. "
+                        "Later files override earlier values")
+    parser.add_argument("--output", type=Path,
+                        help="Separate build directory, required with custom configs")
     parser.add_argument("--arch", choices=("x86_64", "aarch64"),
-                        default=platform.machine())
-    parser.add_argument("--jobs", type=int, default=4)
-    parser.add_argument("--cross-compile", default="")
-    parser.add_argument("--source-date-epoch", type=int)
+                        default=platform.machine(), help="Target architecture, default: host")
+    parser.add_argument("--jobs", type=int, default=4, help="Parallel build jobs, default: 4")
+    parser.add_argument("--cross-compile", default="", help="Cross compiler executable prefix")
+    parser.add_argument("--source-date-epoch", type=int,
+                        help="Reproducible build timestamp as Unix seconds")
     args = parser.parse_args(argv)
     if args.arch not in ("x86_64", "aarch64"):
         parser.error("specify a supported --arch")

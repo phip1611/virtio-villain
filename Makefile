@@ -204,8 +204,11 @@ init: $(TARGET)/init
 fuzz: $(TARGET)/fuzz
 perf: $(TARGET)/perf
 
+KERNEL_CONFIGS ?=
+KERNEL_ARGS ?=
+
 guest-kernel:
-	./build-kernel $(KERNEL_ARGS)
+	./build-kernel $(foreach config,$(KERNEL_CONFIGS),--config "$(config)") $(KERNEL_ARGS)
 
 help:
 	@echo "Targets:"
@@ -225,6 +228,26 @@ help:
 	@echo "  flake8-deps-check   Verify flake8 is present"
 	@echo "  clean               Remove build outputs"
 	@echo "  help                Show this message"
+	@echo ""
+	@echo "Build variables:"
+	@echo "  TARGET              Output directory (default: target)"
+	@echo "  OBJDIR              Object directory (default: TARGET/obj)"
+	@echo "  CC, CFLAGS, LDFLAGS  C compiler and build flags"
+	@echo "  STRIP               Guest executable stripping tool"
+	@echo "  V=1                 Print compiler commands"
+	@echo "  APPLIANCE_SRCS      Explicit external appliance C source list"
+	@echo "  APPLIANCE_TARGET    External output directory (default: TARGET/appliance)"
+	@echo "  APPLIANCE_CPPFLAGS  External appliance include paths and compiler flags"
+	@echo "  KERNEL_CONFIGS      Ordered config files or fragments for guest-kernel"
+	@echo "                      Later files override earlier values"
+	@echo "                      Empty by default, using the bundled kernel profile"
+	@echo "  KERNEL_ARGS         Extra build-kernel options, processed after KERNEL_CONFIGS"
+	@echo "                      Custom configs require --output DIR"
+	@echo "  RUSTC               Optional environment selection for the kernel Rust compiler"
+	@echo ""
+	@echo "Examples:"
+	@echo '  make guest-kernel KERNEL_CONFIGS="/path/base.config /path/extra.config" KERNEL_ARGS="--source /path/linux --output /path/kernel-build"'
+	@echo "  ./build-kernel --help lists all kernel source and build options"
 
 .PHONY: init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest flake8 flake8-deps-check help guest-kernel
 .PHONY: appliance appliance-initramfs appliance-check
