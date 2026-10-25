@@ -125,11 +125,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ExampleSuite(Suite):
     def add_arguments(self, parser):
-        parser.add_argument("--launcher")
-
-    def preflight(self, args):
-        if not args.launcher:
-            raise RuntimeError("provide --launcher for the required environment")
+        parser.add_argument("--vmm", default="cloud-hypervisor")
 
     def build_command(self, args, selected, run_id):
         cmdline = (
@@ -137,8 +133,9 @@ class ExampleSuite(Suite):
             f"vv.run={run_id} vv.tests={','.join(selected)}"
         )
         return [
-            args.launcher, "--kernel", str(args.kernel),
+            args.vmm, "--kernel", str(args.kernel),
             "--initramfs", str(args.initramfs), "--cmdline", cmdline,
+            "--serial", "tty", "--console", "off",
         ]
 
 def create_suite():
@@ -155,10 +152,18 @@ runner. The framework owns listing, selection, supervision, protocol checks
 and reporting. The policy supplies launch arguments and prerequisite checks.
 Only explicitly requested modules are loaded. Do not load untrusted code.
 
+For preparation that must run within the appliance timeout, return
+`self.execution_command(argv)` from `build_command`. Override `execute(argv)`
+to prepare the boot environment and replace its process with the VMM using
+`os.execvp`. Preparation and VM execution then share console capture, the
+deadline and recovery controls. Returning from `execute` is an infrastructure
+failure. Suites that need no preparation can continue returning a VMM command
+directly.
+
 ```sh
 ./run --suite /work/example --list
 ./run --suite /work/example \
-  --kernel /work/kernel/image --launcher /work/bin/start-appliance \
+  --kernel /work/kernel/image --vmm /work/bin/cloud-hypervisor \
   --control /work/bin/external-control --repeat 3 EX001
 ```
 
