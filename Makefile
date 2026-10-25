@@ -158,7 +158,9 @@ perf-initramfs: $(TARGET)/perf
 	@echo "$(TARGET)/perf-initramfs.cpio.gz ($$(du -h $(TARGET)/perf-initramfs.cpio.gz | cut -f1))"
 
 clean:
-	rm -rf $(TARGET) selftest/test_lib selftest/test_irq selftest/cloud-hypervisor
+	$(Q)python3 lib/python/villain/clean.py --root "$(CURDIR)" \
+	  "$(TARGET)" "$(OBJDIR)" "$(APPLIANCE_TARGET)" \
+	  selftest/test_lib selftest/test_irq selftest/cloud-hypervisor
 
 selftest: selftest/test_lib selftest/test_irq
 	@echo "selftest/lib:"
@@ -248,6 +250,9 @@ help:
 	@echo "Examples:"
 	@echo '  make guest-kernel KERNEL_CONFIGS="/path/base.config /path/extra.config" KERNEL_ARGS="--source /path/linux --output /path/kernel-build"'
 	@echo "  ./build-kernel --help lists all kernel source and build options"
+	@echo ""
+	@echo "clean removes TARGET, custom object/appliance outputs and host test binaries."
+	@echo "Caches and results inside those output directories are removed too."
 
 .PHONY: init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest flake8 flake8-deps-check help guest-kernel
 .PHONY: appliance appliance-initramfs appliance-check
