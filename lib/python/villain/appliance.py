@@ -34,6 +34,8 @@ class Suite:
     protocol_prefix: str = "VV"
     requires_control: bool = False
     host_shutdown: bool = False
+    kernel: Optional[Path] = None
+    kernel_build_hint: Optional[str] = None
     definition: Optional[Path] = dataclass_field(
         default=None, init=False, repr=False, compare=False)
 
@@ -87,6 +89,8 @@ def load_suite(path):
             raise RuntimeError("Invalid suite name, contract, or protocol prefix")
         suite.binary = Path(suite.binary).resolve()
         suite.initramfs = Path(suite.initramfs).resolve()
+        if suite.kernel is not None:
+            suite.kernel = Path(suite.kernel).resolve()
         suite.definition = path
         loaded = True
         return suite
@@ -490,7 +494,8 @@ def parse_args(suite, argv):
     parser.add_argument("-c", "--console", action="store_true",
                         help="Stream VM output directly to stdout (runs serially)")
     parser.add_argument("--binary", type=Path, default=suite.binary)
-    parser.add_argument("--kernel", type=Path, help="Explicit kernel image; never downloaded")
+    parser.add_argument("--kernel", type=Path, default=suite.kernel,
+                        help="Kernel image override; defaults to the suite image when configured")
     parser.add_argument("--initramfs", type=Path, default=suite.initramfs)
     parser.add_argument("--control", help="External watchdog/recovery control executable")
     parser.add_argument("--timeout", type=float, default=120)
@@ -507,12 +512,20 @@ def parse_args(suite, argv):
     if args.list and args.tests:
         parser.error("--list cannot be combined with test selection")
     if not args.list:
-        if not args.kernel or (suite.requires_control and not args.control):
-            parser.error("execution requires --kernel and this suite's recovery prerequisites")
+        if not args.kernel:
+            parser.error("execution requires --kernel when the suite has no default kernel")
+        if suite.requires_control and not args.control:
+            parser.error("execution requires --control for this suite")
         for name in ("kernel", "initramfs"):
             path = getattr(args, name).resolve()
             if not path.is_file() or path.stat().st_size == 0:
-                parser.error(f"{name} must be a nonempty file: {path}")
+                message = f"{name} must be a nonempty file: {path}"
+                if (name == "kernel" and suite.kernel is not None
+                        and path == Path(suite.kernel).resolve()):
+                    hint = suite.kernel_build_hint or (
+                        "Build the suite kernel or select another image with --kernel PATH.")
+                    message += f". {hint}"
+                parser.error(message)
             setattr(args, name, path)
     return args
 
