@@ -4,7 +4,7 @@
 import argparse
 from collections import Counter
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
-from dataclasses import dataclass
+from dataclasses import dataclass, field as dataclass_field
 import hashlib
 import importlib.util
 import json
@@ -17,6 +17,7 @@ import subprocess
 import sys
 import threading
 import time
+from typing import Optional
 import uuid
 from villain import reporting
 from villain.console import FileFollower
@@ -33,6 +34,8 @@ class Suite:
     protocol_prefix: str = "VV"
     requires_control: bool = False
     host_shutdown: bool = False
+    definition: Optional[Path] = dataclass_field(
+        default=None, init=False, repr=False, compare=False)
 
     def list_tests(self, binary):
         """Return the browsable catalog, optionally from source registrations."""
@@ -46,6 +49,17 @@ class Suite:
 
     def build_command(self, args, selected, run_id):
         """Return an argv list; stdout/stderr must include the guest console."""
+        raise NotImplementedError
+
+    def execution_command(self, argv):
+        """Run suite preparation inside the supervised appliance process."""
+        if self.definition is None:
+            raise RuntimeError("Load the suite before constructing its execution command")
+        return [sys.executable, str(Path(__file__).with_name("suite_exec.py")),
+                str(self.definition), *argv]
+
+    def execute(self, argv):
+        """Prepare an appliance and replace this process with its VMM."""
         raise NotImplementedError
 
 
@@ -73,6 +87,7 @@ def load_suite(path):
             raise RuntimeError("Invalid suite name, contract, or protocol prefix")
         suite.binary = Path(suite.binary).resolve()
         suite.initramfs = Path(suite.initramfs).resolve()
+        suite.definition = path
         loaded = True
         return suite
     finally:
