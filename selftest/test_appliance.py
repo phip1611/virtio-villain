@@ -170,6 +170,121 @@ class SuiteLoadingTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, r"lib/suite\.py"):
                 appliance.load_suite(work)
 
+    def test_loaded_kernel_metadata_is_normalized(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            kernel = root / "images/kernel"
+            policy = root / "suite.py"
+            policy.write_text(
+                "from villain.appliance import Suite\n"
+                "def create_suite():\n"
+                f"    return Suite('example', 'example-v1', '.', '.', kernel={str(kernel)!r},\n"
+                "                 kernel_build_hint='Run make kernel.')\n")
+            suite = appliance.load_suite(policy)
+            self.assertEqual(suite.kernel, kernel)
+            self.assertEqual(suite.kernel_build_hint, "Run make kernel.")
+
+
+class KernelSelectionTests(unittest.TestCase):
+    def test_default_and_override_reach_the_appliance_and_report(self):
+        script = (
+            "import sys\n"
+            "print('Kernel: ' + sys.argv[1], flush=True)\n"
+            f"print({output()!r}.replace('token', sys.argv[2]), end='')\n")
+
+        class Example(appliance.Suite):
+            def build_command(self, args, selected, run_id):
+                return [sys.executable, "-c", script, str(args.kernel), run_id]
+
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            kernel, override, archive = (root / name for name in ("kernel", "override", "archive"))
+            for path in (kernel, override, archive):
+                path.write_bytes(path.name.encode())
+            suite = Example("example", "example-v1", root / "init", archive, kernel=kernel)
+            for name, options, selected in (
+                    ("default", [], kernel), ("override", ["--kernel", str(override)], override)):
+                with self.subTest(name=name):
+                    results = root / (name + "-results")
+                    args = appliance.parse_args(suite, ["--output", str(results), *options])
+                    self.assertEqual(args.kernel, selected)
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        self.assertEqual(appliance.launch(suite, args, ["EX001"]), 0)
+                    report = json.loads((results / "results.json").read_text())
+                    self.assertEqual(report["kernel"], str(selected))
+                    self.assertEqual(report["kernel_sha256"], appliance.digest(selected))
+                    log = Path(report["runs"][0]["console"]).read_text()
+                    self.assertIn("Kernel: " + str(selected), log)
+                if name == "default":
+                    kernel.unlink()
+
+    def test_missing_or_empty_default_reports_build_hint_before_launch(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            archive = root / "archive"
+            archive.write_bytes(b"archive")
+            for name in ("missing", "empty"):
+                with self.subTest(name=name):
+                    kernel = root / name
+                    if name == "empty":
+                        kernel.touch()
+                    suite = appliance.Suite(
+                        "example", "example-v1", root / "init", archive,
+                        kernel=kernel, kernel_build_hint="Run make kernel.")
+                    with patch.object(appliance, "load_suite", return_value=suite), \
+                         patch.object(appliance, "catalog") as catalog, \
+                         patch.object(appliance, "launch") as launch, \
+                         patch.object(appliance.subprocess, "run") as run, \
+                         contextlib.redirect_stderr(io.StringIO()) as errors, \
+                         self.assertRaises(SystemExit) as exit:
+                        appliance.main(["--suite", str(root)])
+                    self.assertEqual(exit.exception.code, 2)
+                    self.assertIn(str(kernel), errors.getvalue())
+                    self.assertIn("Run make kernel.", errors.getvalue())
+                    catalog.assert_not_called()
+                    launch.assert_not_called()
+                    run.assert_not_called()
+                    self.assertEqual(
+                        appliance.parse_args(suite, ["--list"]).kernel, kernel)
+
+    def test_invalid_explicit_kernel_is_not_replaced_by_the_default(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            image = root / "image"
+            image.write_bytes(b"image")
+            suite = appliance.Suite(
+                "example", "example-v1", root / "init", image, kernel=image,
+                kernel_build_hint="Run make kernel.")
+            for name in ("missing", "empty", "directory"):
+                with self.subTest(name=name):
+                    override = root / name
+                    if name == "empty":
+                        override.touch()
+                    elif name == "directory":
+                        override.mkdir()
+                    with contextlib.redirect_stderr(io.StringIO()) as errors, \
+                         self.assertRaises(SystemExit) as exit:
+                        appliance.parse_args(suite, ["--kernel", str(override)])
+                    self.assertEqual(exit.exception.code, 2)
+                    self.assertIn(str(override), errors.getvalue())
+                    self.assertNotIn("Run make kernel.", errors.getvalue())
+
+    def test_kernel_defaults_preserve_explicit_kernel_and_control_requirements(self):
+        with tempfile.TemporaryDirectory() as work:
+            image = Path(work) / "image"
+            image.write_bytes(b"image")
+            for kernel, control, expected in (
+                    (None, False, "--kernel"), (image, True, "--control")):
+                with self.subTest(kernel=kernel, control=control):
+                    suite = appliance.Suite(
+                        "example", "example-v1", image, image,
+                        kernel=kernel, requires_control=control)
+                    with contextlib.redirect_stderr(io.StringIO()) as errors, \
+                         self.assertRaises(SystemExit) as exit:
+                        appliance.parse_args(suite, [])
+                    self.assertEqual(exit.exception.code, 2)
+                    self.assertIn("execution requires " + expected, errors.getvalue())
+
 
 class SuiteExecutionTests(unittest.TestCase):
     def test_execution_requires_a_loaded_suite_definition(self):
