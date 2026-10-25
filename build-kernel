@@ -307,6 +307,8 @@ def build(args):
         command = ["make", "-C", str(source), f"O={output}", f"ARCH={arch}"]
         if args.cross_compile:
             command.append(f"CROSS_COMPILE={args.cross_compile}")
+        if "RUSTC" in env:
+            command.append(f"RUSTC={env['RUSTC']}")
         subprocess.run(command + ["allnoconfig"], env=env, check=True)
         verify_config(requested, (output / ".config").read_text())
         targets = ["vmlinux", "bzImage"] if arch == "x86" else ["Image"]
