@@ -110,8 +110,9 @@ original executables and archives.
 
 Kernel construction remains independent. Use `build-kernel --source ...`
 with the config supplied by the kernel and an explicit external `--output` and
-`--cache-dir`. The suite runner requires an explicit kernel image and does not
-fetch a default.
+`--cache-dir`. A suite can declare its default kernel image. Use `--kernel PATH`
+to override it, or to supply an image when the suite has no default.
+The runner never downloads or builds a kernel implicitly.
 
 ## Host policy interface
 
@@ -143,6 +144,7 @@ def create_suite():
         name="example", contract="example-v1",
         binary=ROOT / "build/init",
         initramfs=ROOT / "build/initramfs.cpio.gz",
+        kernel=ROOT / "build/kernel/images/bzImage-x86_64",
         requires_control=True,
     )
 ```
@@ -151,6 +153,13 @@ This policy runs within the framework process, not through another full test
 runner. The framework owns listing, selection, supervision, protocol checks
 and reporting. The policy supplies launch arguments and prerequisite checks.
 Only explicitly requested modules are loaded. Do not load untrusted code.
+
+The optional `kernel` field supplies the default image. Use a path rooted at
+the suite directory so execution does not depend on the working directory.
+The runner rejects missing or empty images before launch. Set
+`kernel_build_hint` to show the suite's build command when its default image
+is unavailable. An explicit `--kernel` override is validated independently.
+Listing tests does not require a built kernel.
 
 For preparation that must run within the appliance timeout, return
 `self.execution_command(argv)` from `build_command`. Override `execute(argv)`
@@ -163,7 +172,7 @@ directly.
 ```sh
 ./run --suite /work/example --list
 ./run --suite /work/example \
-  --kernel /work/kernel/image --vmm /work/bin/cloud-hypervisor \
+  --vmm /work/bin/cloud-hypervisor \
   --control /work/bin/external-control --repeat 3 EX001
 ```
 
