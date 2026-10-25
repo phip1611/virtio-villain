@@ -24,6 +24,9 @@ need Git. ARM builds on x86_64 need an aarch64 cross compiler.
 Only build trusted sources. Kernel makefiles execute commands on the
 build machine. No elevated permissions are needed for the builder.
 
+Set `RUSTC` in the environment to select the Rust compiler for configuration
+and compilation. When unset, Linux uses its normal compiler default.
+
 ## Latest stable and pinned releases
 
 With no source selector, the builder follows the `default` policy in
