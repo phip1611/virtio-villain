@@ -20,6 +20,7 @@ import time
 from typing import Optional
 import uuid
 from villain import reporting
+from villain.build import BuildSpec
 from villain.console import FileFollower
 
 
@@ -36,6 +37,7 @@ class Suite:
     host_shutdown: bool = False
     kernel: Optional[Path] = None
     kernel_build_hint: Optional[str] = None
+    build_spec: Optional[BuildSpec] = None
     definition: Optional[Path] = dataclass_field(
         default=None, init=False, repr=False, compare=False)
 
@@ -45,6 +47,14 @@ class Suite:
 
     def add_arguments(self, parser):
         """Register suite-specific launch options without changing the core CLI."""
+
+    def configure_build(self, target=None):
+        if self.build_spec is None:
+            raise RuntimeError("Suite does not provide build metadata")
+        context = self.build_spec.context(target)
+        self.binary = context.binary
+        self.initramfs = context.initramfs
+        return context
 
     def preflight(self, args):
         """Raise an actionable error when host prerequisites are missing."""
@@ -92,6 +102,10 @@ def load_suite(path):
         if suite.kernel is not None:
             suite.kernel = Path(suite.kernel).resolve()
         suite.definition = path
+        if suite.build_spec is not None:
+            if not isinstance(suite.build_spec, BuildSpec):
+                raise RuntimeError("Suite build metadata must be a BuildSpec")
+            suite.configure_build()
         loaded = True
         return suite
     finally:
@@ -491,6 +505,10 @@ def parse_args(suite, argv):
                                      allow_abbrev=False)
     parser.add_argument("tests", nargs="*", help="Exact test IDs; default: all")
     parser.add_argument("--list", action="store_true")
+    parser.add_argument("--build", action="store_true",
+                        help="Build the suite executable and initramfs before execution")
+    parser.add_argument("--build-dir", type=Path,
+                        help="Suite output root, relative to the suite source directory")
     parser.add_argument("-c", "--console", action="store_true",
                         help="Stream VM output directly to stdout (runs serially)")
     parser.add_argument("--binary", type=Path, default=suite.binary)
@@ -505,6 +523,19 @@ def parse_args(suite, argv):
     parser.add_argument("--output", type=Path, help="New diagnostics directory")
     suite.add_arguments(parser)
     args = parser.parse_args(argv)
+    if args.list and args.build:
+        parser.error("--list cannot be combined with --build")
+    provided = {option.split("=", 1)[0] for option in argv}
+    if suite.build_spec is not None or args.build or args.build_dir is not None:
+        if args.build and provided & {"--binary", "--initramfs"}:
+            parser.error("--build cannot be combined with --binary or --initramfs")
+        context = suite.configure_build(args.build_dir)
+        if "--binary" not in provided:
+            args.binary = context.binary
+        if "--initramfs" not in provided:
+            args.initramfs = context.initramfs
+        if "--kernel" not in provided and not args.list:
+            args.kernel = context.kernel_image or args.kernel
     if args.repeat < 1 or not math.isfinite(args.timeout) or args.timeout <= 0:
         parser.error("--repeat and --timeout must be positive and finite")
     if args.jobs < 1:
@@ -513,12 +544,17 @@ def parse_args(suite, argv):
         parser.error("--list cannot be combined with test selection")
     if not args.list:
         if not args.kernel:
+            if suite.build_spec is not None and suite.build_spec.kernel is not None:
+                hint = suite.kernel_build_hint or "Build the suite kernel."
+                parser.error(f"No recorded kernel build result. {hint} "
+                             "Or select an existing image with --kernel PATH.")
             parser.error("execution requires --kernel when the suite has no default kernel")
         if suite.requires_control and not args.control:
             parser.error("execution requires --control for this suite")
         for name in ("kernel", "initramfs"):
             path = getattr(args, name).resolve()
-            if not path.is_file() or path.stat().st_size == 0:
+            if not (args.build and name == "initramfs") and (
+                    not path.is_file() or path.stat().st_size == 0):
                 message = f"{name} must be a nonempty file: {path}"
                 if (name == "kernel" and suite.kernel is not None
                         and path == Path(suite.kernel).resolve()):
@@ -543,6 +579,8 @@ def main(argv=None):
             for name, description in tests.items():
                 print(f"{name}\t{description}")
             return 0
+        if args.build:
+            suite.build_spec.context(args.build_dir).build(["initramfs"])
         tests = catalog(args.binary)
         if len(set(args.tests)) != len(args.tests) or any(t not in tests for t in args.tests):
             raise RuntimeError("Unknown or duplicate test selection; use --list")
