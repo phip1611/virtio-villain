@@ -179,6 +179,7 @@ selftest: selftest/test_lib selftest/test_irq
 	@python3 -m unittest discover -s selftest -p 'test_msix_host.py'
 	@python3 -m unittest discover -s selftest -p 'test_kernel.py'
 	@python3 -m unittest discover -s selftest -p 'test_artifacts.py'
+	@python3 -m unittest discover -s selftest -p 'test_build.py'
 	@python3 -m unittest discover -s selftest -p 'test_appliance.py'
 	@python3 -m unittest discover -s selftest -p 'test_reporting.py'
 	@python3 -m unittest discover -s selftest -p 'test_runner_modules.py'
