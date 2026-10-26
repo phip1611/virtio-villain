@@ -1,5 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
+ifneq ($(strip $(SUITE)),)
+.DEFAULT_GOAL := initramfs
+include lib/suite.mk
+.PHONY: help
+help:
+	@echo "Suite targets: init, initramfs (default), kernel, prepare"
+	@echo "Set TARGET to select the output root relative to the suite directory."
+	@echo "Compiler and suite build variables can be passed as Make overrides."
+else
+
 CC      ?= musl-gcc
 CFLAGS  ?= -static -O2 -Wall -Wextra -Werror
 LDFLAGS ?= -static
@@ -252,9 +262,11 @@ help:
 	@echo "Examples:"
 	@echo '  make guest-kernel KERNEL_CONFIGS="/path/base.config /path/extra.config" KERNEL_ARGS="--source /path/linux --output /path/kernel-build"'
 	@echo "  ./build-kernel --help lists all kernel source and build options"
+	@echo "  make SUITE=/path/to/suite initramfs builds an external suite"
 	@echo ""
 	@echo "clean removes TARGET, custom object/appliance outputs and host test binaries."
 	@echo "Caches and results inside those output directories are removed too."
 
 .PHONY: init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest flake8 flake8-deps-check help guest-kernel
 .PHONY: appliance appliance-initramfs appliance-check
+endif
