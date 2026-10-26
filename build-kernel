@@ -314,14 +314,16 @@ def build(args):
         targets = ["vmlinux", "bzImage"] if arch == "x86" else ["Image"]
         subprocess.run(command + [f"-j{args.jobs}"] + targets, env=env, check=True)
         images = (
-            {"vmlinux-x86_64": output / "vmlinux",
-             "bzImage-x86_64": output / "arch/x86/boot/bzImage"}
+            {"vmlinux": output / "vmlinux",
+             "bzImage": output / "arch/x86/boot/bzImage"}
             if arch == "x86" else
-            {"Image-arm64": output / "arch/arm64/boot/Image"})
+            {"Image": output / "arch/arm64/boot/Image"})
         release = root / "images"
         release.mkdir(exist_ok=True)
         checksums = []
-        for name, image in images.items():
+        artifacts = {}
+        for kind, image in images.items():
+            name = f"{kind}-{'arm64' if args.arch == 'aarch64' else args.arch}"
             destination = release / name
             partial = destination.with_suffix(".tmp")
             try:
@@ -332,16 +334,32 @@ def build(args):
                 partial.unlink(missing_ok=True)
             destination.with_suffix(".sha256").write_text(f"{checksum}  {name}\n")
             checksums.append(f"{checksum}  {name}\n")
+            artifacts[kind] = {"path": str(destination), "sha256": checksum}
             print(destination, flush=True)
         config = release / f"config-{args.arch}"
         shutil.copyfile(output / ".config", config)
         checksums.append(f"{sha256(config)}  {config.name}\n")
         metadata = release / f"build-{args.arch}.json"
-        metadata.write_text(json.dumps(
-            dict(provenance, **identity, source_date_epoch=epoch),
-            indent=2) + "\n")
+        result = dict(provenance, **identity, source_date_epoch=epoch,
+                      images=artifacts, boot_image="bzImage" if arch == "x86" else "Image")
+        metadata.write_text(json.dumps(result, indent=2) + "\n")
         checksums.append(f"{sha256(metadata)}  {metadata.name}\n")
         (release / f"SHA256SUMS-{args.arch}").write_text("".join(checksums))
+        if args.result:
+            destination = args.result.resolve()
+            reserved = {config.resolve(), metadata.resolve(),
+                        (release / f"SHA256SUMS-{args.arch}").resolve()}
+            for image in artifacts.values():
+                path = Path(image["path"])
+                reserved.update((path.resolve(), path.with_suffix(".sha256").resolve()))
+            if destination in reserved:
+                raise RuntimeError(f"Result path collides with a kernel output: {destination}")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.TemporaryDirectory(prefix=".kernel-result-",
+                                             dir=destination.parent) as temporary:
+                staged = Path(temporary) / "result.json"
+                staged.write_text(json.dumps(result, indent=2) + "\n")
+                staged.replace(destination)
 
 
 def parse_args(argv=None):
@@ -368,6 +386,8 @@ def parse_args(argv=None):
                         "Later files override earlier values")
     parser.add_argument("--output", type=Path,
                         help="Separate build directory, required with custom configs")
+    parser.add_argument("--result", type=Path,
+                        help="Atomically write produced image paths and build metadata as JSON")
     parser.add_argument("--arch", choices=("x86_64", "aarch64"),
                         default=platform.machine(), help="Target architecture, default: host")
     parser.add_argument("--jobs", type=int, default=4, help="Parallel build jobs, default: 4")
