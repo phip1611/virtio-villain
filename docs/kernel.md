@@ -238,6 +238,12 @@ Each output directory contains architecture specific build trees and an
 `bzImage-x86_64`. The ARM image is `Image-arm64`. Each build also
 exports the effective config, build metadata and SHA256 checksums.
 
+Use `--result PATH` to write a JSON build result after a successful build.
+It reports the selected architecture, produced image paths and their SHA256
+digests. AMD64 uses the architecture identifier `x86_64`. AArch64 uses
+`aarch64`. Consumers can use the reported boot image instead of predicting
+an architecture specific filename. Failed builds do not replace the result.
+
 Source preparation and architecture builds use file locks. Changed
 source paths, config contents or cross compiler prefixes require a
 separate output directory. Local checkouts record their source path but
