@@ -38,6 +38,7 @@ Shared host helpers are available in these modules:
 | `villain.diagnostics` | VMM output classification shared by tests and fuzzing |
 | `villain.host` | Capability inspection and explicitly requested host tuning |
 | `villain.artifacts` | GitHub latest release assets with published SHA256 verification and offline cache reuse |
+| `villain.build` | Suite build metadata and shared build dispatch |
 
 Importing these modules does not launch a VM or apply host tuning.
 VMM command builders describe the existing virtio environments. They do not
@@ -90,6 +91,43 @@ context so the cleanup callback can release them. These callbacks cannot
 recover from a kernel hang or a test that does not return.
 
 ## Build a separate appliance
+
+Suites with build metadata can be built from either checkout. From the
+framework directory:
+
+```sh
+make SUITE=/path/to/suite init
+make SUITE=/path/to/suite initramfs
+make SUITE=/path/to/suite kernel
+./run --suite /path/to/suite --build EX001
+```
+
+The suite can expose the same targets through its own Makefile using the
+shared Make include. Both entry points use the suite's source selection,
+preparation actions and output layout. Plain framework builds are unchanged.
+
+`--build` explicitly builds the executable and initramfs before execution.
+It does not build a kernel. Running without it never builds implicitly.
+Suites without build metadata continue to support supplied binaries and
+archives. Requesting a build from such a suite is an error.
+
+Use `TARGET=custom` with Make and `--build-dir custom` with the runner to
+select the same output root. Relative paths are resolved from the suite
+directory, not the calling directory. The runner selects the corresponding
+executable and archive. Successful kernel actions record the actual produced
+image, architecture and format in `kernel-result.json` under that output root.
+The runner uses this result even when the kernel was built elsewhere.
+Missing results require an explicit kernel build or a supplied image.
+Explicit `--kernel` overrides
+remain supported. `--build` cannot be combined with explicit `--binary` or
+`--initramfs` overrides. `--output` still controls diagnostics only.
+
+Source and appliance output paths must not contain whitespace because the
+underlying Make appliance rules use whitespace separated source lists.
+Optional preparation and kernel actions belong to the suite. They are not
+inferred from its name or added to the default virtio build.
+
+The lower level explicit source interface remains available:
 
 Provide an explicit source list, include paths and output directory for the suite:
 
