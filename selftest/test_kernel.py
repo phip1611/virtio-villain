@@ -51,6 +51,75 @@ def write_archive(path, members, mode="w:xz"):
             bundle.addfile(entry, io.BytesIO(data))
 
 
+@unittest.skipUnless(shutil.which("make"), "Make required for kernel build fixtures")
+class ResultTests(unittest.TestCase):
+    def test_result_reports_actual_images_for_both_supported_architectures(self):
+        for arch, boot_image, names in (
+                ("x86_64", "bzImage", {"vmlinux", "bzImage"}),
+                ("aarch64", "Image", {"Image"})):
+            with self.subTest(arch=arch), tempfile.TemporaryDirectory() as work:
+                root = Path(work)
+                source = root / "source"
+                source.mkdir()
+                (source / "Makefile").write_text(FIXTURE_MAKEFILE)
+                config = root / "config"
+                config.write_text("CONFIG_FIXTURE=y\n")
+                output = root / "configured-output"
+                report = root / "selected/result.json"
+                BUILD.build(BUILD.parse_args([
+                    "--source", str(source), "--config", str(config),
+                    "--output", str(output), "--cache-dir", str(root / "cache"),
+                    "--offline", "--arch", arch, "--result", str(report)]))
+                data = json.loads(report.read_text())
+                self.assertEqual(data["arch"], arch)
+                self.assertEqual(data["boot_image"], boot_image)
+                self.assertEqual(set(data["images"]), names)
+                for image in data["images"].values():
+                    path = Path(image["path"])
+                    self.assertEqual(path.parent, output / "images")
+                    self.assertEqual(path.read_text(), "fixture image")
+                    self.assertEqual(BUILD.sha256(path), image["sha256"])
+                self.assertEqual(data, json.loads(
+                    (output / f"images/build-{arch}.json").read_text()))
+
+    def test_failed_build_does_not_publish_a_result(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            source = root / "source"
+            source.mkdir()
+            (source / "Makefile").write_text(FIXTURE_MAKEFILE)
+            config = root / "config"
+            config.write_text("CONFIG_FIXTURE=y\n")
+            report = root / "result.json"
+            report.write_text("last successful result\n")
+            args = BUILD.parse_args([
+                "--source", str(source), "--config", str(config), "--offline",
+                "--output", str(root / "output"), "--cache-dir", str(root / "cache"),
+                "--arch", "x86_64", "--result", str(report)])
+            with mock.patch.object(BUILD.subprocess, "run",
+                                   side_effect=subprocess.CalledProcessError(1, "make")), \
+                 self.assertRaises(subprocess.CalledProcessError):
+                BUILD.build(args)
+            self.assertEqual(report.read_text(), "last successful result\n")
+
+    def test_result_cannot_overwrite_a_produced_kernel_image(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            source = root / "source"
+            source.mkdir()
+            (source / "Makefile").write_text(FIXTURE_MAKEFILE)
+            config = root / "config"
+            config.write_text("CONFIG_FIXTURE=y\n")
+            image = root / "output/images/bzImage-x86_64"
+            args = BUILD.parse_args([
+                "--source", str(source), "--config", str(config), "--offline",
+                "--output", str(root / "output"), "--cache-dir", str(root / "cache"),
+                "--arch", "x86_64", "--result", str(image)])
+            with self.assertRaisesRegex(RuntimeError, "Result path collides"):
+                BUILD.build(args)
+            self.assertEqual(image.read_text(), "fixture image")
+
+
 class ReleaseTests(unittest.TestCase):
     def test_latest_selects_numeric_stable_not_mainline_rc_or_eol(self):
         releases = [
