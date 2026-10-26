@@ -37,6 +37,7 @@ Shared host helpers are available in these modules:
 | `villain.vmm` | Existing virtio VMM command builders and bundled guest kernel selection |
 | `villain.diagnostics` | VMM output classification shared by tests and fuzzing |
 | `villain.host` | Capability inspection and explicitly requested host tuning |
+| `villain.artifacts` | GitHub latest release assets with published SHA256 verification and offline cache reuse |
 
 Importing these modules does not launch a VM or apply host tuning.
 VMM command builders describe the existing virtio environments. They do not
