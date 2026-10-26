@@ -171,6 +171,7 @@ selftest: selftest/test_lib selftest/test_irq
 	@python3 -m unittest discover -s selftest -p 'test_appliance.py'
 	@python3 -m unittest discover -s selftest -p 'test_reporting.py'
 	@python3 -m unittest discover -s selftest -p 'test_runner_modules.py'
+	@python3 -m unittest discover -s selftest -p 'test_clean.py'
 	@echo ""
 	@echo "selftest/run:"
 	@python3 selftest/test_run.py
