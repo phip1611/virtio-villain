@@ -52,3 +52,15 @@ def normalize_memory(value):
     if m:
         return f"{m.group(1)}{m.group(2)}"
     return v
+
+
+def canonicalize_tests(tests, known):
+    """Resolve IDs in any letter case, preserving registered spelling.
+
+    Return matched IDs in request order and unmatched inputs separately.
+    Guests and result parsers use the registered spelling.
+    """
+    canon = {t.upper(): t for t in known}
+    canonical = [canon[t.upper()] for t in tests if t.upper() in canon]
+    unknown = [t for t in tests if t.upper() not in canon]
+    return canonical, unknown

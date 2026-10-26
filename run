@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.join(_SCRIPT_DIR, "lib", "python"))
 from villain import reporting  # noqa: E402
 from villain.cli import (  # noqa: E402
     ShortFirstHelpFormatter, print_banner, normalize_memory as _normalize_mem,
+    canonicalize_tests as _canonicalize_tests,
 )
 from villain.console import (  # noqa: E402
     ctty_preexec as _ctty_preexec, merge_streams as _merge_streams,
@@ -98,21 +99,6 @@ def get_test_list(init_binary=INIT_BINARY):
                 "min_queues": int(fields[7]) if len(fields) >= 8 else 0,
             }
     return tests, info, meta
-
-
-def _canonicalize_tests(tests, known):
-    """Map user supplied test names to their registered ids.
-
-    The guest matches vv.test case sensitively and prints the registered
-    id, so a name given in a different case would match no test, run
-    nothing, and be misreported as WEDGED. Returns a tuple of the
-    canonical names for the ones that match a known id and the list of
-    names that match none.
-    """
-    canon = {t.upper(): t for t in known}
-    canonical = [canon[t.upper()] for t in tests if t.upper() in canon]
-    unknown = [t for t in tests if t.upper() not in canon]
-    return canonical, unknown
 
 
 def _parse_result(output, returncode):
