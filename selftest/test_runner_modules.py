@@ -21,8 +21,9 @@ class ModuleTests(unittest.TestCase):
     def test_entry_points_import_shared_helpers_without_loading_other_executables(self):
         check = (
             "import runpy, sys\n"
+            "from unittest.mock import patch\n"
             "entry = runpy.run_path(sys.argv[1], run_name='runner_import_test')\n"
-            "from villain import cli, console, vmm\n"
+            "from villain import cli, console, initramfs, vmm\n"
             "assert not any(name.startswith('vv_run') for name in sys.modules)\n"
             "if sys.argv[1].endswith('/run'):\n"
             "    assert entry['detect_vmm'] is vmm.detect_vmm\n"
@@ -32,6 +33,10 @@ class ModuleTests(unittest.TestCase):
             "elif sys.argv[1].endswith('/run-fuzz'):\n"
             "    assert entry['print_banner'] is cli.print_banner\n"
             "    assert entry['ctty_preexec'] is console.ctty_preexec\n"
+            "    with patch.object(initramfs, 'build') as build:\n"
+            "        entry['build_initramfs']('fuzz', 'archive')\n"
+            "        build.assert_called_once_with('fuzz', 'archive', "
+            "strip='strip', compresslevel=1)\n"
             "else:\n"
             "    assert entry['run_guest'].__defaults__ == (vmm,)\n")
         for entry in ("run", "run-fuzz", "run-perf"):

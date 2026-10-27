@@ -8,6 +8,7 @@ import io
 import json
 import os
 from pathlib import Path
+import shlex
 import shutil
 import struct
 import subprocess
@@ -501,19 +502,29 @@ class PackageLocationTests(unittest.TestCase):
 
 
 class PackageTests(unittest.TestCase):
-    def test_static_elf_and_reproducible_archive(self):
+    @staticmethod
+    def static_elf():
         elf = bytearray(64)
         elf[:6] = b"\x7fELF\x02\x01"
         struct.pack_into("<HH", elf, 54, 56, 0)
+        return bytes(elf)
+
+    def test_static_elf_and_reproducible_archive(self):
+        elf = self.static_elf()
         packed = initramfs.archive(elf)
         self.assertEqual(packed, initramfs.archive(elf))
         data = gzip.decompress(packed)
+        fast = initramfs.archive(elf, compresslevel=1)
+        self.assertEqual(fast, gzip.compress(data, compresslevel=1, mtime=0))
+        self.assertEqual(fast, initramfs.archive(elf, compresslevel=1))
         offset = 0
         entries = {}
         while offset < len(data):
             self.assertEqual(data[offset:offset + 6], b"070701")
             fields = [int(data[offset + 6 + i * 8:offset + 14 + i * 8], 16)
                       for i in range(13)]
+            self.assertEqual(fields[2:4], [0, 0])
+            self.assertEqual(fields[5], 0)
             offset += 110
             name = data[offset:offset + fields[11] - 1].decode()
             offset = (offset + fields[11] + 3) & ~3
@@ -521,6 +532,119 @@ class PackageTests(unittest.TestCase):
             offset = (offset + fields[6] + 3) & ~3
         self.assertEqual(set(entries), {".", "dev", "proc", "sys", "init", "TRAILER!!!"})
         self.assertEqual(entries["init"], (0o100755, elf))
+        for name in (".", "dev", "proc", "sys"):
+            self.assertEqual(entries[name], (0o40755, b""))
+
+    def test_strip_uses_a_temporary_copy_and_accepts_command_arguments(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            source = root / "host init"
+            original = self.static_elf() + b"debug"
+            source.write_bytes(original)
+            source.chmod(0o751)
+            before = source.stat()
+            output = root / "archive/initramfs.cpio.gz"
+            command = shlex.join([
+                sys.executable, "-c",
+                "from pathlib import Path; import sys; "
+                "path = Path(sys.argv[-1]); path.write_bytes(path.read_bytes()[:-5])"])
+            initramfs.build(source, output, strip=command, compresslevel=1)
+            self.assertEqual(output.read_bytes(),
+                             initramfs.archive(self.static_elf(), compresslevel=1))
+            self.assertEqual(source.read_bytes(), original)
+            self.assertEqual(source.stat().st_mode, before.st_mode)
+            self.assertEqual(source.stat().st_mtime_ns, before.st_mtime_ns)
+
+    def test_invalid_strip_command_does_not_replace_an_existing_archive(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            source = root / "init"
+            source.write_bytes(self.static_elf())
+            output = root / "archive.cpio.gz"
+            output.write_bytes(b"previous archive")
+            for command, error in (("", ValueError),
+                                   (str(root / "missing-strip"), FileNotFoundError)):
+                with self.subTest(command=command), self.assertRaises(error):
+                    initramfs.build(source, output, strip=command)
+                self.assertEqual(output.read_bytes(), b"previous archive")
+                self.assertEqual(source.read_bytes(), self.static_elf())
+
+    def test_strip_failure_is_reported_by_the_cli_and_cleans_up(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            source = root / "init"
+            source.write_bytes(self.static_elf())
+            output = root / "archive.cpio.gz"
+            output.write_bytes(b"previous archive")
+            command = shlex.join([sys.executable, "-c", "raise SystemExit(7)"])
+            result = subprocess.run([
+                sys.executable, str(ROOT / "lib/python/villain/initramfs.py"),
+                "--init", str(source), "--output", str(output), "--strip", command,
+            ], env=dict(os.environ, TMPDIR=work), capture_output=True,
+                text=True, timeout=20)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("exit status 7", result.stderr)
+            self.assertEqual(output.read_bytes(), b"previous archive")
+            self.assertEqual(source.read_bytes(), self.static_elf())
+            self.assertEqual(set(root.iterdir()), {source, output})
+
+    @unittest.skipUnless(shutil.which("cc") and shutil.which("make") and shutil.which("strip"),
+                         "C compiler, Make and strip required")
+    def test_all_make_targets_share_packaging_without_cpio_or_gzip(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            binary = root / "debug-init"
+            subprocess.run([
+                "cc", "-static", "-g", "-x", "c", "-", "-o", str(binary),
+            ], input="int main(void) { return 0; }\n", check=True,
+                capture_output=True, text=True, timeout=20)
+            original = binary.read_bytes()
+            target = root / "target"
+            guest = root / "appliance"
+            binaries = [target / name for name in ("init", "fuzz", "perf")] + [guest / "init"]
+            for path in binaries:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(binary, path)
+            before = {path: path.stat() for path in binaries}
+            tools = root / "tools"
+            tools.mkdir()
+            for name in ("python3", "strip", "du", "cut", "find"):
+                executable = shutil.which(name)
+                if executable is None:
+                    self.skipTest(f"{name} required for Make packaging checks")
+                (tools / name).symlink_to(executable)
+            environment = dict(os.environ, PATH=str(tools))
+            for flags in ([], ["--strip-debug"]):
+                with self.subTest(flags=flags):
+                    expected = root / "stripped-init"
+                    expected.write_bytes(original)
+                    strip = ["strip", *flags]
+                    subprocess.run([*strip, str(expected)], check=True,
+                                   capture_output=True, timeout=20)
+                    stripped = expected.read_bytes()
+                    self.assertNotEqual(stripped, original)
+                    command = [
+                        shutil.which("make"), "--no-print-directory", "-j4", "-C", str(ROOT),
+                        "SUITE=", f"TARGET={target}", f"APPLIANCE_TARGET={guest}",
+                        f"STRIP={shlex.join(strip)}",
+                        *(f"--old-file={path}" for path in binaries),
+                        "initramfs", "fuzz-initramfs", "perf-initramfs", "appliance-initramfs",
+                    ]
+                    archives = {
+                        target / name: initramfs.archive(stripped)
+                        for name in ("initramfs.cpio.gz", "fuzz-initramfs.cpio.gz",
+                                     "perf-initramfs.cpio.gz")}
+                    archives[guest / "initramfs.cpio.gz"] = initramfs.archive(original)
+                    for repeat in range(2):
+                        result = subprocess.run(command, env=environment, capture_output=True,
+                                                text=True, timeout=30)
+                        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                        for path, content in archives.items():
+                            self.assertEqual(path.read_bytes(), content, (path, repeat))
+                    for path in binaries:
+                        self.assertEqual(path.read_bytes(), original)
+                        self.assertEqual(path.stat().st_mode, before[path].st_mode)
+                        self.assertEqual(path.stat().st_mtime_ns, before[path].st_mtime_ns)
 
     def test_reject_dynamic_or_invalid_init(self):
         elf = bytearray(120)
