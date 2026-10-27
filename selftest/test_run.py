@@ -4217,6 +4217,23 @@ def test_fuzz_vmm_command_assigns_unique_vsock_cids():
     assert vsock_first != vsock_second
 
 
+def test_fuzz_vmm_command_preserves_explicit_launch_policy():
+    from unittest.mock import patch
+
+    with patch.dict(os.environ, {"VV_CH_DEBUG": "1"}):
+        cmd = FUZZ_MOD._fuzz_vmm_cmd(
+            "/vmm", "/kernel", "/initramfs", "/disk", "/pmem", "/work", 2, "128M")
+    assert cmd[:17] == [
+        "/vmm", "--kernel", "/kernel", "--initramfs", "/initramfs",
+        "--cmdline", "console=hvc0 initcall_blacklist=virtio_blk_init",
+        "--cpus", "boot=2",
+        "--memory", "size=128M,hotplug_size=256M,hotplug_method=virtio-mem",
+        "--serial", "off", "--console", "null", "--seccomp", "false"]
+    assert "-vv" not in cmd
+    assert [cmd[index + 1] for index, flag in enumerate(cmd) if flag == "--disk"] == [
+        "path=/disk,num_queues=2", "path=/work/iommu.raw,iommu=virtio"]
+
+
 def test_vqblob_serialize_is_blob_size():
     """serialize always emits exactly BLOB_SIZE bytes."""
     vq = FUZZ_MOD.FuzzBlob.parse(FUZZ_MOD.make_seed()).segments[0].vq
