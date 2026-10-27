@@ -34,7 +34,7 @@ Shared host helpers are available in these modules:
 | `villain.cli` | Banner, help formatter and memory argument normalization |
 | `villain.console` | Separate diagnostic capture, terminal handling and stream merging |
 | `villain.process` | Process tracking and termination helpers |
-| `villain.vmm` | Existing virtio VMM command builders and bundled guest kernel selection |
+| `villain.vmm` | Portable launch settings, VMM backends, virtio fixtures and guest kernel selection |
 | `villain.diagnostics` | VMM output classification shared by tests and fuzzing |
 | `villain.host` | Capability inspection and explicitly requested host tuning |
 | `villain.artifacts` | GitHub release assets with published SHA256 verification and cache reuse |
@@ -46,9 +46,19 @@ The artifact helper checks the latest release by default.
 cached asset before use. `offline=True` forbids network access and cache
 writes. External suites still select their own kernel build or image
 policy.
-VMM command builders describe the existing virtio environments. They do not
-establish the privileges required by another suite. Completion protocols,
-deadlines and external recovery remain the responsibility of the caller.
+
+`VmmBackend.build_launch_cmd(LaunchConfig(...))` builds launch arguments
+without test device fixtures. `LaunchConfig` takes a positive CPU count and
+a memory size such as `512M`. Optional boot fields are `kernel`, `initramfs`,
+`cmdline` and `firmware`. Each backend translates these settings to its own
+syntax. Backend options remain explicit keyword arguments. Unsupported boot
+modes raise an error. Add device arguments separately. Building a command
+does not start a process or apply host tuning.
+
+The existing `build_cmd(...)` methods describe virtio test environments.
+Neither interface establishes the privileges required by another suite.
+Completion protocols and deadlines remain the responsibility of the caller.
+External recovery also remains the caller's responsibility.
 
 ## Guest interface
 
