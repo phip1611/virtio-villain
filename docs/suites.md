@@ -227,6 +227,11 @@ The loader does not add private directories to `sys.path`.
 options. `--list` does not run the host preflight, boot an appliance, or require
 a kernel or recovery control.
 
+Test ID matching ignores letter case. The runner uses registered IDs in
+guest commands and results. Selecting the same ID more than once is an
+error, even when its spelling differs only in letter case. Catalog IDs
+must also be unique without regard to letter case.
+
 A policy can override `list_tests(self, binary)` to return IDs and
 descriptions from its sources before an executable has been built.
 `villain.appliance.source_catalog(paths, macro)` reads literal registration
