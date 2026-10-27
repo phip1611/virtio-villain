@@ -3,7 +3,7 @@
 
 import os
 
-from host_helpers import qmp
+from host_helpers import HOTPLUG_DISK_SIZE, qmp
 
 
 def wait_armed(ctx):
@@ -20,9 +20,10 @@ def scsi_config():
 
 
 def hot_add(ctx):
+    from villain import images
+
     hp = os.path.join(ctx.tmpdir, "hp.raw")
-    with open(hp, "wb") as image:
-        image.truncate(16 * 1024 * 1024)
+    images.create_raw(hp, HOTPLUG_DISK_SIZE)
     ctx.log(f"created hot plug image {hp}")
     qmp(ctx, "blockdev-add", {
         "driver": "raw",

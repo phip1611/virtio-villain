@@ -4,6 +4,8 @@
 import os
 import time
 
+HOTPLUG_DISK_SIZE = 16 * 1024 * 1024
+
 
 def wait_ready(ctx):
     if ctx.backend.name not in ("ch", "qemu", "qemu-mmio", "openvmm"):
@@ -53,9 +55,10 @@ def pause_resume(ctx):
 
 
 def add_disk(ctx):
+    from villain import images
+
     hp_disk = os.path.join(ctx.tmpdir, "hp.raw")
-    with open(hp_disk, "wb") as image:
-        image.truncate(16 * 1024 * 1024)
+    images.create_raw(hp_disk, HOTPLUG_DISK_SIZE)
     if ctx.backend.name == "ch":
         ch_command(ctx, "add-disk",
                    [f"path={hp_disk},readonly=off,id=hp0,image_type=raw"])
