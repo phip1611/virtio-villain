@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Release resolution, checksum enforcement and cache failure handling."""
 
+import contextlib
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import io
@@ -15,7 +16,7 @@ from urllib.error import URLError
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "lib/python"))
-from villain import artifacts  # noqa: E402
+from villain import artifacts, vmm  # noqa: E402
 
 REPOSITORY = "example/project"
 ASSET = "firmware.fd"
@@ -75,6 +76,48 @@ class ArtifactTests(unittest.TestCase):
         with self.network() as opened:
             self.assertEqual(self.resolve(), first)
         self.assertEqual(opened.call_count, 1)
+
+    def test_prefer_cached_downloads_once_then_reuses_without_network_or_writes(self):
+        with self.network() as opened:
+            path = self.resolve(prefer_cached=True)
+        self.assertEqual(opened.call_count, 2)
+        before = {item: item.stat().st_mtime_ns for item in self.cache.rglob("*")}
+        with patch.object(artifacts, "urlopen",
+                          side_effect=AssertionError("Network forbidden")), \
+             patch.object(Path, "mkdir", side_effect=AssertionError("Cache is read only")), \
+             patch.object(artifacts.fcntl, "flock",
+                          side_effect=AssertionError("Write lock forbidden")):
+            self.assertEqual(self.resolve(prefer_cached=True), path)
+        self.assertEqual(before, {item: item.stat().st_mtime_ns
+                                  for item in self.cache.rglob("*")})
+
+    def test_prefer_cached_downloads_missing_bytes_from_the_recorded_release(self):
+        path = self.populate()
+        path.unlink()
+        before = (self.directory / "latest.json").read_bytes()
+        with patch.object(artifacts, "urlopen", return_value=io.BytesIO(self.body)) as opened:
+            self.assertEqual(self.resolve(prefer_cached=True), path)
+        opened.assert_called_once()
+        self.assertEqual(opened.call_args.args[0].full_url,
+                         self.metadata["assets"][0]["browser_download_url"])
+        self.assertEqual(path.read_bytes(), self.body)
+        self.assertEqual((self.directory / "latest.json").read_bytes(), before)
+        self.assert_no_partial_files()
+
+    def test_prefer_cached_rejects_corruption_without_network(self):
+        self.populate().write_bytes(b"corrupt")
+        with patch.object(artifacts, "urlopen") as opened, \
+             self.assertRaisesRegex(RuntimeError, "SHA256 mismatch"):
+            self.resolve(prefer_cached=True)
+        opened.assert_not_called()
+
+    def test_prefer_cached_rejects_invalid_metadata_without_network(self):
+        self.populate()
+        (self.directory / "latest.json").write_text("{")
+        with patch.object(artifacts, "urlopen") as opened, \
+             self.assertRaisesRegex(RuntimeError, "Invalid cached release metadata"):
+            self.resolve(prefer_cached=True)
+        opened.assert_not_called()
 
     def test_offline_reuses_cache_without_network_or_writes(self):
         path = self.populate()
@@ -220,6 +263,91 @@ class ArtifactTests(unittest.TestCase):
         self.assertEqual(paths[0].read_bytes(), self.body)
         self.assertEqual(opened.call_count, 4)
         self.assert_no_partial_files()
+
+    def test_concurrent_prefer_cached_requests_resolve_and_download_once(self):
+        def response(request, **kwargs):
+            data = (json.dumps(self.metadata).encode()
+                    if request.full_url.startswith("https://api.github.com/") else self.body)
+            return io.BytesIO(data)
+
+        with patch.object(artifacts, "urlopen", side_effect=response) as opened, \
+             ThreadPoolExecutor(max_workers=3) as pool:
+            futures = [pool.submit(self.resolve, prefer_cached=True) for _ in range(3)]
+            paths = [future.result(timeout=10) for future in futures]
+        self.assertEqual(paths, [paths[0]] * 3)
+        self.assertEqual(paths[0].read_bytes(), self.body)
+        self.assertEqual(opened.call_count, 2)
+        self.assert_no_partial_files()
+
+    def test_guest_kernel_uses_verified_cache_and_rejects_changed_bytes(self):
+        name = "vmlinux-x86_64"
+        repository = vmm.KERNEL_REPOSITORY
+        self.metadata["assets"][0].update(
+            name=name, browser_download_url=(
+                f"https://github.com/{repository}/releases/download/v1/{name}"))
+        with patch.object(vmm, "_SCRIPT_DIR", str(self.cache.parent)), \
+             patch.object(vmm.platform, "machine", return_value="x86_64"):
+            with self.network() as opened:
+                path = Path(vmm.fetch_kernel())
+            self.assertEqual(opened.call_count, 2)
+            self.assertEqual(path, self.cache.parent / "target/kernel-cache" /
+                             repository / name / self.digest / name)
+            self.assertEqual(path.read_bytes(), self.body)
+            with patch.object(artifacts, "urlopen") as opened:
+                self.assertEqual(vmm.fetch_kernel(), str(path))
+            opened.assert_not_called()
+            path.write_bytes(b"corrupt")
+            with patch.object(artifacts, "urlopen") as opened, \
+                 self.assertRaisesRegex(
+                     RuntimeError, "Cannot acquire guest kernel.*SHA256 mismatch"):
+                vmm.fetch_kernel()
+            opened.assert_not_called()
+
+    def test_guest_kernel_keeps_existing_local_images_without_modifying_them(self):
+        root = self.cache.parent
+        local = root / "target/vmlinux-x86_64"
+        local.parent.mkdir()
+        local.write_bytes(b"local kernel")
+        before = local.stat().st_mtime_ns
+        with patch.object(vmm, "_SCRIPT_DIR", str(root)), \
+             patch.object(vmm.platform, "machine", return_value="x86_64"), \
+             patch.object(artifacts, "urlopen") as opened, \
+             contextlib.redirect_stderr(io.StringIO()) as errors:
+            self.assertEqual(vmm.fetch_kernel(), str(local))
+        opened.assert_not_called()
+        self.assertIn("without a recorded release checksum", errors.getvalue())
+        self.assertEqual(local.read_bytes(), b"local kernel")
+        self.assertEqual(local.stat().st_mtime_ns, before)
+        self.assertFalse((root / "target/kernel-cache").exists())
+
+    def test_guest_kernel_selection_preserves_architecture_and_mmio_defaults(self):
+        for arch, mmio, name in (
+                ("x86_64", False, "vmlinux-x86_64"),
+                ("x86_64", True, "bzImage-x86_64"),
+                ("aarch64", False, "Image-arm64"),
+                ("aarch64", True, "Image-arm64")):
+            with self.subTest(arch=arch, mmio=mmio), \
+                 patch.object(vmm, "_SCRIPT_DIR", str(self.cache.parent)), \
+                 patch.object(vmm.platform, "machine", return_value=arch), \
+                 patch.object(artifacts, "github_release_asset",
+                              return_value=Path("/cache") / name) as resolve:
+                self.assertEqual(vmm.fetch_kernel(mmio), "/cache/" + name)
+            resolve.assert_called_once_with(
+                vmm.KERNEL_REPOSITORY, name, self.cache.parent / "target/kernel-cache",
+                prefer_cached=True)
+
+    def test_guest_kernel_reports_unsupported_architecture_and_cache_errors(self):
+        with patch.object(vmm.platform, "machine", return_value="unknown"), \
+             patch.object(artifacts, "github_release_asset") as resolve, \
+             self.assertRaisesRegex(RuntimeError, "Use --kernel"):
+            vmm.fetch_kernel()
+        resolve.assert_not_called()
+        with patch.object(vmm, "_SCRIPT_DIR", str(self.cache.parent)), \
+             patch.object(vmm.platform, "machine", return_value="x86_64"), \
+             patch.object(artifacts, "github_release_asset",
+                          side_effect=PermissionError("Cache is not writable")), \
+             self.assertRaisesRegex(RuntimeError, "Cannot acquire guest kernel.*not writable"):
+            vmm.fetch_kernel()
 
     def test_invalid_cache_identifiers_are_rejected_before_io(self):
         for repository, asset in (

@@ -37,6 +37,16 @@ class ModuleTests(unittest.TestCase):
             "        entry['build_initramfs']('fuzz', 'archive')\n"
             "        build.assert_called_once_with('fuzz', 'archive', "
             "strip='strip', compresslevel=1)\n"
+            "    with patch.object(vmm, 'fetch_kernel', return_value='/cache/kernel') as fetch:\n"
+            "        with patch.object(entry['subprocess'], 'run', "
+            "side_effect=AssertionError('Another runner must not be executed')):\n"
+            "            assert entry['_fetch_kernel']() == '/cache/kernel'\n"
+            "        fetch.assert_called_once_with()\n"
+            "    with patch.object(vmm, 'fetch_kernel', "
+            "side_effect=RuntimeError('Bad checksum')):\n"
+            "        try: entry['_fetch_kernel']()\n"
+            "        except SystemExit as error: assert str(error) == 'Bad checksum'\n"
+            "        else: raise AssertionError('Acquisition error was ignored')\n"
             "else:\n"
             "    assert entry['run_guest'].__defaults__ == (vmm,)\n")
         for entry in ("run", "run-fuzz", "run-perf"):
@@ -45,6 +55,29 @@ class ModuleTests(unittest.TestCase):
                     [sys.executable, "-c", check, str(ROOT / entry)],
                     cwd="/", capture_output=True, text=True, timeout=10)
                 self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_fetch_kernel_utility_prints_only_a_path_or_an_explicit_error(self):
+        check = (
+            "import runpy, sys\n"
+            "from unittest.mock import patch\n"
+            f"sys.path.insert(0, {str(ROOT / 'lib/python')!r})\n"
+            "from villain import vmm\n"
+            "entry, mode = sys.argv[1:]\n"
+            "options = ({'return_value': '/cache/verified/kernel'} if mode == 'pass' else\n"
+            "           {'side_effect': RuntimeError('Kernel checksum failed')})\n"
+            "sys.argv = [entry, 'fetch-kernel']\n"
+            "with patch.object(vmm, 'fetch_kernel', **options):\n"
+            "    runpy.run_path(entry, run_name='__main__')\n")
+        for mode in ("pass", "fail"):
+            with self.subTest(mode=mode):
+                result = subprocess.run(
+                    [sys.executable, "-c", check, str(ROOT / "run"), mode],
+                    cwd="/", capture_output=True, text=True, timeout=10)
+                self.assertEqual(result.returncode, 0 if mode == "pass" else 1)
+                self.assertEqual(result.stdout,
+                                 "/cache/verified/kernel\n" if mode == "pass" else "")
+                self.assertEqual(result.stderr,
+                                 "" if mode == "pass" else "Kernel checksum failed\n")
 
     def test_backend_detection_is_owned_by_the_shared_module(self):
         for name, backend in (

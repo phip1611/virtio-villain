@@ -309,11 +309,13 @@ class SuiteExecutionTests(unittest.TestCase):
                     "from villain.appliance import Suite\n"
                     "class Example(Suite):\n"
                     "    def build_command(self, args, selected, token):\n"
-                    f"        return self.execution_command([selected[0], token, {mode!r}])\n"
+                    "        return self.execution_command([\n"
+                    f"            selected[0], token, {mode!r}, str(args.workspace)])\n"
                     "    def execute(self, argv):\n"
                     "        from .helper import ROOT\n"
-                    "        name, token, mode = argv\n"
+                    "        name, token, mode, workspace = argv\n"
                     "        (Path(ROOT) / 'pid').write_text(str(os.getpid()))\n"
+                    "        (Path(workspace) / 'prepared').write_text(token)\n"
                     "        print('Preparing appliance', flush=True)\n"
                     "        if mode == 'fail': raise RuntimeError('Preparation failed')\n"
                     "        if mode == 'return': return\n"
@@ -333,6 +335,8 @@ class SuiteExecutionTests(unittest.TestCase):
                     status = appliance.launch(suite, args, ["EX001"])
                 self.assertEqual(status, 0 if mode == "pass" else 2, captured.getvalue())
                 run = json.loads((root / "results/results.json").read_text())["runs"][0]
+                self.assertEqual((Path(run["workspace"]) / "prepared").read_text(),
+                                 run["run_id"])
                 log = Path(run["console"]).read_text()
                 self.assertIn("Preparing appliance", log)
                 self.assertIn("Preparing appliance", captured.getvalue())
@@ -379,6 +383,69 @@ class SuiteExecutionTests(unittest.TestCase):
             self.assertEqual(status, 0, captured.getvalue())
             runs = json.loads((root / "results/results.json").read_text())["runs"]
             self.assertEqual([run["status"] for run in runs], [0, 0])
+
+
+class WorkspaceTests(unittest.TestCase):
+    def test_workspace_is_under_the_default_or_explicit_diagnostics_directory(self):
+        script = (
+            "import sys\n"
+            "from pathlib import Path\n"
+            "workspace, token = sys.argv[1:]\n"
+            "(Path(workspace) / 'artifact').write_text(token)\n"
+            f"print({output()!r}.replace('token', token), end='')\n")
+
+        class Example(appliance.Suite):
+            def build_command(self, args, selected, run_id):
+                return [sys.executable, "-c", script, str(args.workspace), run_id]
+
+        for explicit in (False, True):
+            with self.subTest(explicit=explicit), tempfile.TemporaryDirectory() as work:
+                root = Path(work)
+                image = root / "image"
+                image.write_bytes(b"image")
+                suite = Example("example", "example-v1", root / "init", image)
+                options = ["--output", str(root / "custom diagnostics")] if explicit else []
+                args = appliance.parse_args(suite, ["--kernel", str(image), *options])
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(appliance.launch(suite, args, ["EX001"]), 0)
+                directory = (root / "custom diagnostics" if explicit else
+                             next((root / "results").iterdir()))
+                run = json.loads((directory / "results.json").read_text())["runs"][0]
+                workspace = directory / "artifacts/1-EX001"
+                self.assertEqual(Path(run["workspace"]), workspace)
+                self.assertEqual((workspace / "artifact").read_text(), run["run_id"])
+                self.assertEqual(Path(run["console"]).parent, directory)
+                self.assertFalse(hasattr(args, "workspace"))
+                self.assertEqual(image.read_bytes(), b"image")
+
+    def test_workspace_creation_failure_is_reported_without_launching(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            image = root / "image"
+            image.write_bytes(b"image")
+            directory = root / "results"
+            workspace = directory / "artifacts/1-EX001"
+            suite = appliance.Suite("example", "example-v1", root / "init", image)
+            args = appliance.parse_args(suite, [
+                "--kernel", str(image), "--output", str(directory)])
+            mkdir = Path.mkdir
+
+            def create_directory(path, *args, **kwargs):
+                if path == workspace:
+                    raise PermissionError("Workspace is not writable")
+                return mkdir(path, *args, **kwargs)
+
+            with patch.object(Path, "mkdir", create_directory), \
+                 patch.object(suite, "build_command") as build, \
+                 patch.object(appliance.subprocess, "Popen") as popen, \
+                 contextlib.redirect_stdout(io.StringIO()) as captured:
+                self.assertEqual(appliance.launch(suite, args, ["EX001"]), 2)
+            build.assert_not_called()
+            popen.assert_not_called()
+            run = json.loads((directory / "results.json").read_text())["runs"][0]
+            self.assertEqual(run["workspace"], str(workspace))
+            self.assertIn("Workspace is not writable", run["error"])
+            self.assertIn("Workspace is not writable", captured.getvalue())
 
 
 class SourceCatalogTests(unittest.TestCase):
@@ -1161,7 +1228,7 @@ class ParallelTests(unittest.TestCase):
                     "import json, signal, sys, time\n"
                     "from pathlib import Path\n"
                     f"root = Path({str(root)!r})\n"
-                    "name, token = sys.argv[1:]\n"
+                    "name, token, workspace = sys.argv[1:]\n"
                     "iteration = int(token.rsplit('-', 2)[1]) - 1\n"
                     "index = iteration * 4 + int(name[2:]) - 1\n"
                     f"group = index // {jobs}\n"
@@ -1173,6 +1240,7 @@ class ParallelTests(unittest.TestCase):
                     "    time.sleep(0.01)\n"
                     "(root / f'interval-{index}.json').write_text("
                     "json.dumps([start, time.monotonic_ns()]))\n"
+                    "(Path(workspace) / 'run-id').write_text(token)\n"
                     f"transcript = {output()!r}\n"
                     "if name == 'EX001':\n"
                     f"    transcript = {output('FAIL')!r}\n"
@@ -1185,7 +1253,8 @@ class ParallelTests(unittest.TestCase):
                 class ExampleSuite(appliance.Suite):
                     def build_command(self, args, selected, token):
                         assert len(selected) == 1
-                        return [sys.executable, "-u", "-c", script, selected[0], token]
+                        return [sys.executable, "-u", "-c", script,
+                                selected[0], token, str(args.workspace)]
 
                 suite = ExampleSuite("example", "example-v1", root / "init", image,
                                      host_shutdown=True)
@@ -1202,9 +1271,15 @@ class ParallelTests(unittest.TestCase):
                 self.assertEqual([run["test"] for run in report["runs"]], selected * 2)
                 self.assertEqual(len({run["run_id"] for run in report["runs"]}), 8)
                 self.assertEqual(len({run["console"] for run in report["runs"]}), 8)
+                self.assertEqual(len({run["workspace"] for run in report["runs"]}), 8)
+                self.assertFalse(hasattr(args, "workspace"))
                 for run in report["runs"]:
                     self.assertTrue(run["host_shutdown"])
                     self.assertEqual(run["status"], 1 if run["test"] == "EX001" else 0)
+                    workspace = Path(run["workspace"])
+                    self.assertEqual(workspace, root / "results/artifacts" /
+                                     f"{run['iteration']}-{run['test']}")
+                    self.assertEqual((workspace / "run-id").read_text(), run["run_id"])
                 events = []
                 for path in root.glob("interval-*.json"):
                     start, end = json.loads(path.read_text())
