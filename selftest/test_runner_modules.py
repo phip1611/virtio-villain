@@ -3,6 +3,7 @@
 """Shared runner primitives without VM or device prerequisites."""
 
 import io
+import os
 from pathlib import Path
 import signal
 import subprocess
@@ -47,6 +48,17 @@ class ModuleTests(unittest.TestCase):
             "        try: entry['_fetch_kernel']()\n"
             "        except SystemExit as error: assert str(error) == 'Bad checksum'\n"
             "        else: raise AssertionError('Acquisition error was ignored')\n"
+            "    with patch.object(vmm.CloudHypervisor, 'build_launch_cmd', "
+            "return_value=['/vmm']) as launch:\n"
+            "        command = entry['_fuzz_vmm_cmd']("
+            "'/vmm', '/kernel', '/initramfs', '/disk', '/pmem', '/work', 2, '128M')\n"
+            "        launch.assert_called_once_with(\n"
+            "            vmm.LaunchConfig(cpus=2, memory='128M',\n"
+            "                kernel='/kernel', initramfs='/initramfs',\n"
+            "                cmdline='console=hvc0 initcall_blacklist=virtio_blk_init'),\n"
+            "            memory_hotplug_size='256M', memory_hotplug_method='virtio-mem',\n"
+            "            serial='off', console='null', seccomp=False)\n"
+            "        assert command[0] == '/vmm' and '--disk' in command\n"
             "else:\n"
             "    assert entry['run_guest'].__defaults__ == (vmm,)\n")
         for entry in ("run", "run-fuzz", "run-perf"):
@@ -101,6 +113,142 @@ class ModuleTests(unittest.TestCase):
             cli.canonicalize_tests(["ex002", "EX001", "missing", "eX002"],
                                    ["Ex001", "EX002"]),
             (["EX002", "Ex001", "EX002"], ["missing"]))
+
+
+class LaunchCommandTests(unittest.TestCase):
+    def test_portable_direct_boot_configuration_works_across_all_backends(self):
+        config = vmm.LaunchConfig(
+            cpus=2, memory="256M", kernel=Path("/kernel"),
+            initramfs=Path("/initramfs"), cmdline="console=ttyS0")
+        expected = (
+            (vmm.CloudHypervisor, [
+                "/vmm", "--kernel", "/kernel", "--initramfs", "/initramfs",
+                "--cmdline", "console=ttyS0", "--cpus", "boot=2", "--memory", "size=256M"]),
+            (vmm.Qemu, [
+                "/vmm", "-kernel", "/kernel", "-initrd", "/initramfs",
+                "-append", "console=ttyS0", "-m", "256M", "-smp", "2"]),
+            (vmm.QemuMicrovm, [
+                "/vmm", "-M", "microvm,rtc=off", "-global", "virtio-mmio.force-legacy=false",
+                "-kernel", "/kernel", "-initrd", "/initramfs",
+                "-append", "console=ttyS0", "-m", "256M", "-smp", "2"]),
+            (vmm.OpenVmm, [
+                "/vmm", "-k", "/kernel", "-r", "/initramfs",
+                "-c", "console=ttyS0", "-m", "256M", "-p", "2"]))
+        for backend_type, command in expected:
+            with self.subTest(backend=backend_type.name), \
+                 patch.object(vmm.platform, "machine", return_value="x86_64"), \
+                 patch.dict(os.environ, {"VV_CH_DEBUG": "1"}), \
+                 patch.object(vmm.CloudHypervisor, "_next_cid",
+                              side_effect=AssertionError("Fixture CID must not be allocated")), \
+                 patch.object(vmm.Qemu, "_next_cid",
+                              side_effect=AssertionError("Fixture CID must not be allocated")):
+                self.assertEqual(backend_type("/vmm").build_launch_cmd(config), command)
+
+    def test_portable_settings_reject_backend_cpu_syntax_and_invalid_resources(self):
+        for cpus in ("boot=2", 0, -1, True):
+            with self.subTest(cpus=cpus), self.assertRaisesRegex(ValueError, "CPU count"):
+                vmm.LaunchConfig(cpus=cpus, memory="256M")
+        for memory in ("", " ", None):
+            with self.subTest(memory=memory), self.assertRaisesRegex(ValueError, "Memory size"):
+                vmm.LaunchConfig(cpus=2, memory=memory)
+
+    def test_backend_launch_support_must_be_explicit(self):
+        config = vmm.LaunchConfig(cpus=2, memory="256M")
+        with self.assertRaisesRegex(NotImplementedError, "launch command building"):
+            vmm.VmmBackend("/unknown-vmm").build_launch_cmd(config)
+        config = vmm.LaunchConfig(cpus=2, memory="256M", firmware=Path("/firmware"))
+        with self.assertRaisesRegex(ValueError, "openvmm firmware boot"):
+            vmm.OpenVmm("/vmm").build_launch_cmd(config)
+
+    def test_qemu_firmware_launch_has_no_direct_boot_or_virtio_fixtures(self):
+        config = vmm.LaunchConfig(cpus=2, memory="256M", firmware=Path("/firmware"))
+        with patch.object(vmm.platform, "machine", return_value="x86_64"):
+            command = vmm.Qemu("/vmm").build_launch_cmd(config)
+        self.assertEqual(command, [
+            "/vmm", "-bios", "/firmware", "-m", "256M", "-smp", "2"])
+
+    def test_qemu_launch_adapters_preserve_explicit_aarch64_platform_options(self):
+        config = vmm.LaunchConfig(
+            cpus=2, memory="256M", kernel=Path("/kernel"), initramfs=Path("/initramfs"))
+        for backend_type in (vmm.Qemu, vmm.QemuMicrovm):
+            with self.subTest(backend=backend_type.name), \
+                 patch.object(vmm.platform, "machine", return_value="aarch64"):
+                command = backend_type("/vmm").build_launch_cmd(
+                    config, kvm=True, nographic=True, no_reboot=True)
+                expected = ["/vmm", "-M", "virt", "-cpu", "host"]
+                if backend_type is vmm.QemuMicrovm:
+                    expected += ["-global", "virtio-mmio.force-legacy=false"]
+                expected += [
+                    "-enable-kvm", "-kernel", "/kernel", "-initrd", "/initramfs",
+                    "-nographic", "-no-reboot", "-m", "256M", "-smp", "2"]
+                self.assertEqual(command, expected)
+
+    def test_all_virtio_builders_delegate_boot_and_resource_configuration(self):
+        for backend_type in (vmm.CloudHypervisor, vmm.Qemu, vmm.QemuMicrovm, vmm.OpenVmm):
+            with self.subTest(backend=backend_type.name), \
+                 patch.object(vmm.platform, "machine", return_value="x86_64"):
+                backend = backend_type("/vmm")
+                with patch.object(backend, "build_launch_cmd", return_value=["/vmm"]) as launch:
+                    command = backend.build_cmd(
+                        "/kernel", "/initramfs", "/disk.raw", "console=ttyS0",
+                        {"cpus": 2, "memory": "128M", "fuzz_device": "rng", "mmio_device": "rng"})
+                launch.assert_called_once()
+                self.assertEqual(launch.call_args.args, (vmm.LaunchConfig(
+                    cpus=1 if backend_type is vmm.QemuMicrovm else 2, memory="128M",
+                    kernel="/kernel", initramfs="/initramfs", cmdline="console=ttyS0"),))
+                for flag in ("--kernel", "--cpus", "--memory", "-kernel", "-m", "-smp", "-k", "-p"):
+                    self.assertNotIn(flag, command)
+
+    def test_firmware_launch_has_no_implicit_virtio_fixtures_or_host_policy(self):
+        backend = vmm.CloudHypervisor("/vmm")
+        with patch.dict(os.environ, {"VV_CH_DEBUG": "1"}), \
+             patch.object(backend, "_next_cid",
+                          side_effect=AssertionError("Fixture CID must not be allocated")):
+            command = backend.build_launch_cmd(
+                vmm.LaunchConfig(cpus=2, memory="2G", firmware=Path("/boot/firmware.fd")),
+                nested=True, serial="tty", console="off")
+        self.assertEqual(command, [
+            "/vmm", "--firmware", "/boot/firmware.fd",
+            "--cpus", "boot=2,nested=on", "--memory", "size=2G",
+            "--serial", "tty", "--console", "off"])
+
+    def test_direct_boot_and_optional_debug_and_seccomp_are_explicit(self):
+        backend = vmm.CloudHypervisor("/vmm")
+        for seccomp in (False, True):
+            with self.subTest(seccomp=seccomp):
+                command = backend.build_launch_cmd(
+                    vmm.LaunchConfig(
+                        cpus=1, memory="128M", kernel=Path("/kernel"),
+                        initramfs=Path("/initramfs"), cmdline="console=ttyS0"),
+                    serial="off", console="null", seccomp=seccomp, debug=True)
+                self.assertEqual(command, [
+                    "/vmm", "-vv", "--kernel", "/kernel", "--initramfs", "/initramfs",
+                    "--cmdline", "console=ttyS0", "--cpus", "boot=1",
+                    "--memory", "size=128M", "--serial", "off", "--console", "null",
+                    "--seccomp", "true" if seccomp else "false"])
+                self.assertTrue(all(isinstance(argument, str) for argument in command))
+
+    def test_virtio_builder_preserves_queue_limits_and_fixture_configuration(self):
+        backend = vmm.CloudHypervisor("/vmm")
+        options = {
+            "cpus": 1, "memory": "256M", "blk_queues": 8, "net_queues": 4,
+            "pmem_path": "/pmem", "fs_socket": "/fs", "api_socket": "/api"}
+        with patch.dict(os.environ, {"VV_CH_DEBUG": ""}), \
+             patch.object(backend, "_next_cid", return_value=23):
+            command = backend.build_cmd(
+                "/kernel", "/initramfs", "/disk.raw", "console=ttyS0", options)
+        self.assertEqual(command, [
+            "/vmm", "--kernel", "/kernel", "--initramfs", "/initramfs",
+            "--cmdline", "console=ttyS0", "--cpus", "boot=8",
+            "--memory", "size=256M,shared=on,hotplug_size=256M,hotplug_method=virtio-mem",
+            "--serial", "tty", "--console", "null", "--seccomp", "false",
+            "--disk", "path=/disk.raw,image_type=raw,num_queues=8,iommu=virtio",
+            "--net", "tap=,num_queues=4", "--vsock", "cid=23,socket=/disk.vsock",
+            "--balloon", "size=0", "--watchdog", "--rng", "src=/dev/urandom",
+            "--pmem", "file=/pmem,size=128M,discard_writes=on",
+            "--fs", "tag=vvfs,socket=/fs,num_queues=1,queue_size=128",
+            "--api-socket", "path=/api"])
+        self.assertEqual(options["cpus"], 1)
 
 
 class ConsoleTests(unittest.TestCase):
