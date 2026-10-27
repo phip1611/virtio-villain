@@ -60,12 +60,21 @@ def _request(url):
     }), timeout=NETWORK_TIMEOUT)
 
 
-def github_release_asset(repository, name, cache, *, offline=False):
-    """Return a verified latest asset, or the last verified release when offline.
+def _cached_metadata(manifest):
+    try:
+        return json.loads(manifest.read_text())
+    except (ValueError, UnicodeError) as error:
+        raise RuntimeError(f"Invalid cached release metadata: {manifest}: {error}") from error
+
+
+def github_release_asset(repository, name, cache, *, offline=False, prefer_cached=False):
+    """Return a verified release asset using the selected cache policy.
 
     An online call resolves the latest release even when an older release is
-    cached. Failures never silently select an older release. Offline calls
-    neither access the network nor write to the cache.
+    cached unless prefer_cached selects existing metadata. That policy verifies
+    cached bytes before reuse and downloads missing bytes from the same release.
+    Failures never silently select another release. Offline calls neither access
+    the network nor write to the cache.
     """
     if (not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository)
             or any(part in (".", "..") for part in repository.split("/"))):
@@ -74,30 +83,35 @@ def github_release_asset(repository, name, cache, *, offline=False):
         raise ValueError(f"Invalid release asset name: {name}")
     directory = Path(cache) / repository / name
     manifest = directory / "latest.json"
-    if offline:
+    if offline or (prefer_cached and manifest.is_file()):
         try:
-            metadata = json.loads(manifest.read_text())
+            metadata = _cached_metadata(manifest)
         except FileNotFoundError as error:
             raise RuntimeError(f"Offline release metadata not cached: {manifest}") from error
-        except (ValueError, UnicodeError) as error:
-            raise RuntimeError(f"Invalid cached release metadata: {manifest}: {error}") from error
         _, digest = _release_asset(metadata, repository, name)
         path = directory / digest / name
         try:
             _verify(path, digest)
         except FileNotFoundError as error:
-            raise RuntimeError(f"Offline release asset not cached: {path}") from error
-        return path
+            if offline:
+                raise RuntimeError(f"Offline release asset not cached: {path}") from error
+        else:
+            return path
 
     directory.mkdir(parents=True, exist_ok=True)
     with (directory / ".lock").open("a+b") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        url = f"https://api.github.com/repos/{repository}/releases/latest"
-        try:
-            with _request(url) as response:
-                metadata = json.load(response)
-        except (OSError, HTTPException, ValueError, UnicodeError) as error:
-            raise RuntimeError(f"Cannot resolve latest {repository} release: {error}") from error
+        cached_metadata = prefer_cached and manifest.is_file()
+        if cached_metadata:
+            metadata = _cached_metadata(manifest)
+        else:
+            url = f"https://api.github.com/repos/{repository}/releases/latest"
+            try:
+                with _request(url) as response:
+                    metadata = json.load(response)
+            except (OSError, HTTPException, ValueError, UnicodeError) as error:
+                raise RuntimeError(
+                    f"Cannot resolve latest {repository} release: {error}") from error
         url, digest = _release_asset(metadata, repository, name)
         path = directory / digest / name
         try:
@@ -113,12 +127,13 @@ def github_release_asset(repository, name, cache, *, offline=False):
                     raise RuntimeError(f"Cannot download {url}: {error}") from error
                 _verify(partial, digest)
                 partial.replace(path)
-        with tempfile.TemporaryDirectory(prefix=".metadata-", dir=directory) as temporary:
-            staged = Path(temporary) / "latest.json"
-            staged.write_text(json.dumps({
-                "tag_name": metadata["tag_name"],
-                "assets": [{"name": name, "digest": f"sha256:{digest}",
-                            "browser_download_url": url}],
-            }, indent=2) + "\n")
-            staged.replace(manifest)
+        if not cached_metadata:
+            with tempfile.TemporaryDirectory(prefix=".metadata-", dir=directory) as temporary:
+                staged = Path(temporary) / "latest.json"
+                staged.write_text(json.dumps({
+                    "tag_name": metadata["tag_name"],
+                    "assets": [{"name": name, "digest": f"sha256:{digest}",
+                                "browser_download_url": url}],
+                }, indent=2) + "\n")
+                staged.replace(manifest)
     return path

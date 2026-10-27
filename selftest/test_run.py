@@ -1808,7 +1808,8 @@ def test_unit_fetch_kernel_selects_mmio_image():
         for name in ("bzImage-x86_64", "vmlinux-x86_64"):
             with open(os.path.join(directory, "target", name), "wb") as image:
                 image.write(b"kernel")
-        with patch.object(VMM_MOD.urllib.request, "urlretrieve") as retrieve:
+        with patch.object(VMM_MOD.artifacts, "github_release_asset") as retrieve, \
+             patch.object(VMM_MOD.sys, "stderr"):
             assert RUN_MOD.fetch_kernel(mmio=True).endswith("/bzImage-x86_64")
             assert RUN_MOD.fetch_kernel().endswith("/vmlinux-x86_64")
         retrieve.assert_not_called()

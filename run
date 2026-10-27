@@ -1776,7 +1776,10 @@ def main():
         tests = [t for t in tests if not t.startswith("M")]
 
     if tests and kernel is None:
-        kernel = fetch_kernel(mmio=backend.name == "qemu-mmio")
+        try:
+            kernel = fetch_kernel(mmio=backend.name == "qemu-mmio")
+        except RuntimeError as error:
+            sys.exit(str(error))
 
     if backend.name == "qemu-mmio" and mmio_tests:
         probe_ok = _mmio_boots(backend, kernel, args.initramfs)
@@ -2233,6 +2236,9 @@ def main():
 if __name__ == "__main__":
     # Handle lightweight utility subcommands before full arg parsing.
     if len(sys.argv) >= 2 and sys.argv[1] == "fetch-kernel":
-        print(fetch_kernel())
+        try:
+            print(fetch_kernel())
+        except RuntimeError as error:
+            sys.exit(str(error))
         sys.exit(0)
     main()

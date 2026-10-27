@@ -1384,14 +1384,11 @@ def build_initramfs(fuzz_binary, output_path):
 
 
 def _fetch_kernel():
-    """Return path to guest kernel, downloading if not cached."""
-    result = subprocess.run(
-        [os.path.join(_SCRIPT_DIR, "run"), "fetch-kernel"],
-        capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        sys.exit(f"Failed to fetch kernel: {result.stderr.strip()}")
-    return result.stdout.strip()
+    """Use shared guest kernel acquisition without loading another runner."""
+    try:
+        return vmm.fetch_kernel()
+    except RuntimeError as error:
+        sys.exit(str(error))
 
 
 def _sweep_stale_workdirs(max_age_s=7200):

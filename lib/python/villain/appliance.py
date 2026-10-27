@@ -61,7 +61,10 @@ class Suite:
         """Raise an actionable error when host prerequisites are missing."""
 
     def build_command(self, args, selected, run_id):
-        """Return an argv list; stdout/stderr must include the guest console."""
+        """Return launch argv with guest console output on stdout and stderr.
+
+        args.workspace is the retained directory for this execution.
+        """
         raise NotImplementedError
 
     def execution_command(self, argv):
@@ -381,15 +384,19 @@ def launch(suite, args, selected, descriptions=None):
             if stopped.is_set():
                 return None
             run_id = token + f"-{iteration + 1}-{test}"
+            workspace = directory / "artifacts" / f"{iteration + 1}-{test}"
             outcome = {"run_id": run_id, "test": test, "iteration": iteration + 1,
-                       "tests": {}, "status": 2}
+                       "workspace": str(workspace), "tests": {}, "status": 2}
             armed = False
             control_ready = control_command is None
             proc = None
             follower = None
             try:
+                workspace.mkdir(parents=True, exist_ok=False)
+                run_args = argparse.Namespace(**vars(args))
+                run_args.workspace = workspace
                 with policy_lock:
-                    command = suite.build_command(args, [test], run_id)
+                    command = suite.build_command(run_args, [test], run_id)
                 if (not isinstance(command, list) or not command
                         or any(not isinstance(arg, str) for arg in command)):
                     raise RuntimeError("Suite build_command() must return a nonempty argv list")
@@ -524,7 +531,8 @@ def parse_args(suite, argv):
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("-j", "--jobs", type=int, default=1, metavar="N",
                         help="Maximum concurrent appliance VMs (default: 1)")
-    parser.add_argument("--output", type=Path, help="New diagnostics directory")
+    parser.add_argument("--output", type=Path,
+                        help="New directory for diagnostics and runtime artifacts")
     suite.add_arguments(parser)
     args = parser.parse_args(argv)
     if args.list and args.build:

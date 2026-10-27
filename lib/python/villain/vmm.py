@@ -7,11 +7,11 @@ import platform
 import re
 import sys
 import threading
-import urllib.request
+from villain import artifacts
 
 _SCRIPT_DIR = str(Path(__file__).resolve().parents[3])
 DEFAULT_VMM_TRACE_FILE = "/tmp/vmm-trace.log"
-KERNEL_BASE_URL = "https://github.com/cloud-hypervisor/linux/releases/latest/download"
+KERNEL_REPOSITORY = "cloud-hypervisor/linux"
 KERNEL_NAMES = {"x86_64": "vmlinux-x86_64", "aarch64": "Image-arm64"}
 
 
@@ -611,19 +611,21 @@ def detect_vmm(vmm_path):
 
 
 def fetch_kernel(mmio=False):
-    """Download the CH guest kernel if not already cached."""
+    """Select a local guest image or acquire a verified cached release."""
     arch = platform.machine()
     name = KERNEL_NAMES.get(arch)
     if mmio and arch == "x86_64":
         name = "bzImage-x86_64"
     if not name:
-        sys.exit(f"No pre-built kernel available for {arch}. Use --kernel.")
-    cache_path = os.path.join(_SCRIPT_DIR, "target", name)
-    if os.path.isfile(cache_path):
-        return cache_path
-    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-    url = f"{KERNEL_BASE_URL}/{name}"
-    print(f"Fetching kernel from {url} ...")
-    urllib.request.urlretrieve(url, cache_path)
-    print(f"Cached at {cache_path}")
-    return cache_path
+        raise RuntimeError(f"No bundled guest kernel available for {arch}. Use --kernel.")
+    target = Path(_SCRIPT_DIR) / "target"
+    local = target / name
+    if local.is_file():
+        print(f"Using existing guest kernel {local} without a recorded release checksum.",
+              file=sys.stderr)
+        return str(local)
+    try:
+        return str(artifacts.github_release_asset(
+            KERNEL_REPOSITORY, name, target / "kernel-cache", prefer_cached=True))
+    except (OSError, RuntimeError) as error:
+        raise RuntimeError(f"Cannot acquire guest kernel {name}: {error}") from error
