@@ -143,6 +143,12 @@ Outputs are `build/init` and `build/initramfs.cpio.gz`. Generated headers must b
 prepared by the external suite before invoking this target. Choose a separate
 output directory for each suite and compiler configuration.
 
+All initramfs targets share the deterministic Python newc/gzip packager.
+The built-in virtio, fuzz and performance targets strip temporary copies
+using `STRIP`; external appliances retain their input binary unchanged by
+default. Original executables are never modified. Packaging does not require
+the `cpio` or `gzip` commands.
+
 External sources are never added to the virtio `SRCS` wildcards. The existing
 `init`, `initramfs`, fuzz and performance targets continue to build their
 original executables and archives.

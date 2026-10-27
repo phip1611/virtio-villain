@@ -224,6 +224,12 @@ adds ~200-500 bytes of code, so even with 300+ tests the image stays
 under 4MB. For debugging, keep the unstripped binary on the host and
 use `addr2line` against VMM crash addresses.
 
+All initramfs targets use the same Python packager for deterministic
+newc/gzip archives. Normal, fuzz and performance archives strip temporary
+copies using `STRIP`; the host binaries are unchanged. External appliances
+are not stripped by default. Packaging requires a static little-endian
+ELF64 binary and does not require the `cpio` or `gzip` commands.
+
 ## Test Results
 
 Each test reports one of five outcomes:
@@ -377,7 +383,8 @@ Build:
 - A C compiler capable of producing a static x86_64 binary (gcc,
   clang, or musl-gcc all work)
 - `make`
-- `cpio`, `gzip` (for initramfs target)
+- Python 3 (standard-library initramfs packaging)
+- binutils (`strip`)
 
 Run:
 
