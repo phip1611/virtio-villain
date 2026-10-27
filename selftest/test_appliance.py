@@ -87,7 +87,8 @@ class ResultTests(unittest.TestCase):
             self.assertTrue(appliance.parse_args(suite, ["--list", option]).console)
 
     def test_catalog_validation(self):
-        for text in ("", "EX001 missing-tab", "EX001\ta\nEX001\tb", "invalid id\ta",
+        for text in ("", "EX001 missing-tab", "EX001\ta\nEX001\tb", "EX001\ta\nex001\tb",
+                     "invalid id\ta",
                      "EX001\t", "EX001\ta\tb"):
             with self.subTest(text=text), \
                  patch.object(appliance, "executable", return_value="init"), \
@@ -1370,6 +1371,35 @@ class IntegrationTests(unittest.TestCase):
         for run in report["runs"]:
             self.assertEqual(run["tests"], {run["test"]: "PASS"})
             self.assertEqual(run["command"][-2], run["test"])
+
+    def test_existing_runner_accepts_test_ids_in_any_letter_case(self):
+        for index, selection in enumerate((("ex002", "ex001"), ("eX002", "Ex001"))):
+            with self.subTest(selection=selection):
+                directory = self.root / f"case-selection-{index}"
+                result = subprocess.run([
+                    str(ROOT / "run"), "--suite", str(self.plugin),
+                    "--kernel", str(self.binary), "--output", str(directory),
+                    *selection], capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                report = json.loads((directory / "results.json").read_text())
+                self.assertEqual(report["selected"], ["EX002", "EX001"])
+                self.assertEqual([run["test"] for run in report["runs"]], ["EX002", "EX001"])
+                for run in report["runs"]:
+                    self.assertEqual(run["tests"], {run["test"]: "PASS"})
+                    self.assertEqual(run["command"][-2], run["test"])
+
+    def test_existing_runner_rejects_unknown_and_duplicate_ids_before_launch(self):
+        selections = (("ex001", "EX001"), ("ex001", "ex001"), ("ex001", "unknown"))
+        for index, selection in enumerate(selections):
+            with self.subTest(selection=selection):
+                directory = self.root / f"invalid-selection-{index}"
+                result = subprocess.run([
+                    str(ROOT / "run"), "--suite", str(self.plugin),
+                    "--kernel", str(self.binary), "--output", str(directory),
+                    *selection], capture_output=True, text=True)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("Unknown or duplicate test selection", result.stderr)
+                self.assertFalse(directory.exists())
 
     def test_no_implicit_source_wildcard(self):
         result = subprocess.run(["make", "-s", "-C", str(ROOT), "appliance",

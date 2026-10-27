@@ -27,6 +27,7 @@ class ModuleTests(unittest.TestCase):
             "if sys.argv[1].endswith('/run'):\n"
             "    assert entry['detect_vmm'] is vmm.detect_vmm\n"
             "    assert entry['print_banner'] is cli.print_banner\n"
+            "    assert entry['_canonicalize_tests'] is cli.canonicalize_tests\n"
             "    assert entry['drain_stream'] is console.drain_stream\n"
             "elif sys.argv[1].endswith('/run-fuzz'):\n"
             "    assert entry['print_banner'] is cli.print_banner\n"
@@ -56,6 +57,12 @@ class ModuleTests(unittest.TestCase):
         self.assertEqual(destination.getvalue(), "banner\n")
         run.assert_called_once_with(
             [str(ROOT / "target/init"), "--banner"], stderr=subprocess.DEVNULL)
+
+    def test_test_ids_resolve_to_registered_spelling_in_request_order(self):
+        self.assertEqual(
+            cli.canonicalize_tests(["ex002", "EX001", "missing", "eX002"],
+                                   ["Ex001", "EX002"]),
+            (["EX002", "Ex001", "EX002"], ["missing"]))
 
 
 class ConsoleTests(unittest.TestCase):
