@@ -23,7 +23,7 @@ import uuid
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(ROOT, "lib", "python"))
-from villain import console, host, vmm  # noqa: E402
+from villain import console, host, images, vmm  # noqa: E402
 
 DEVICE_INITCALL = {
     "blk": "virtio_blk_init",
@@ -42,8 +42,10 @@ BACKEND_DEVICES = {
     "qemu": {"blk", "net", "rng", "vsock"},
     "openvmm": {"blk", "net", "rng", "vsock"},
 }
-DISK_FORMATS = ("raw", "qcow2", "vhd", "vhdx")
+DISK_FORMATS = images.FORMATS
 DISK_SUFFIXES = {disk_type: f".{disk_type}" for disk_type in DISK_FORMATS}
+MIB = 1024 * 1024
+HASH_CHUNK_SIZE = MIB
 PAYLOAD_RATE_OPERATIONS = {"blk_read", "blk_write", "net_rx", "rng_fill"}
 RESULT_PREFIX = "VVPERF "
 LATENCY_PREFIX = "VVPERF_LATENCY "
@@ -316,19 +318,12 @@ def has_effective_capability(capabilities, capability):
 
 
 def create_disk_image(path, disk_type, size_mib):
-    size = size_mib * 1024 * 1024
+    size = size_mib * MIB
     if disk_type == "raw":
-        with open(path, "wb") as disk_file:
-            disk_file.truncate(size)
+        images.create_raw(path, size)
         return
-    qemu_format = {"qcow2": "qcow2", "vhd": "vpc", "vhdx": "vhdx"}[
-        disk_type]
-    command = ["qemu-img", "create", "-f", qemu_format]
-    if disk_type == "vhd":
-        command += ["-o", "subformat=fixed"]
-    command += [path, str(size)]
     try:
-        subprocess.run(command, check=True, capture_output=True)
+        images.create(path, size, image_format=disk_type)
     except (OSError, subprocess.CalledProcessError) as error:
         raise RuntimeError(
             f"Cannot create {disk_type} performance disk: {error}") from error
@@ -563,7 +558,7 @@ def get_binary_sha256(path):
     digest = hashlib.sha256()
     try:
         with open(resolved, "rb") as binary:
-            for chunk in iter(lambda: binary.read(1024 * 1024), b""):
+            for chunk in iter(lambda: binary.read(HASH_CHUNK_SIZE), b""):
                 digest.update(chunk)
     except OSError:
         return None
@@ -1147,7 +1142,7 @@ def format_human(report, verbose=False):
         lines.insert(5, f"Address pattern: {workload['address_pattern']}")
     if "payload_bytes_per_second" in summary:
         lines.append(
-            f"Payload rate: {summary['payload_bytes_per_second'] / (1024 * 1024):.2f} MiB/s")
+            f"Payload rate: {summary['payload_bytes_per_second'] / MIB:.2f} MiB/s")
     if "latency_p50_ns" in summary:
         lines += [
             f"Latency samples: {summary['latency_sample_count']}",

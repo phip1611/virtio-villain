@@ -32,7 +32,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_SCRIPT_DIR, "lib", "python"))
-from villain import reporting  # noqa: E402
+from villain import images, reporting  # noqa: E402
 from villain.cli import (  # noqa: E402
     ShortFirstHelpFormatter, print_banner, normalize_memory as _normalize_mem,
     canonicalize_tests as _canonicalize_tests,
@@ -62,7 +62,8 @@ _print_lock = threading.Lock()
 INIT_BINARY = os.path.join(_SCRIPT_DIR, "target", "init")
 INITRAMFS = os.path.join(_SCRIPT_DIR, "target", "initramfs.cpio.gz")
 DISK_SIZE = 16 * 1024 * 1024  # 16 MiB
-DISK_FORMATS = ("raw", "qcow2", "vhd", "vhdx")
+PMEM_SIZE = 128 * 1024 * 1024
+DISK_FORMATS = images.FORMATS
 
 
 def get_test_list(init_binary=INIT_BINARY):
@@ -283,8 +284,7 @@ def _mmio_boots(backend, kernel, initramfs):
     def probe():
         with tempfile.TemporaryDirectory(prefix="vv-mmio-boot-") as directory:
             disk = os.path.join(directory, "disk.raw")
-            with open(disk, "wb") as stream:
-                stream.truncate(DISK_SIZE)
+            images.create_raw(disk, DISK_SIZE)
             command = backend.build_cmd(
                 kernel, initramfs, disk,
                 f"console={backend.console_device} vv.test=list")
@@ -564,16 +564,7 @@ def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
     suffix = {"raw": ".raw", "qcow2": ".qcow2", "vhd": ".vhd",
               "vhdx": ".vhdx"}[disk_format]
     disk_path = tempfile.mktemp(suffix=suffix)
-    if disk_format == "raw":
-        with open(disk_path, "wb") as f:
-            f.truncate(DISK_SIZE)
-    else:
-        qemu_fmt = {"qcow2": "qcow2", "vhd": "vpc", "vhdx": "vhdx"}[disk_format]
-        cmd = ["qemu-img", "create", "-f", qemu_fmt]
-        if disk_format == "vhd":
-            cmd += ["-o", "subformat=fixed"]
-        cmd += [disk_path, str(DISK_SIZE)]
-        subprocess.run(cmd, check=True, capture_output=True)
+    images.create(disk_path, DISK_SIZE, image_format=disk_format)
 
     # Optional per test sidecar (single test only). It may declare launch
     # requirements via vmm_config() and/or a run(ctx) host actor.
@@ -618,8 +609,7 @@ def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
                f"vv.test={','.join(test_names)}")
     # Create pmem backing file
     pmem_path = disk_path.rsplit(".", 1)[0] + ".pmem"
-    with open(pmem_path, "wb") as f:
-        f.truncate(128 * 1024 * 1024)  # 128 MiB
+    images.create_raw(pmem_path, PMEM_SIZE)
     # Copy so per test mutations do not leak into the shared opts
     # dict that the caller reuses across every test.
     opts = dict(opts) if opts else {}
@@ -628,13 +618,11 @@ def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
     # Create the virtio-scsi backing file so a SCSI READ has real data
     # to return from the block backend.
     scsi_path = disk_path.rsplit(".", 1)[0] + ".scsi"
-    with open(scsi_path, "wb") as f:
-        f.truncate(DISK_SIZE)
+    images.create_raw(scsi_path, DISK_SIZE)
     opts["scsi_path"] = scsi_path
     # Second backing file for the 4K block LUN at LUN 1.
     scsi_path2 = disk_path.rsplit(".", 1)[0] + ".scsi2"
-    with open(scsi_path2, "wb") as f:
-        f.truncate(DISK_SIZE)
+    images.create_raw(scsi_path2, DISK_SIZE)
     opts["scsi_path2"] = scsi_path2
 
     api_socket = None
@@ -1797,11 +1785,10 @@ def main():
                 probe_disk = os.path.join(directory, "disk.raw")
                 for path, size in (
                         (probe_disk, DISK_SIZE),
-                        (os.path.join(directory, "pmem"), 128 * 1024 * 1024),
+                        (os.path.join(directory, "pmem"), PMEM_SIZE),
                         (os.path.join(directory, "scsi"), DISK_SIZE),
                         (os.path.join(directory, "scsi2"), DISK_SIZE)):
-                    with open(path, "wb") as image:
-                        image.truncate(size)
+                    images.create_raw(path, size)
                 probe_opts["pmem_path"] = os.path.join(directory, "pmem")
                 probe_opts["scsi_path"] = os.path.join(directory, "scsi")
                 probe_opts["scsi_path2"] = os.path.join(directory, "scsi2")

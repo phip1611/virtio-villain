@@ -34,7 +34,7 @@ _fuzz_vsock_cid_lock = threading.Lock()
 
 
 sys.path.insert(0, os.path.join(_SCRIPT_DIR, "lib", "python"))
-from villain import host, initramfs, vmm
+from villain import host, images, initramfs, vmm
 from villain.cli import ShortFirstHelpFormatter, normalize_memory, print_banner
 from villain.console import ctty_preexec
 from villain.diagnostics import (
@@ -50,6 +50,10 @@ sys.stdout.reconfigure(line_buffering=True)
 
 BLOB_SIZE = 4096
 INPUT_SIZE = 64 * 1024
+DISK_SIZE = 64 * 1024 * 1024
+PMEM_SIZE = 128 * 1024 * 1024
+IOMMU_DISK_SIZE = 1024 * 1024
+DISK_SECTOR_SIZE = 512
 FUZZ_BLOB_MAGIC = b"VVFZ"
 FUZZ_BLOB_VERSION = 1
 FUZZ_BLOB_HEADER_FMT = "<4sHH"
@@ -923,8 +927,8 @@ def _op_queue_size(vq):
         [0, 1, 3, 7, 15, 127, 256, 512, 1024, 32768, 65535])
 
 
-# The fuzz worker disk is 64 MiB, so valid sectors are 0.._BLK_DISK_SECTORS-1.
-_BLK_DISK_SECTORS = (64 * 1024 * 1024) // 512
+# Keep valid block sectors within the worker disk.
+_BLK_DISK_SECTORS = DISK_SIZE // DISK_SECTOR_SIZE
 _BLK_VALID_TYPES = [
     VIRTIO_BLK_T_IN, VIRTIO_BLK_T_OUT, VIRTIO_BLK_T_FLUSH,
     VIRTIO_BLK_T_GET_ID, VIRTIO_BLK_T_GET_LIFETIME,
@@ -1497,24 +1501,18 @@ def run_vmm(vmm_path, initramfs_path, profraw_dir, timeout=3,
     else:
         disk = os.path.join(profraw_dir, "disk.raw")
     if not os.path.exists(disk):
-        with open(disk, "wb") as f:
-            f.seek(64 * 1024 * 1024 - 1)
-            f.write(b"\x00")
+        images.create_raw(disk, DISK_SIZE)
 
     pmem_path = os.path.join(profraw_dir, "pmem.raw")
     if not os.path.exists(pmem_path):
-        with open(pmem_path, "wb") as f:
-            f.seek(128 * 1024 * 1024 - 1)
-            f.write(b"\x00")
+        images.create_raw(pmem_path, PMEM_SIZE)
 
     # A small disk placed behind the IOMMU so CH instantiates a
     # virtio-iommu device the fuzzer can drive. It is found after the
     # main disk, so blk fuzzing keeps using the untranslated one.
     iommu_disk = os.path.join(profraw_dir, "iommu.raw")
     if not os.path.exists(iommu_disk):
-        with open(iommu_disk, "wb") as f:
-            f.seek(1024 * 1024 - 1)
-            f.write(b"\x00")
+        images.create_raw(iommu_disk, IOMMU_DISK_SIZE)
 
     env = os.environ.copy()
     env["LLVM_PROFILE_FILE"] = os.path.join(profraw_dir, "%p.profraw")
@@ -2519,7 +2517,7 @@ def cmd_minimize(args):
     shutil.copy2(fuzz_binary, wb)
     disk = os.path.join(tmpdir, "disk.raw")
     with open(disk, "wb") as f:
-        f.seek(64 * 1024 * 1024 - 1)
+        f.seek(DISK_SIZE - 1)
         f.write(b"\x00")
     initramfs = os.path.join(tmpdir, "initramfs.cpio.gz")
 
@@ -2605,7 +2603,7 @@ def cmd_cov_report(args):
         shutil.copy2(fuzz_binary, wb)
         disk = os.path.join(tmpdir, "disk.raw")
         with open(disk, "wb") as f:
-            f.seek(64 * 1024 * 1024 - 1)
+            f.seek(DISK_SIZE - 1)
             f.write(b"\x00")
         initramfs = os.path.join(tmpdir, "initramfs.cpio.gz")
 
@@ -2797,7 +2795,7 @@ def cmd_fuzz(args):
         initramfs = os.path.join(wdir, "initramfs.cpio.gz")
         disk = os.path.join(wdir, "disk.raw")
         with open(disk, "wb") as f:
-            f.seek(64 * 1024 * 1024 - 1)
+            f.seek(DISK_SIZE - 1)
             f.write(b"\x00")
         worker_dirs.append({
             "dir": wdir,
