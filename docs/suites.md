@@ -37,10 +37,15 @@ Shared host helpers are available in these modules:
 | `villain.vmm` | Existing virtio VMM command builders and bundled guest kernel selection |
 | `villain.diagnostics` | VMM output classification shared by tests and fuzzing |
 | `villain.host` | Capability inspection and explicitly requested host tuning |
-| `villain.artifacts` | GitHub latest release assets with published SHA256 verification and offline cache reuse |
+| `villain.artifacts` | GitHub release assets with published SHA256 verification and cache reuse |
 | `villain.build` | Suite build metadata and shared build dispatch |
 
 Importing these modules does not launch a VM or apply host tuning.
+The artifact helper checks the latest release by default.
+`prefer_cached=True` reuses recorded release metadata and verifies the
+cached asset before use. `offline=True` forbids network access and cache
+writes. External suites still select their own kernel build or image
+policy.
 VMM command builders describe the existing virtio environments. They do not
 establish the privileges required by another suite. Completion protocols,
 deadlines and external recovery remain the responsibility of the caller.
@@ -120,7 +125,9 @@ The runner uses this result even when the kernel was built elsewhere.
 Missing results require an explicit kernel build or a supplied image.
 Explicit `--kernel` overrides
 remain supported. `--build` cannot be combined with explicit `--binary` or
-`--initramfs` overrides. `--output` still controls diagnostics only.
+`--initramfs` overrides. `--output` selects diagnostics and runtime
+artifact workspaces for each execution. Reusable build outputs remain
+separate.
 
 Source and appliance output paths must not contain whitespace because the
 underlying Make appliance rules use whitespace separated source lists.
@@ -213,6 +220,33 @@ to prepare the boot environment and replace its process with the VMM using
 deadline and recovery controls. Returning from `execute` is an infrastructure
 failure. Suites that need no preparation can continue returning a VMM command
 directly.
+
+Each call to `build_command` receives `args.workspace` as an absolute
+`Path`. This directory already exists and is unique to the test and
+repetition. It is under `artifacts/ITERATION-TEST_ID/` in the diagnostics
+directory. The framework passes a separate argument namespace to each
+call. The parsed invocation arguments are not changed. Suites that need
+no workspace can ignore it.
+
+Write runtime artifacts below this directory. For example, pass
+`str(args.workspace / "boot")` as an output argument to the preparation worker
+when its image builder requires a new directory. Pass the path explicitly
+through `self.execution_command(...)`. The worker does not inherit the
+parent argument namespace. Preparation should still happen inside
+`execute`, not while constructing the command.
+
+By default, diagnostics and workspaces are below
+`BINARY_DIRECTORY/results/TIMESTAMP-ID/`. Selecting `--build-dir` changes that
+default along with the binary location. An explicit `--output PATH` places
+diagnostics and workspaces under that new directory instead. Each JSON
+run records its absolute `workspace` alongside its `console` path and run
+ID. These paths remain in the report after preparation errors and
+timeouts. They are also retained after interruption. If workspace creation
+itself fails, the report records the requested path and the error.
+Runtime artifacts are retained with the report on success and failure.
+Suites should remove temporary assembly files without deleting the
+retained workspace. Reusable build artifacts and download caches remain
+separate. The framework does not copy or rebuild them for each test.
 
 ```sh
 ./run --suite /work/example --list
@@ -308,8 +342,10 @@ The default shutdown mode and virtio appliance operation are unchanged.
 
 Exit codes are 0 (pass), 1 (assertion/cleanup failure), and 2 (infrastructure,
 including timeouts and entirely unexecuted suites). The diagnostics directory
-contains console logs, external control logs and `results.json`. The JSON
-report includes image hashes, exact launch arguments and test verdicts.
+contains `results.json` and artifact workspaces for each execution. It also
+retains console and external control logs. The JSON report records image
+hashes and exact launch arguments. Each run entry includes a workspace
+path and test verdicts.
 
 Human output uses the same aligned result rows, terminal colors, progress,
 count summary and failure lists as the virtio runner. Test descriptions come

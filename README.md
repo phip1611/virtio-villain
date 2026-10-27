@@ -406,8 +406,10 @@ VMMs: `RUSTFLAGS="-Zsanitizer=address"`, C/C++ VMMs:
 Everything else `run` arranges automatically on first invocation:
 
 - Guest kernel. If `--kernel` is not given, `run` downloads
-  `vmlinux-x86_64` from the latest Cloud Hypervisor kernel release
-  and caches it under `target/`. To use your own kernel, pass
+  the image for the selected architecture from the latest Cloud
+  Hypervisor kernel release when no local or verified cached image is
+  available. New downloads are verified and cached below
+  `target/kernel-cache/`. To use your own kernel, pass
   `--kernel /path/to/vmlinux` and make sure it is booted with
   `initcall_blacklist=virtio_blk_init` so that the guest does not
   claim the virtio block device before the test harness. The `run`
