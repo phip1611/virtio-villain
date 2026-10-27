@@ -50,21 +50,14 @@ $(OBJDIR)/%.o: %.c
 -include $(DEPS)
 
 initramfs: $(TARGET)/init
-	@rm -rf $(TARGET)/.rootfs
-	@mkdir -p $(TARGET)/.rootfs/proc $(TARGET)/.rootfs/sys $(TARGET)/.rootfs/dev
-	@cp $(TARGET)/init $(TARGET)/.rootfs/init
-	@$(STRIP) $(TARGET)/.rootfs/init
-	@cd $(TARGET)/.rootfs && find . | cpio -o -H newc 2>/dev/null | gzip > ../initramfs.cpio.gz
-	@rm -rf $(TARGET)/.rootfs
+	$(Q)python3 lib/python/villain/initramfs.py --init "$<" --output "$(TARGET)/initramfs.cpio.gz" --strip "$(STRIP)"
 	@echo "$(TARGET)/initramfs.cpio.gz ($$(du -h $(TARGET)/initramfs.cpio.gz | cut -f1))"
 
 deps-check:
 	@command -v $(CC) >/dev/null 2>&1 || { echo "error: $(CC) not found. Install musl-tools: apt install musl-tools"; exit 1; }
 	@command -v $(STRIP) >/dev/null 2>&1 || { echo "error: $(STRIP) not found. Install binutils: apt install binutils"; exit 1; }
-	@command -v cpio >/dev/null 2>&1 || { echo "error: cpio not found. apt install cpio"; exit 1; }
-	@command -v gzip >/dev/null 2>&1 || { echo "error: gzip not found. apt install gzip"; exit 1; }
 	@command -v python3 >/dev/null 2>&1 || { echo "error: python3 not found. apt install python3"; exit 1; }
-	@echo "deps ok: $(CC), strip, cpio, gzip, python3"
+	@echo "deps ok: $(CC), strip, python3"
 	@if command -v virtiofsd >/dev/null 2>&1 \
 	    || [ -x /usr/libexec/virtiofsd ] \
 	    || [ -x /usr/lib/virtiofsd ] \
@@ -150,21 +143,11 @@ appliance-initramfs: $(APPLIANCE_TARGET)/init
 -include $(APPLIANCE_OBJS:.o=.d)
 
 fuzz-initramfs: $(TARGET)/fuzz
-	@rm -rf $(TARGET)/.fuzzfs
-	@mkdir -p $(TARGET)/.fuzzfs/proc $(TARGET)/.fuzzfs/sys $(TARGET)/.fuzzfs/dev
-	@cp $(TARGET)/fuzz $(TARGET)/.fuzzfs/init
-	@$(STRIP) $(TARGET)/.fuzzfs/init
-	@cd $(TARGET)/.fuzzfs && find . | cpio -o -H newc 2>/dev/null | gzip > ../fuzz-initramfs.cpio.gz
-	@rm -rf $(TARGET)/.fuzzfs
+	$(Q)python3 lib/python/villain/initramfs.py --init "$<" --output "$(TARGET)/fuzz-initramfs.cpio.gz" --strip "$(STRIP)"
 	@echo "$(TARGET)/fuzz-initramfs.cpio.gz ($$(du -h $(TARGET)/fuzz-initramfs.cpio.gz | cut -f1))"
 
 perf-initramfs: $(TARGET)/perf
-	@rm -rf $(TARGET)/.perffs
-	@mkdir -p $(TARGET)/.perffs/proc $(TARGET)/.perffs/sys $(TARGET)/.perffs/dev
-	@cp $(TARGET)/perf $(TARGET)/.perffs/init
-	@$(STRIP) $(TARGET)/.perffs/init
-	@cd $(TARGET)/.perffs && find . | cpio -o -H newc 2>/dev/null | gzip > ../perf-initramfs.cpio.gz
-	@rm -rf $(TARGET)/.perffs
+	$(Q)python3 lib/python/villain/initramfs.py --init "$<" --output "$(TARGET)/perf-initramfs.cpio.gz" --strip "$(STRIP)"
 	@echo "$(TARGET)/perf-initramfs.cpio.gz ($$(du -h $(TARGET)/perf-initramfs.cpio.gz | cut -f1))"
 
 clean:
