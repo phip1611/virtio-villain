@@ -21,6 +21,7 @@ from typing import Optional
 import uuid
 from villain import reporting
 from villain.build import BuildSpec
+from villain.cli import canonicalize_tests
 from villain.console import FileFollower
 
 
@@ -130,12 +131,15 @@ def catalog(binary):
 
 def parse_catalog(text):
     tests = {}
+    names = set()
     for line in text.splitlines():
         name, separator, description = line.partition("\t")
         if (not separator or not description or "\t" in description
-                or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]*", name) or name in tests):
+                or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]*", name)
+                or name.upper() in names):
             raise RuntimeError(f"Invalid test catalog entry: {line!r}")
         tests[name] = description
+        names.add(name.upper())
     if not tests:
         raise RuntimeError("Suite catalog contains no tests")
     return dict(sorted(tests.items()))
@@ -503,7 +507,7 @@ def launch(suite, args, selected, descriptions=None):
 def parse_args(suite, argv):
     parser = argparse.ArgumentParser(description=f"{suite.name} appliance suite",
                                      allow_abbrev=False)
-    parser.add_argument("tests", nargs="*", help="Exact test IDs; default: all")
+    parser.add_argument("tests", nargs="*", help="Test IDs in any letter case. Defaults to all.")
     parser.add_argument("--list", action="store_true")
     parser.add_argument("--build", action="store_true",
                         help="Build the suite executable and initramfs before execution")
@@ -582,7 +586,8 @@ def main(argv=None):
         if args.build:
             suite.build_spec.context(args.build_dir).build(["initramfs"])
         tests = catalog(args.binary)
-        if len(set(args.tests)) != len(args.tests) or any(t not in tests for t in args.tests):
+        args.tests, unknown = canonicalize_tests(args.tests, tests)
+        if unknown or len(set(args.tests)) != len(args.tests):
             raise RuntimeError("Unknown or duplicate test selection; use --list")
         suite.preflight(args)
         return launch(suite, args, args.tests or list(tests), tests)
