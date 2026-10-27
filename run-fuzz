@@ -1425,10 +1425,13 @@ def _fuzz_vmm_cmd(vmm_path, kernel, initramfs_path, disk, pmem_path,
         _fuzz_vsock_cid += 1
     vsock_path = os.path.join(profraw_dir, "fuzz.vsock")
     iommu_disk = os.path.join(profraw_dir, "iommu.raw")
-    return [
-        vmm_path,
-        "--kernel", kernel,
-        "--initramfs", initramfs_path,
+    command = vmm.CloudHypervisor(vmm_path).build_launch_cmd(
+        vmm.LaunchConfig(
+            cpus=cpus, memory=memory, kernel=kernel, initramfs=initramfs_path,
+            cmdline="console=hvc0 initcall_blacklist=virtio_blk_init"),
+        memory_hotplug_size="256M", memory_hotplug_method="virtio-mem",
+        serial="off", console="null", seccomp=False)
+    command += [
         "--disk", f"path={disk},num_queues={cpus}",
         "--disk", f"path={iommu_disk},iommu=virtio",
         "--net", "tap=,num_queues=2",
@@ -1436,15 +1439,9 @@ def _fuzz_vmm_cmd(vmm_path, kernel, initramfs_path, disk, pmem_path,
         "--balloon", "size=0",
         "--watchdog",
         "--rng", "src=/dev/urandom",
-        "--console", "null",
         "--pmem", f"file={pmem_path},size=128M,discard_writes=on",
-        "--cpus", f"boot={cpus}",
-        "--memory", (f"size={memory},hotplug_size=256M,"
-                     "hotplug_method=virtio-mem"),
-        "--serial", "off",
-        "--cmdline", "console=hvc0 initcall_blacklist=virtio_blk_init",
-        "--seccomp", "false",
     ]
+    return command
 
 
 def _require_vmm(vmm_path):

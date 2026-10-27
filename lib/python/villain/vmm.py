@@ -1,12 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
 """Shared VMM command builders and bundled guest kernel selection."""
 
+from dataclasses import dataclass
 import os
 from pathlib import Path
 import platform
 import re
 import sys
 import threading
+from typing import Optional, Union
 from villain import artifacts
 
 _SCRIPT_DIR = str(Path(__file__).resolve().parents[3])
@@ -36,6 +38,24 @@ def _bump_maxmem(mem_str):
 # VMM backends
 # ---------------------------------------------------------------------------
 
+@dataclass(frozen=True)
+class LaunchConfig:
+    """Portable boot and resource settings without device fixtures."""
+
+    cpus: int
+    memory: str
+    kernel: Optional[Union[str, os.PathLike[str]]] = None
+    initramfs: Optional[Union[str, os.PathLike[str]]] = None
+    cmdline: Optional[str] = None
+    firmware: Optional[Union[str, os.PathLike[str]]] = None
+
+    def __post_init__(self):
+        if isinstance(self.cpus, bool) or not isinstance(self.cpus, int) or self.cpus < 1:
+            raise ValueError("CPU count must be a positive integer")
+        if not isinstance(self.memory, str) or not self.memory.strip():
+            raise ValueError("Memory size must be a nonempty string")
+
+
 class VmmBackend:
     """Base class for VMM-specific command building and settings."""
 
@@ -48,8 +68,59 @@ class VmmBackend:
     def __init__(self, binary):
         self.binary = binary
 
+    def build_launch_cmd(self, config: LaunchConfig) -> list[str]:
+        """Build launch arguments without attaching test device fixtures."""
+        raise NotImplementedError(f"{self.name} does not implement launch command building")
+
     def build_cmd(self, kernel, initramfs, disk_path, cmdline, opts=None):
         raise NotImplementedError
+
+    def _boot_args(self, config: LaunchConfig, *, kernel: str, initramfs: str,
+                   cmdline: str, firmware: Optional[str] = None) -> list[str]:
+        command = []
+        for field, flag in (("kernel", kernel), ("initramfs", initramfs),
+                            ("cmdline", cmdline), ("firmware", firmware)):
+            value = getattr(config, field)
+            if value is not None:
+                if flag is None:
+                    raise ValueError(
+                        f"{self.name} {field} boot is not supported by this launch builder")
+                command.extend((flag, str(value)))
+        return command
+
+    def _qemu_launch_cmd(self, config: LaunchConfig, *, machine: Optional[str] = None,
+                         cpu_model: Optional[str] = None, modern_mmio: bool = False,
+                         kvm: bool = False, accel: Optional[str] = None,
+                         nographic: bool = False, no_reboot: bool = False,
+                         memory_max: Optional[str] = None,
+                         memory_slots: Optional[int] = None) -> list[str]:
+        command = [self.binary]
+        if machine is not None:
+            command.extend(("-M", machine))
+        use_kvm = accel == "kvm" if accel is not None else kvm
+        if cpu_model is None and use_kvm and platform.machine() == "aarch64":
+            cpu_model = "host"
+        if cpu_model is not None:
+            command.extend(("-cpu", cpu_model))
+        if modern_mmio:
+            command.extend(("-global", "virtio-mmio.force-legacy=false"))
+        if accel is not None:
+            command.extend(("-accel", accel))
+        elif kvm:
+            command.append("-enable-kvm")
+        command.extend(self._boot_args(
+            config, kernel="-kernel", initramfs="-initrd", cmdline="-append", firmware="-bios"))
+        if nographic:
+            command.append("-nographic")
+        if no_reboot:
+            command.append("-no-reboot")
+        memory = config.memory
+        if memory_max is not None:
+            memory += f",maxmem={memory_max}"
+        if memory_slots is not None:
+            memory += f",slots={memory_slots}"
+        command.extend(("-m", memory, "-smp", str(config.cpus)))
+        return command
 
     def trace_args(self, opts):
         """Return VMM-specific tracing flags for opts, or [] if none.
@@ -116,6 +187,32 @@ class CloudHypervisor(VmmBackend):
             cls._cid_counter += 1
             return cls._cid_counter
 
+    def build_launch_cmd(self, config: LaunchConfig, *, serial: Optional[str] = None,
+                         console: Optional[str] = None, seccomp: Optional[bool] = None,
+                         debug: bool = False, nested: bool = False, memory_shared: bool = False,
+                         memory_hotplug_size: Optional[str] = None,
+                         memory_hotplug_method: Optional[str] = None) -> list[str]:
+        command = [self.binary]
+        if debug:
+            command.append("-vv")
+        command.extend(self._boot_args(
+            config, kernel="--kernel", initramfs="--initramfs",
+            cmdline="--cmdline", firmware="--firmware"))
+        cpus = f"boot={config.cpus}" + (",nested=on" if nested else "")
+        memory = f"size={config.memory}" + (",shared=on" if memory_shared else "")
+        if memory_hotplug_size is not None:
+            memory += f",hotplug_size={memory_hotplug_size}"
+        if memory_hotplug_method is not None:
+            memory += f",hotplug_method={memory_hotplug_method}"
+        command.extend(("--cpus", cpus, "--memory", memory))
+        if serial is not None:
+            command.extend(("--serial", serial))
+        if console is not None:
+            command.extend(("--console", console))
+        if seccomp is not None:
+            command.extend(("--seccomp", "true" if seccomp else "false"))
+        return command
+
     @staticmethod
     def _ch_disk_arg(disk_path, disk_fmt, blk_queues, opts):
         """Build the CH --disk value from the generic IO opts.
@@ -170,26 +267,13 @@ class CloudHypervisor(VmmBackend):
         ext = disk_path.rsplit(".", 1)[-1]
         fmt_map = {"raw": "raw", "qcow2": "qcow2", "vhd": "vhd", "vhdx": "vhdx"}
         disk_fmt = fmt_map.get(ext, "raw")
-        memory_arg = (f"size={mem},shared=on"
-                      f",hotplug_size=256M,hotplug_method=virtio-mem"
-                      if fs_socket and want("fs")
-                      else f"size={mem},hotplug_size=256M,hotplug_method=virtio-mem")
-        cmd = [
-            self.binary,
-            *(["-vv"] if os.environ.get("VV_CH_DEBUG") else []),
-            "--kernel", kernel,
-            "--initramfs", initramfs,
-            "--cmdline", cmdline,
-            "--cpus", f"boot={cpus}",
-            "--memory", memory_arg,
-            "--serial", "tty",
-            "--console", "null",
-            # CH's seccomp filter intermittently kills the VMM mid run
-            # (e.g. ctrl-vq or re-init paths in some test workloads).
-            # That is a CH issue separate from what this harness tests.
-            # Disable it so VMM policy bugs do not surface as test FAILs.
-            "--seccomp", "false",
-        ]
+        # Virtio tests disable seccomp to avoid VMM filter failures.
+        cmd = self.build_launch_cmd(
+            LaunchConfig(cpus=cpus, memory=mem, kernel=kernel,
+                         initramfs=initramfs, cmdline=cmdline),
+            serial="tty", console="null", memory_shared=bool(fs_socket and want("fs")),
+            memory_hotplug_size="256M", memory_hotplug_method="virtio-mem",
+            seccomp=False, debug=bool(os.environ.get("VV_CH_DEBUG")))
         if want("blk"):
             cmd += ["--disk", self._ch_disk_arg(
                 disk_path, disk_fmt, blk_queues, opts)]
@@ -234,6 +318,17 @@ class Qemu(VmmBackend):
             cls._cid_counter += 1
             return cls._cid_counter
 
+    def build_launch_cmd(self, config: LaunchConfig, *, cpu_model: Optional[str] = None,
+                         kvm: bool = False, accel: Optional[str] = None,
+                         nographic: bool = False, no_reboot: bool = False,
+                         memory_max: Optional[str] = None,
+                         memory_slots: Optional[int] = None) -> list[str]:
+        machine = "virt" if platform.machine() == "aarch64" else None
+        return self._qemu_launch_cmd(
+            config, machine=machine, cpu_model=cpu_model, kvm=kvm, accel=accel,
+            nographic=nographic, no_reboot=no_reboot,
+            memory_max=memory_max, memory_slots=memory_slots)
+
     def build_cmd(self, kernel, initramfs, disk_path, cmdline, opts=None):
         opts = opts or {}
         arch = platform.machine()
@@ -273,19 +368,12 @@ class Qemu(VmmBackend):
                       f"localaddr=127.0.0.1:{net_rx_port}")
         else:
             netdev = "user,id=net0"
-        cpu_model = opts.get("cpu_model")
-        machine_args = ["-M", "virt"] if arch == "aarch64" else []
-        if arch == "aarch64" and accel == "kvm":
-            machine_args += ["-cpu", "host"]
-        if arch != "aarch64" and cpu_model:
-            machine_args += ["-cpu", cpu_model]
-        cmd = [
-            self.binary,
-            *machine_args,
-            "-accel", accel,
-            "-kernel", kernel,
-            "-initrd", initramfs,
-        ]
+        cmd = self.build_launch_cmd(
+            LaunchConfig(cpus=cpus, memory=mem, kernel=kernel,
+                         initramfs=initramfs, cmdline=cmdline),
+            cpu_model=(opts.get("cpu_model") or None) if arch != "aarch64" else None,
+            accel=accel, nographic=True, no_reboot=True,
+            memory_max=_bump_maxmem(mem), memory_slots=2)
         if want("blk"):
             cmd += ["-drive", self._qemu_drive_arg(disk_path, qemu_fmt, opts),
                     "-device", blk_dev]
@@ -316,13 +404,6 @@ class Qemu(VmmBackend):
             # Suppress QEMU's default NIC so a non-net focus does not pay
             # to emulate an unused virtio-net and its option ROM.
             cmd += ["-net", "none"]
-        cmd += [
-            "-append", cmdline,
-            "-nographic",
-            "-no-reboot",
-            "-m", f"{mem},maxmem={_bump_maxmem(mem)},slots=2",
-            "-smp", str(cpus),
-        ]
         if arch != "aarch64":
             cmd += ["-device", "isa-debug-exit,iobase=0x501,iosize=1"]
         if want("pmem") and pmem_path and arch == "x86_64":
@@ -393,6 +474,14 @@ class QemuMicrovm(VmmBackend):
     def trace_args(self, opts):
         return self._qemu_trace_flags(opts)
 
+    def build_launch_cmd(self, config: LaunchConfig, *, kvm: bool = False,
+                         accel: Optional[str] = None,
+                         nographic: bool = False, no_reboot: bool = False) -> list[str]:
+        machine = "virt" if platform.machine() == "aarch64" else "microvm,rtc=off"
+        return self._qemu_launch_cmd(
+            config, machine=machine, modern_mmio=True, kvm=kvm, accel=accel,
+            nographic=nographic, no_reboot=no_reboot)
+
     def build_cmd(self, kernel, initramfs, disk_path, cmdline, opts=None):
         opts = opts or {}
         mem = opts.get("memory", "512M")
@@ -402,26 +491,12 @@ class QemuMicrovm(VmmBackend):
         arch = platform.machine()
         accel = opts.get("accel", "kvm")
         if arch == "aarch64":
-            machine_args = ["-M", "virt"]
-            if accel == "kvm":
-                machine_args += ["-cpu", "host"]
             self.console_device = "ttyAMA0"
-        else:
-            machine_args = ["-M", "microvm,rtc=off"]
-        cmd = [
-            self.binary,
-            *machine_args,
-            "-global", "virtio-mmio.force-legacy=false",
-            "-accel", accel,
-            "-kernel", kernel,
-            "-initrd", initramfs,
-            "-drive", self._qemu_drive_arg(disk_path, qemu_fmt, opts),
-            "-append", cmdline,
-            "-nographic",
-            "-no-reboot",
-            "-m", mem,
-            "-smp", "1",
-        ]
+        cmd = self.build_launch_cmd(
+            LaunchConfig(cpus=1, memory=mem, kernel=kernel,
+                         initramfs=initramfs, cmdline=cmdline),
+            accel=accel, nographic=True, no_reboot=True)
+        cmd += ["-drive", self._qemu_drive_arg(disk_path, qemu_fmt, opts)]
         device = opts.get("mmio_device", "blk")
         if device == "blk":
             cmd += ["-device", "virtio-blk-device,drive=vd0"]
@@ -474,6 +549,22 @@ class OpenVmm(VmmBackend):
     mmio_transport = False
 
     _ROOT_COMPLEX = "rc0"
+
+    def build_launch_cmd(self, config: LaunchConfig, *, hypervisor: Optional[str] = None,
+                         hyperv: bool = False, single_process: bool = False,
+                         serial: Optional[str] = None) -> list[str]:
+        command = [self.binary]
+        if hypervisor is not None:
+            command.extend(("--hypervisor", hypervisor))
+        if hyperv:
+            command.append("--hv")
+        if single_process:
+            command.append("--single-process")
+        command.extend(self._boot_args(config, kernel="-k", initramfs="-r", cmdline="-c"))
+        command.extend(("-m", config.memory, "-p", str(config.cpus)))
+        if serial is not None:
+            command.extend(("--com1", serial))
+        return command
 
     @staticmethod
     def _blk_arg(disk_path, port, opts, read_only=False):
@@ -533,27 +624,17 @@ class OpenVmm(VmmBackend):
         if want("p9") and p9_sharedir:
             ports.append("p9")
 
-        cmd = [
-            self.binary,
-            "--hypervisor", "kvm",
-        ]
         # KVM/aarch64 does not provide SynIC, so enabling HV#1 would make
         # OpenVMM create a VMBus instance that cannot start.
-        if platform.machine() != "aarch64":
-            cmd.append("--hv")
-        cmd += [
-            "--single-process",
-            "-k", kernel,
-            "-r", initramfs,
-            "-c", cmdline,
-            "-m", mem,
-            "-p", str(cpus),
-            "--pcie-root-complex", rc,
-        ]
+        cmd = self.build_launch_cmd(
+            LaunchConfig(cpus=cpus, memory=mem, kernel=kernel,
+                         initramfs=initramfs, cmdline=cmdline),
+            hypervisor="kvm", hyperv=platform.machine() != "aarch64",
+            single_process=True, serial="console")
+        cmd += ["--pcie-root-complex", rc]
         for port in ports:
             cmd += ["--pcie-root-port", f"{rc}:{port}"]
 
-        cmd += ["--com1", "console"]
         if want("blk"):
             cmd += ["--virtio-blk", self._blk_arg(
                 disk_path, "disk", opts,
