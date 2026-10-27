@@ -9,22 +9,22 @@ from host_helpers import ch_command, qmp, wait_ready
 
 SUPPORTED_BACKENDS = ("ch", "qemu")
 REQUIRED_TOOLS = {"ch": ("ch-remote",)}
+HOTPLUG_PMEM_SIZE = 16 * 1024 * 1024
 
 
 def run(ctx):
     wait_ready(ctx)
+    from villain import images
 
     pmem_file = os.path.join(ctx.tmpdir, "hp_pmem.raw")
-    size = 16 * 1024 * 1024
-    with open(pmem_file, "wb") as f:
-        f.truncate(size)
+    images.create_raw(pmem_file, HOTPLUG_PMEM_SIZE)
     if ctx.backend.name == "ch":
         ch_command(ctx, "add-pmem",
-                   [f"file={pmem_file},size={size},id=hp_pmem"])
+                   [f"file={pmem_file},size={HOTPLUG_PMEM_SIZE},id=hp_pmem"])
     else:
         qmp(ctx, "object-add", {
             "qom-type": "memory-backend-file", "id": "hppmem",
-            "mem-path": pmem_file, "size": size,
+            "mem-path": pmem_file, "size": HOTPLUG_PMEM_SIZE,
         })
         qmp(ctx, "device_add", {
             "driver": "virtio-pmem-pci", "id": "hp_pmem", "memdev": "hppmem",
