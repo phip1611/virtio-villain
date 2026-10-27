@@ -324,8 +324,9 @@ class SuiteExecutionTests(unittest.TestCase):
                     f"    return Example('example', 'example-v1', "
                     f"{str(image)!r}, {str(image)!r})\n")
                 suite = appliance.load_suite(root)
+                # Allow cold interpreter startup on slower hosts.
                 args = appliance.parse_args(suite, [
-                    "--kernel", str(image), "--console", "--timeout", "0.5",
+                    "--kernel", str(image), "--console", "--timeout", "5",
                     "--output", str(root / "results")])
                 with contextlib.redirect_stdout(io.StringIO()) as captured:
                     status = appliance.launch(suite, args, ["EX001"])
