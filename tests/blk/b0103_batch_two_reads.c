@@ -10,20 +10,16 @@
 static test_result_t test_blk_batch_two_reads(struct virtio_dev *dev,
                                               struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr1 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr1 = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data1 = vv_alloc_pages(1);
     uint8_t *status1 = vv_alloc_pages(1);
 
-    struct virtio_blk_outhdr *hdr2 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr2 = blk_hdr(VIRTIO_BLK_T_IN, 1);
     uint8_t *data2 = vv_alloc_pages(1);
     uint8_t *status2 = vv_alloc_pages(1);
 
-    hdr1->type = VIRTIO_BLK_T_IN;
-    hdr1->sector = 0;
     *status1 = 0xFF;
 
-    hdr2->type = VIRTIO_BLK_T_IN;
-    hdr2->sector = 1;
     *status2 = 0xFF;
 
     /* Chain 1: descs 0-1-2 */

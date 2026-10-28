@@ -18,11 +18,9 @@ static test_result_t test_blk_read_huge_len_past_ram(struct virtio_dev *dev,
     if (ram_top == 0)
         return TEST_SKIP;
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *status = 0xFF;
 
     uint64_t status_phys = vv_virt_to_phys(status);

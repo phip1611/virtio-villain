@@ -20,12 +20,10 @@ static test_result_t test_blk_wz_then_read(struct virtio_dev *dev,
         return TEST_SKIP;
 
     /* First: write non-zero data to sector 0 so we know zeroes are fresh */
-    struct virtio_blk_outhdr *whdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *whdr = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *wdata = vv_alloc_pages(1);
     uint8_t *wst = vv_alloc_pages(1);
 
-    whdr->type = VIRTIO_BLK_T_OUT;
-    whdr->sector = 0;
     memset(wdata, 0xAA, 512);
     *wst = 0xFF;
 
@@ -43,12 +41,10 @@ static test_result_t test_blk_wz_then_read(struct virtio_dev *dev,
         TFAIL("write returned status %u", *wst);
 
     /* Second: WRITE_ZEROES sectors 0..7 */
-    struct virtio_blk_outhdr *zhdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *zhdr = blk_hdr(VIRTIO_BLK_T_WRITE_ZEROES, 0);
     struct virtio_blk_discard_write_zeroes *zseg = vv_alloc_pages(1);
     uint8_t *zst = vv_alloc_pages(1);
 
-    zhdr->type = VIRTIO_BLK_T_WRITE_ZEROES;
-    zhdr->sector = 0;
     zseg->sector = 0;
     zseg->num_sectors = 8;
     zseg->flags = 0;
@@ -71,12 +67,10 @@ static test_result_t test_blk_wz_then_read(struct virtio_dev *dev,
         TFAIL("write_zeroes returned status %u", *zst);
 
     /* Third: READ sector 0, verify all zeros */
-    struct virtio_blk_outhdr *rhdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *rhdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *rdata = vv_alloc_pages(1);
     uint8_t *rst = vv_alloc_pages(1);
 
-    rhdr->type = VIRTIO_BLK_T_IN;
-    rhdr->sector = 0;
     memset(rdata, 0xBB, 512);
     *rst = 0xFF;
 

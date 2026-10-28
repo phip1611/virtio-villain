@@ -12,13 +12,11 @@
 static test_result_t test_blk_read_large(struct virtio_dev *dev,
                                          struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     /* 32KB = 8 pages */
     uint8_t *data = vv_alloc_pages(8);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

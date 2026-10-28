@@ -13,13 +13,10 @@
 static test_result_t test_interleave_rw_descs(struct virtio_dev *dev,
                                               struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *buf1 = vv_alloc_pages(1);
     uint8_t *buf2 = vv_alloc_pages(1);
     uint8_t *buf3 = vv_alloc_pages(1);
-
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
 
     /*
      * Chain: [0] header (readable) -> [1] data (writable) ->

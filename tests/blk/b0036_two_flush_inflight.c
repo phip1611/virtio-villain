@@ -11,17 +11,13 @@
 static test_result_t test_blk_two_flush(struct virtio_dev *dev,
                                         struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr0 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr0 = blk_hdr(VIRTIO_BLK_T_FLUSH, 0);
     uint8_t *status0 = vv_alloc_pages(1);
-    struct virtio_blk_outhdr *hdr1 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr1 = blk_hdr(VIRTIO_BLK_T_FLUSH, 0);
     uint8_t *status1 = vv_alloc_pages(1);
 
-    hdr0->type = VIRTIO_BLK_T_FLUSH;
-    hdr0->sector = 0;
     *status0 = 0xFF;
 
-    hdr1->type = VIRTIO_BLK_T_FLUSH;
-    hdr1->sector = 0;
     *status1 = 0xFF;
 
     /* Request 0: desc 0 (hdr) -> desc 1 (status) */

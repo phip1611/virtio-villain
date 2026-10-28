@@ -14,11 +14,9 @@ static test_result_t one_read(struct virtio_dev *dev, struct vring *vr,
                               uint16_t base, uint16_t avail_slot,
                               uint64_t sector)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, sector);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *st = vv_alloc_pages(1);
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = sector;
     *st = 0xFF;
 
     vring_raw_set_desc(vr, base, vv_virt_to_phys(hdr), sizeof(*hdr),

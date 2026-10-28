@@ -10,12 +10,9 @@
 static test_result_t test_get_lifetime(struct virtio_dev *dev,
                                        struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_GET_LIFETIME, 0);
     struct virtio_blk_lifetime *life = vv_alloc_pages(1);
     uint8_t *st = vv_alloc_pages(1);
-
-    hdr->type = VIRTIO_BLK_T_GET_LIFETIME;
-    hdr->sector = 0;
 
     *st = 0xFF;
 

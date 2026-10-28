@@ -22,12 +22,10 @@ static test_result_t test_packed_multi_wrap(struct virtio_dev *dev,
     int completed = 0;
 
     for (int i = 0; i < total; i++) {
-        struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+        struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, i % 8);
         uint8_t *data = vv_alloc_pages(1);
         uint8_t *st = vv_alloc_pages(1);
 
-        hdr->type = VIRTIO_BLK_T_IN;
-        hdr->sector = i % 8;
         *st = 0xFF;
 
         struct vring_packed_desc *ind = vv_alloc_pages(1);

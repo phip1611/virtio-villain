@@ -12,15 +12,13 @@
 static test_result_t test_blk_read_indirect_scatter(struct virtio_dev *dev,
                                                     struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data0 = vv_alloc_pages(1);
     uint8_t *data1 = vv_alloc_pages(1);
     uint8_t *data2 = vv_alloc_pages(1);
     uint8_t *data3 = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *status = 0xFF;
 
     /*

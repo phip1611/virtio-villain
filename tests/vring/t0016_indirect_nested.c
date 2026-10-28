@@ -11,14 +11,12 @@
 static test_result_t test_indirect_nested(struct virtio_dev *dev,
                                           struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
     struct vring_desc *indirect = vv_alloc_pages(1);
     struct vring_desc *nested = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *status = 0xFF;
 
     uint64_t indirect_phys = vv_virt_to_phys(indirect);

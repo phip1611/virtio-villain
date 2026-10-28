@@ -12,18 +12,14 @@
 static test_result_t test_zone_reset_all_inflight(struct virtio_dev *dev,
                                                   struct vring *vr)
 {
-    struct virtio_blk_outhdr *h1 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *h1 = blk_hdr(VIRTIO_BLK_T_ZONE_APPEND, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *st1 = vv_alloc_pages(1);
-    struct virtio_blk_outhdr *h2 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *h2 = blk_hdr(VIRTIO_BLK_T_ZONE_RESET_ALL, 0);
     uint8_t *st2 = vv_alloc_pages(1);
 
-    h1->type = VIRTIO_BLK_T_ZONE_APPEND;
-    h1->sector = 0;
     *st1 = 0xFF;
 
-    h2->type = VIRTIO_BLK_T_ZONE_RESET_ALL;
-    h2->sector = 0;
     *st2 = 0xFF;
 
     /* Chain 1 */

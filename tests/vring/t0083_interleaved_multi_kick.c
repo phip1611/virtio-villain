@@ -28,12 +28,10 @@ static test_result_t test_interleaved_multi_kick(struct virtio_dev *dev,
     /* Submit a request on each queue */
     for (uint16_t q = 0; q < nq; q++) {
         struct vring *qvr = (q == 0) ? vr : &extra[q - 1];
-        struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+        struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, q);
         uint8_t *data = vv_alloc_pages(1);
         uint8_t *st = vv_alloc_pages(1);
 
-        hdr->type = VIRTIO_BLK_T_IN;
-        hdr->sector = q;
         *st = 0xFF;
 
         vring_raw_set_desc(qvr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
