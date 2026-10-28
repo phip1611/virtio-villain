@@ -54,9 +54,7 @@ static inline test_result_t scsi_run_mmio(struct virtio_mmio_dev *mmio,
         TFAIL("MMIO SCSI feature negotiation failed");
     if (vring_alloc(&ring, 16) < 0)
         TFAIL("MMIO SCSI queue allocation failed");
-    test_result_t result = mmio_bind_queue(mmio, &ring, queue);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(mmio_bind_queue(mmio, &ring, queue));
     mmio_write32(mmio, VIRTIO_MMIO_STATUS,
                  mmio_read32(mmio, VIRTIO_MMIO_STATUS)
                  | VIRTIO_MMIO_STATUS_DRIVER_OK);

@@ -5,9 +5,7 @@ static test_result_t test_prepare_before_params(struct virtio_dev *dev,
                                                 struct vring *vr)
 {
     struct virtio_snd_pcm_info info;
-    test_result_t result = snd_get_pcm_info(dev, vr, 0, &info);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_get_pcm_info(dev, vr, 0, &info));
 
     return snd_expect_pcm_command_safe(
         dev, vr, 0, VIRTIO_SND_R_PCM_PREPARE);

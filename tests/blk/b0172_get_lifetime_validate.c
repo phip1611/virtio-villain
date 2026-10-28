@@ -31,9 +31,7 @@ static test_result_t test_blk_lifetime_fields(struct virtio_dev *dev,
             2);
     vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
 
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     if (*st == VIRTIO_BLK_S_UNSUPP)
         return TEST_SKIP;

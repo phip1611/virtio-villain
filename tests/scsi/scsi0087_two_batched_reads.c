@@ -38,9 +38,7 @@ static test_result_t test_scsi_two_reads(struct virtio_dev *dev,
     vring_raw_set_avail(vr, seq + 1, 3);
     vring_raw_set_avail_idx(vr, seq + 2);
 
-    test_result_t r = vv_kick_and_wait_n(dev, vr, 0, 2, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait_n(dev, vr, 0, 2, VV_TIMEOUT_MS));
     __sync_synchronize();
     if (resp0->status != 0 || resp1->status != 0)
         TFAIL("status %02x %02x", resp0->status, resp1->status);

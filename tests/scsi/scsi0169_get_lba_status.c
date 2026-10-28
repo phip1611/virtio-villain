@@ -20,10 +20,7 @@ static test_result_t test_scsi_get_lba_status(struct virtio_dev *dev,
     req->cdb[1] = 0x12;      /* GET LBA STATUS */
     req->cdb[13] = 32;       /* allocation length low byte */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 32,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 32, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

@@ -20,7 +20,6 @@ static test_result_t test_mem_plug_after_unplug_all(struct virtio_dev *dev,
 
     struct virtio_mem_req *req = vv_alloc_pages(1);
     struct virtio_mem_resp *resp = vv_alloc_pages(1);
-    test_result_t rc;
 
     /* First: UNPLUG_ALL */
     memset(resp, 0xFF, sizeof(*resp));
@@ -28,9 +27,7 @@ static test_result_t test_mem_plug_after_unplug_all(struct virtio_dev *dev,
 
     vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
     vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
-    rc = vv_submit_and_wait(dev, vr, 0);
-    if (rc != TEST_PASS)
-        return rc;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* Second: PLUG the first block */
     memset(req, 0, sizeof(*req));

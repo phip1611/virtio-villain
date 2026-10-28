@@ -26,9 +26,7 @@ static test_result_t one_read(struct virtio_dev *dev, struct vring *vr,
     vring_raw_set_avail(vr, avail_slot, base);
     vring_raw_set_avail_idx(vr, avail_slot + 1);
 
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS));
     if (*st != 0)
         TFAIL("*st != 0");
     return TEST_PASS;
@@ -37,9 +35,7 @@ static test_result_t one_read(struct virtio_dev *dev, struct vring *vr,
 static test_result_t test_blk_endpoints(struct virtio_dev *dev,
                                         struct vring *vr)
 {
-    test_result_t r = one_read(dev, vr, 0, 0, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(one_read(dev, vr, 0, 0, 0));
     return one_read(dev, vr, 3, 1, 1023);
 }
 

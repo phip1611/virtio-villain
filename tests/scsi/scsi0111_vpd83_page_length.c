@@ -20,10 +20,7 @@ static test_result_t test_scsi_vpd83_len(struct virtio_dev *dev,
     req->cdb[2] = 0x83;      /* device identification */
     req->cdb[4] = 128;
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 128,
-                                  SCSI_DATA_IN, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 128, SCSI_DATA_IN, 0));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

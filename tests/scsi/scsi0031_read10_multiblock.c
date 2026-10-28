@@ -20,10 +20,7 @@ static test_result_t test_scsi_read10_multi(struct virtio_dev *dev,
     req->cdb[0] = 0x28;      /* READ(10) */
     req->cdb[8] = 8;         /* eight blocks */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 8 * 512,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 8 * 512, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

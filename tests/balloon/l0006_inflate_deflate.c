@@ -26,9 +26,7 @@ static test_result_t test_balloon_inflate_deflate(struct virtio_dev *dev,
 
     /* Inflate */
     vring_raw_set_desc(vr, 0, pfns_phys, 4 * sizeof(uint32_t), 0, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* Deflate same PFNs */
     vring_raw_set_desc(&deflate_vr, 0, pfns_phys, 4 * sizeof(uint32_t), 0, 0);

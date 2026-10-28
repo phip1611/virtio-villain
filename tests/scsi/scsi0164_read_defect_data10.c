@@ -20,10 +20,7 @@ static test_result_t test_scsi_read_defect(struct virtio_dev *dev,
     req->cdb[2] = 0x10;      /* request the physical defect list */
     req->cdb[8] = 32;        /* allocation length */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 32,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 32, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

@@ -133,9 +133,7 @@ static inline test_result_t snd_get_pcm_info(struct virtio_dev *dev,
     vring_raw_set_avail(vr, vr->avail->idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, vr->avail->idx + 1);
 
-    test_result_t result = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS));
     uint32_t used_len = vr->used->ring[used_idx % vr->size].len;
     if (used_len != response_len)
         TFAIL("PCM_INFO used length %u, expected %u",
@@ -157,9 +155,7 @@ static inline test_result_t snd_find_pcm_stream(
         return TEST_SKIP;
 
     for (uint32_t id = 0; id < cfg->streams; id++) {
-        test_result_t result = snd_get_pcm_info(dev, vr, id, info);
-        if (result != TEST_PASS)
-            return result;
+        VV_TRY(snd_get_pcm_info(dev, vr, id, info));
         if (info->direction == direction) {
             *stream_id = id;
             return TEST_PASS;
@@ -173,9 +169,7 @@ static inline test_result_t snd_make_valid_params(
     struct virtio_snd_pcm_set_params *params,
     struct virtio_snd_pcm_info *info)
 {
-    test_result_t result = snd_get_pcm_info(dev, vr, stream_id, info);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_get_pcm_info(dev, vr, stream_id, info));
     if (info->channels_min == 0 || info->formats == 0 || info->rates == 0)
         TFAIL("stream %u lacks a valid channel, format, or rate", stream_id);
 
@@ -205,10 +199,7 @@ static inline test_result_t snd_set_valid_params(struct virtio_dev *dev,
 {
     struct virtio_snd_pcm_set_params params;
     struct virtio_snd_pcm_info info;
-    test_result_t result = snd_make_valid_params(
-        dev, vr, stream_id, &params, &info);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_make_valid_params( dev, vr, stream_id, &params, &info));
     return snd_expect_ok(dev, vr, &params, sizeof(params));
 }
 
@@ -252,9 +243,7 @@ static inline test_result_t snd_prepare_stream(struct virtio_dev *dev,
                                                struct vring *vr,
                                                uint32_t stream_id)
 {
-    test_result_t result = snd_set_valid_params(dev, vr, stream_id);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_set_valid_params(dev, vr, stream_id));
     return snd_expect_pcm_command_ok(
         dev, vr, stream_id, VIRTIO_SND_R_PCM_PREPARE);
 }
@@ -263,9 +252,7 @@ static inline test_result_t snd_start_stream(struct virtio_dev *dev,
                                              struct vring *vr,
                                              uint32_t stream_id)
 {
-    test_result_t result = snd_prepare_stream(dev, vr, stream_id);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_prepare_stream(dev, vr, stream_id));
     return snd_expect_pcm_command_ok(
         dev, vr, stream_id, VIRTIO_SND_R_PCM_START);
 }
@@ -308,9 +295,7 @@ static inline test_result_t snd_submit_pcm_xfer(
     vring_raw_set_avail(vr, avail_idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, avail_idx + 1);
 
-    test_result_t result = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS));
     uint32_t used_len = vr->used->ring[used_idx % vr->size].len;
     uint32_t expected = sizeof(*status) + (capture ? data_len : 0);
     if (used_len != expected)
@@ -326,9 +311,7 @@ static inline test_result_t snd_wait_pcm_safe(
     uint32_t writable_capacity, struct virtio_snd_pcm_status *status,
     uint32_t status_capacity)
 {
-    test_result_t result = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS));
 
     uint32_t used_len = vr->used->ring[used_idx % vr->size].len;
     if (used_len > writable_capacity)

@@ -18,9 +18,7 @@ static test_result_t test_scsi_tmf_bad_target(struct virtio_dev *dev,
     req->subtype = VIRTIO_SCSI_T_TMF_LOGICAL_UNIT_RESET;
     scsi_set_lun(req->lun, 5, 0);   /* target 5 has no logical unit */
 
-    test_result_t r = scsi_do_tmf(dev, vr, req, resp, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_tmf(dev, vr, req, resp, 0));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_BAD_TARGET &&
         resp->response != VIRTIO_SCSI_S_INCORRECT_LUN)

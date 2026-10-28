@@ -21,9 +21,7 @@ static test_result_t test_watchdog_timeout_fires(struct virtio_dev *dev,
 
     *resp = 0;
     vv_desc(vr, 0, resp, 1, VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* Stay silent longer than the configured timeout. */
     sleep(16);

@@ -31,9 +31,7 @@ static test_result_t test_scsi_inquiry(struct virtio_dev *dev,
             2);
     vv_desc(vr, 2, data, 36, VRING_DESC_F_WRITE, 0);
 
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)

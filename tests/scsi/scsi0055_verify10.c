@@ -19,10 +19,7 @@ static test_result_t test_scsi_verify10(struct virtio_dev *dev,
     req->cdb[0] = 0x2F;      /* VERIFY(10) */
     req->cdb[8] = 1;         /* verify one block */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, NULL, 0,
-                                  SCSI_DATA_NONE, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, NULL, 0, SCSI_DATA_NONE, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

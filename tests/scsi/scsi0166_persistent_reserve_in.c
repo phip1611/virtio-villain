@@ -19,10 +19,7 @@ static test_result_t test_scsi_pr_in(struct virtio_dev *dev, struct vring *vr)
     req->cdb[1] = 0x00;      /* read keys */
     req->cdb[8] = 32;        /* allocation length */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 32,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 32, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

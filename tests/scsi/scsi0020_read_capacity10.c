@@ -20,10 +20,7 @@ static test_result_t test_scsi_read_capacity10(struct virtio_dev *dev,
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x25;      /* READ CAPACITY(10) */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 8,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 8, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

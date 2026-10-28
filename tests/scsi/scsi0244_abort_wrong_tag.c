@@ -51,10 +51,7 @@ static test_result_t test_scsi_abort_wrong_tag(struct virtio_dev *dev,
     tmf->subtype = VIRTIO_SCSI_T_TMF_ABORT_TASK;
     scsi_set_lun(tmf->lun, 0, 0);
     tmf->tag = 0x44440002ULL;      /* not the read's tag */
-    test_result_t pending = scsi_tmf_when_pending(
-        dev, vr, rb, rb_resp, tmf, tmf_resp);
-    if (pending != TEST_PASS)
-        return pending;
+    VV_TRY(scsi_tmf_when_pending( dev, vr, rb, rb_resp, tmf, tmf_resp));
 
     if (!scsi_wait_used(&rq, before, 8000000))
         TSKIP("read did not complete (no host throttle)");

@@ -29,9 +29,7 @@ static test_result_t test_fs_unknown_opcode(struct virtio_dev *dev,
 
     vring_raw_set_desc(vr, 0, phys, hdr->len, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, phys + 256, 256, VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* Phase 2: Unknown opcode 0xFFFF */
     uint8_t *page2 = vv_alloc_pages(1);

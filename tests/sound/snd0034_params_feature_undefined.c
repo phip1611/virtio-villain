@@ -6,10 +6,7 @@ static test_result_t test_params_feature_undefined(struct virtio_dev *dev,
 {
     struct virtio_snd_pcm_set_params params;
     struct virtio_snd_pcm_info info;
-    test_result_t result = snd_make_valid_params(
-        dev, vr, 0, &params, &info);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_make_valid_params( dev, vr, 0, &params, &info));
     params.features = 1u << 31;
 
     return snd_expect_safe_handling(dev, vr, &params, sizeof(params),

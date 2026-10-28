@@ -30,9 +30,7 @@ static test_result_t test_rtc_clock_cap_split(struct virtio_dev *dev,
     vv_desc(vr, 1, resp, (uint32_t)half, VRING_DESC_F_WRITE | VRING_DESC_F_NEXT,
             2);
     vv_desc(vr, 2, resp + half, (uint32_t)rest, VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     if (resp[half + rest] != 0xAB)
         TFAIL("device wrote past the offered response region");

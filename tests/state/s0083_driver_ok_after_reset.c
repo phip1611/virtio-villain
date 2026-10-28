@@ -45,9 +45,7 @@ static test_result_t test_driver_ok_after_reset(struct virtio_dev *dev,
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
 
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS));
     if (*status != 0)
         TFAIL("Expected status to be VIRTIO_BLK_S_OK, found %u", *status);
     return TEST_PASS;

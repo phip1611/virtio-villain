@@ -20,10 +20,8 @@ static test_result_t test_scsi_read12_32(struct virtio_dev *dev,
     req->cdb[0] = 0xA8;      /* READ(12) */
     req->cdb[9] = 32;
 
-    test_result_t r = scsi_do_cmd_paged(dev, vr, req, resp, data, 32 * 512,
-                                        SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd_paged(dev, vr, req, resp, data, 32 * 512,
+                             SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

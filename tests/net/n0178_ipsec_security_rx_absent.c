@@ -18,9 +18,7 @@ static test_result_t test_net_ipsec_security_rx_absent(struct virtio_dev *dev,
 
     vv_desc(vr, 0, buf, sizeof(struct virtio_net_hdr_mrg) + 1500,
             VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     volatile struct virtio_net_hdr_mrg *hdr =
         (volatile struct virtio_net_hdr_mrg *)buf;

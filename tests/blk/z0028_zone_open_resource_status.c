@@ -45,10 +45,7 @@ static test_result_t test_blk_zone_open_resource_status(struct virtio_dev *dev,
     }
     vring_raw_set_avail_idx(vr, NUM_OPENS);
 
-    test_result_t r = vv_kick_and_wait_n(dev, vr, 0, NUM_OPENS,
-                                         VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait_n(dev, vr, 0, NUM_OPENS, VV_TIMEOUT_MS));
 
     for (int i = 0; i < NUM_OPENS; i++) {
         uint8_t s = *status[i];

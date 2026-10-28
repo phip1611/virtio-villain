@@ -25,10 +25,7 @@ static test_result_t test_scsi_unmap(struct virtio_dev *dev, struct vring *vr)
     req->cdb[0] = 0x42;      /* UNMAP */
     req->cdb[8] = 24;        /* parameter list length */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 24,
-                                  SCSI_DATA_OUT, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 24, SCSI_DATA_OUT, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

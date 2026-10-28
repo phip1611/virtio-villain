@@ -22,10 +22,7 @@ static test_result_t test_scsi_read6_lba(struct virtio_dev *dev,
     req->cdb[3] = 0xF4;
     req->cdb[4] = 1;         /* one block */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 512,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 512, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

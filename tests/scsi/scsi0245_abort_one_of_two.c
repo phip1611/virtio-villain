@@ -77,10 +77,7 @@ static test_result_t test_scsi_abort_one_of_two(struct virtio_dev *dev,
     tmf->subtype = VIRTIO_SCSI_T_TMF_ABORT_TASK;
     scsi_set_lun(tmf->lun, 0, 0);
     tmf->tag = TAG_A;
-    test_result_t pending = scsi_tmf_when_pending(
-        dev, vr, ra, ra_resp, tmf, tmf_resp);
-    if (pending != TEST_PASS)
-        return pending;
+    VV_TRY(scsi_tmf_when_pending( dev, vr, ra, ra_resp, tmf, tmf_resp));
 
     /* Wait for both reads to report. */
     int elapsed = 0;

@@ -21,7 +21,6 @@ static test_result_t test_mem_plug_exact_boundary(struct virtio_dev *dev,
 
     struct virtio_mem_req *req = vv_alloc_pages(1);
     struct virtio_mem_resp *resp = vv_alloc_pages(1);
-    test_result_t rc;
 
     /* Plug last block in usable region */
     memset(resp, 0xFF, sizeof(*resp));
@@ -31,9 +30,7 @@ static test_result_t test_mem_plug_exact_boundary(struct virtio_dev *dev,
 
     vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
     vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
-    rc = vv_submit_and_wait(dev, vr, 0);
-    if (rc != TEST_PASS)
-        return rc;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* Plug first block */
     memset(req, 0, sizeof(*req));

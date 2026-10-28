@@ -19,10 +19,7 @@ static test_result_t test_scsi_log_select(struct virtio_dev *dev,
     req->cdb[0] = 0x4C;      /* LOG SELECT */
     req->cdb[1] = 0x02;      /* page control current */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, NULL, 0,
-                                  SCSI_DATA_NONE, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, NULL, 0, SCSI_DATA_NONE, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

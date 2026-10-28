@@ -63,9 +63,7 @@ static test_result_t test_iommu_probe_validate(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 1, buf_phys + PROBE_HEADER_LEN, out_len,
                        VRING_DESC_F_WRITE, 0);
 
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     if (tail->status != VIRTIO_IOMMU_S_OK)
         TFAIL("probe status %u, expected 0 (S_OK)", tail->status);

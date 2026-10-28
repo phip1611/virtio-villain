@@ -67,9 +67,7 @@ static test_result_t test_iommu_domain_reuse(struct virtio_dev *dev,
     vring_raw_set_avail(vr, 3, 6);
     vring_raw_set_avail_idx(vr, 4);
 
-    test_result_t r = vv_kick_and_wait_n(dev, vr, 0, 4, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait_n(dev, vr, 0, 4, VV_TIMEOUT_MS));
 
     /* The test needs two endpoints bound to devices behind the
      * virtual IOMMU. Only endpoint ids that resolve to a real

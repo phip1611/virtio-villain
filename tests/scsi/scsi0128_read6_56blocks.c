@@ -21,10 +21,8 @@ static test_result_t test_scsi_read6_56(struct virtio_dev *dev,
     req->cdb[0] = 0x08;      /* READ(6) */
     req->cdb[4] = 56;        /* transfer length in blocks */
 
-    test_result_t r = scsi_do_cmd_paged(dev, vr, req, resp, data, 56 * 512,
-                                        SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd_paged(dev, vr, req, resp, data, 56 * 512,
+                             SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

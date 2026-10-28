@@ -19,10 +19,7 @@ static test_result_t test_scsi_read12(struct virtio_dev *dev, struct vring *vr)
     req->cdb[0] = 0xA8;      /* READ(12) */
     req->cdb[9] = 1;         /* transfer length one block */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 512,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 512, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

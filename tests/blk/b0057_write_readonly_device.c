@@ -46,9 +46,7 @@ static test_result_t test_blk_write_readonly(struct virtio_dev *dev,
         vring_raw_set_avail(vr, idx % vr->size, 0);
         vring_raw_set_avail_idx(vr, idx + 1);
 
-        test_result_t result = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
-        if (result != TEST_PASS)
-            return result;
+        VV_TRY(vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS));
         if (writing) {
             if (*st != VIRTIO_BLK_S_IOERR && *st != VIRTIO_BLK_S_UNSUPP)
                 TFAIL("read-only write returned status %u", *st);

@@ -26,9 +26,7 @@ static test_result_t test_blk_read_after_discard(struct virtio_dev *dev,
     vv_desc(vr, 1, seg, sizeof(*seg), VRING_DESC_F_NEXT, 2);
     vv_desc(vr, 2, dstatus, 1, VRING_DESC_F_WRITE, 0);
 
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* --- Read request: sector 0, 512 bytes --- */
     struct virtio_blk_outhdr *rhdr = blk_hdr(VIRTIO_BLK_T_IN, 0);

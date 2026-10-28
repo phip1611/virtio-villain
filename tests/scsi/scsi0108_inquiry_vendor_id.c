@@ -18,10 +18,7 @@ static test_result_t test_scsi_inq_vendor(struct virtio_dev *dev,
     req->cdb[0] = 0x12;      /* INQUIRY */
     req->cdb[4] = 96;
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 96,
-                                  SCSI_DATA_IN, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 96, SCSI_DATA_IN, 0));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);
