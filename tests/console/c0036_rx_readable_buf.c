@@ -24,8 +24,7 @@ static test_result_t test_console_rx_readable(struct virtio_dev *dev,
 
     /* Omit VRING_DESC_F_WRITE intentionally */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 256, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* RX is queue 0 for console */
     return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

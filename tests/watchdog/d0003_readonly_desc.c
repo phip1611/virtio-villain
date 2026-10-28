@@ -24,10 +24,7 @@ static test_result_t test_watchdog_readonly(struct virtio_dev *dev,
 
     /* Descriptor without WRITE flag — device expects writable */
     vring_raw_set_desc(vr, 0, buf_phys, 1, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(D0003, VIRTIO_PCI_DEVICE_WATCHDOG, test_watchdog_readonly,

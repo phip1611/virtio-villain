@@ -21,8 +21,7 @@ static test_result_t test_console_tx_zero(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 0, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* TX is queue 1 for console */
     return vv_kick_and_wait(dev, vr, 1, VV_TIMEOUT_MS);

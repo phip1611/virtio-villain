@@ -34,10 +34,7 @@ static test_result_t test_net_tx_indirect_unaligned(struct virtio_dev *dev,
     /* Length 17 is not a multiple of sizeof(struct vring_desc). */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect), 17,
                        VRING_DESC_F_INDIRECT, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q_REQUIRES(N0197, VIRTIO_PCI_DEVICE_NET,

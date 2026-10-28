@@ -42,10 +42,7 @@ static test_result_t test_blk_discard_bad_len(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 2, status_phys, 1,
                        VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(B0015, VIRTIO_PCI_DEVICE_BLK, test_blk_discard_bad_len,

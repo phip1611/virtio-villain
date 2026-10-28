@@ -40,10 +40,7 @@ static test_result_t test_fs_init(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 0, hdr_phys, hdr->len, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, resp_phys, 256, VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q(F0001, VIRTIO_PCI_DEVICE_FS, test_fs_init,

@@ -32,10 +32,7 @@ static test_result_t test_fs_resp_no_write(struct virtio_dev *dev,
     /* Response slot without WRITE - device must reject. */
     vring_raw_set_desc(vr, 1, resp_phys, 256, 0, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q(F0003, VIRTIO_PCI_DEVICE_FS, test_fs_resp_no_write,

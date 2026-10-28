@@ -41,10 +41,7 @@ static test_result_t test_net_ctrl_ack_ro(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 2);
     vring_raw_set_desc(vr, 2, ack_phys, 1, 0, 0); /* no WRITE flag */
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q_REQUIRES(N0033, VIRTIO_PCI_DEVICE_NET, test_net_ctrl_ack_ro,

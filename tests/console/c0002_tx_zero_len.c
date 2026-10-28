@@ -21,10 +21,7 @@ static test_result_t test_console_tx_zero_len(struct virtio_dev *dev,
     uint64_t buf_phys = vv_virt_to_phys(buf);
 
     vring_raw_set_desc(vr, 0, buf_phys, 0, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q(C0002, VIRTIO_PCI_DEVICE_CONSOLE, test_console_tx_zero_len,

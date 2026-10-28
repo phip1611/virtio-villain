@@ -36,10 +36,7 @@ static test_result_t test_console_tx_long_chain(struct virtio_dev *dev,
         uint16_t next = (i + 1 < CHAIN_LEN) ? (i + 1) : 0;
         vring_raw_set_desc(vr, i, pa, DESC_LEN, flags, next);
     }
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("r == TEST_FAIL");
     if (r == TEST_PASS || r == TEST_WEDGED)

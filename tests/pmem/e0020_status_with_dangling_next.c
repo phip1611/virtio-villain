@@ -31,10 +31,7 @@ static test_result_t test_pmem_status_dangling(struct virtio_dev *dev,
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 5);
     /* Slot 5 left as zero addr/len */
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(E0020, VIRTIO_PCI_DEVICE_PMEM, test_pmem_status_dangling,

@@ -29,8 +29,7 @@ static test_result_t test_net_hash_report_rx(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf),
                        sizeof(struct virtio_net_hdr_hash) + 1500,
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* We just verify the device does not crash when processing
      * a receive buffer that expects hash report fields. */

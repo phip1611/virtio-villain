@@ -28,10 +28,7 @@ static test_result_t test_console_tx_max_chain(struct virtio_dev *dev,
         uint16_t next  = (i + 1 < n) ? (uint16_t)(i + 1) : 0;
         vring_raw_set_desc(vr, i, buf_phys + i, 1, flags, next);
     }
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q(C0022, VIRTIO_PCI_DEVICE_CONSOLE, test_console_tx_max_chain,

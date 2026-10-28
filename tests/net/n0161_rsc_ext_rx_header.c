@@ -30,10 +30,7 @@ static test_result_t test_net_rsc_ext_rx_header(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf),
                        sizeof(struct virtio_net_hdr_mrg) + 1500,
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
         return r;
 

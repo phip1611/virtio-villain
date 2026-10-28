@@ -50,10 +50,7 @@ static test_result_t test_net_rx_indirect_write(struct virtio_dev *dev,
     /* Post indirect descriptor on queue 0 (RX queue) */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect), 16,
                        VRING_DESC_F_INDIRECT | VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_REQUIRES(N0057, VIRTIO_PCI_DEVICE_NET, test_net_rx_indirect_write,

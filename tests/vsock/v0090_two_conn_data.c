@@ -31,9 +31,7 @@ static test_result_t test_vsock_two_conn_data(struct virtio_dev *dev,
     struct virtio_vsock_hdr *c1 = vv_alloc_pages(1);
     mkconn(c1, 5100, VIRTIO_VSOCK_OP_REQUEST);
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(c1), sizeof(*c1), 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 
     /* CONNECT port 5101 */

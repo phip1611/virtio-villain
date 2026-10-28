@@ -31,10 +31,7 @@ static test_result_t test_watchdog_max_chain(struct virtio_dev *dev,
         vring_raw_set_desc(vr, i, buf_phys + i * 4, 1, flags, next);
     }
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(D0012, VIRTIO_PCI_DEVICE_WATCHDOG, test_watchdog_max_chain,

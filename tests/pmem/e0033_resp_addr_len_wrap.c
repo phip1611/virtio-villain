@@ -30,10 +30,7 @@ static test_result_t test_pmem_resp_addr_len_wrap(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, 0xFFFFFFFFFFFFF000ULL, 0x2000,
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(E0033, VIRTIO_PCI_DEVICE_PMEM, test_pmem_resp_addr_len_wrap,

@@ -33,8 +33,7 @@ static test_result_t test_scsi_no_writable_resp(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp), 0, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* With no writable buffer the device cannot post a response. It
      * refuses the request without a completion; the host stays alive. */

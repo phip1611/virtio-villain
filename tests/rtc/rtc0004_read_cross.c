@@ -30,10 +30,7 @@ static test_result_t test_rtc_read_cross(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 1, base + 64,
                        sizeof(struct rtc_resp_read_cross),
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(RTC0004, VIRTIO_PCI_DEVICE_RTC, test_rtc_read_cross,

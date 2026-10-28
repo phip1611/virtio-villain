@@ -40,8 +40,7 @@ static test_result_t test_pci_notification_data(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* Notify with the encoded 32 bit value: vqn in low 16, available
      * ring index (1) in high 16, rather than the bare vqn. */

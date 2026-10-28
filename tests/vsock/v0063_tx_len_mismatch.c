@@ -43,10 +43,7 @@ static test_result_t test_vsock_tx_len_mismatch(struct virtio_dev *dev,
     /* Data: only 64 bytes, not 4096 as claimed */
     vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 64, 0, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q(V0063, VIRTIO_PCI_DEVICE_VSOCK, test_vsock_tx_len_mismatch,

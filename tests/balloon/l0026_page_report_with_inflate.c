@@ -48,8 +48,7 @@ static test_result_t test_balloon_report_with_inflate(struct virtio_dev *dev,
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(pfns),
                        4 * sizeof(uint32_t), 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* Report on queue 3 */
     void *rpage = vv_alloc_pages(1);

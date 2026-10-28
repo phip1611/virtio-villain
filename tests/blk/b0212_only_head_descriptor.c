@@ -31,8 +31,7 @@ static test_result_t test_blk_only_head_descriptor(struct virtio_dev *dev,
     /* Lone header descriptor: readable, no NEXT, no data, no status. */
     vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     return vv_kick_expect_reject(dev, vr, VV_TIMEOUT_MS);
 }
