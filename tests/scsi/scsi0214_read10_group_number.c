@@ -21,10 +21,7 @@ static test_result_t test_scsi_read10_group(struct virtio_dev *dev,
     req->cdb[6] = 0x1F;      /* group number */
     req->cdb[8] = 1;
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 512,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 512, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

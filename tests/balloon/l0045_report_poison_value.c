@@ -64,9 +64,7 @@ static test_result_t test_balloon_report_poison(struct virtio_dev *dev,
     vring_raw_set_avail(&rq, 0, 0);
     vring_raw_set_avail_idx(&rq, 1);
 
-    test_result_t r = vv_kick_and_wait(dev, &rq, 3, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait(dev, &rq, 3, VV_TIMEOUT_MS));
 
     __sync_synchronize();
     for (unsigned i = 0; i < 4096 / sizeof(uint32_t); i++)

@@ -45,9 +45,7 @@ static test_result_t test_rtc_read_alarm(struct virtio_dev *dev,
 
     vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
     vv_desc(vr, 1, resp, 64, VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* status byte is at offset 0 in every RTC response. A value of
      * ENODEV means the clock is absent, which is a valid answer. */

@@ -14,9 +14,7 @@ static inline test_result_t blk_mmio_attach(struct virtio_mmio_dev *dev,
         TSKIP("MMIO device is not virtio-blk");
     if (virtio_mmio_init(dev) < 0)
         TFAIL("MMIO feature negotiation failed");
-    test_result_t result = mmio_attach_queue(dev, ring, 0);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(mmio_attach_queue(dev, ring, 0));
     mmio_write32(dev, VIRTIO_MMIO_STATUS,
                  mmio_read32(dev, VIRTIO_MMIO_STATUS)
                  | VIRTIO_MMIO_STATUS_DRIVER_OK);

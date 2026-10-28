@@ -49,10 +49,7 @@ static test_result_t test_scsi_clear_task_set(struct virtio_dev *dev,
     tmf->type = VIRTIO_SCSI_T_TMF;
     tmf->subtype = VIRTIO_SCSI_T_TMF_CLEAR_TASK_SET;
     scsi_set_lun(tmf->lun, 0, 0);
-    test_result_t pending = scsi_tmf_when_pending(
-        dev, vr, rb, rb_resp, tmf, tmf_resp);
-    if (pending != TEST_PASS)
-        return pending;
+    VV_TRY(scsi_tmf_when_pending( dev, vr, rb, rb_resp, tmf, tmf_resp));
 
     if (!scsi_wait_used(&rq, before, 8000000))
         TSKIP("read did not complete (no host throttle)");

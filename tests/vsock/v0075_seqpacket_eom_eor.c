@@ -40,9 +40,7 @@ static test_result_t test_vsock_seqpacket_eom_eor(struct virtio_dev *dev,
     conn->fwd_cnt = 0;
 
     vv_desc(vr, 0, conn, sizeof(*conn), 0, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* RW with EOM + EOR flags */
     struct virtio_vsock_hdr *rw = vv_alloc_pages(1);

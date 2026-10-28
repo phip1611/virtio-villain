@@ -4,9 +4,7 @@
 static test_result_t test_lifecycle_repeat(struct virtio_dev *dev,
                                            struct vring *vr)
 {
-    test_result_t result = snd_complete_lifecycle(dev, vr, 0);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_complete_lifecycle(dev, vr, 0));
     return snd_complete_lifecycle(dev, vr, 0);
 }
 

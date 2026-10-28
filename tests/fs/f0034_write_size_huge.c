@@ -33,9 +33,7 @@ static test_result_t test_fs_write_size_huge(struct virtio_dev *dev,
     uint64_t p1_phys = vv_virt_to_phys(p1);
     vring_raw_set_desc(vr, 0, p1_phys, h1->len, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, p1_phys + 512, 512, VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     uint8_t *p2 = vv_alloc_pages(1);
     struct fuse_in_header *h2 = (struct fuse_in_header *)p2;

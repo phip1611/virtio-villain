@@ -73,9 +73,7 @@ static int mmio_capacity(struct virtio_mmio_dev *dev, uint64_t *capacity)
 static test_result_t test_blk_resize_mmio(struct virtio_mmio_dev *dev)
 {
     struct vring ring;
-    test_result_t result = blk_mmio_attach(dev, &ring);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(blk_mmio_attach(dev, &ring));
     uint64_t capacity;
     if (mmio_capacity(dev, &capacity) < 0)
         TFAIL("MMIO block config generation never stabilized");

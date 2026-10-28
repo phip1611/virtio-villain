@@ -38,9 +38,7 @@ static test_result_t test_net_rss_ctx_cap_get(struct virtio_dev *dev,
     vv_desc(vr, 0, h, sizeof(*h), VRING_DESC_F_NEXT, 1);
     vv_desc(vr, 1, resp, 2, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vv_desc(vr, 2, ack, 1, VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     if (*ack != VIRTIO_NET_OK)
         TFAIL("CAP_GET acked 0x%02x, expected VIRTIO_NET_OK", *ack);

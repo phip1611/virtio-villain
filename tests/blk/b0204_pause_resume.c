@@ -30,18 +30,14 @@ static test_result_t do_read(struct virtio_dev *dev, struct vring *vr,
     uint16_t idx = vr->avail->idx;
     vring_raw_set_avail(vr, idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, idx + 1);
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS * 4);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS * 4));
     return *st == 0 ? TEST_PASS : TEST_FAIL;
 }
 
 static test_result_t test_blk_pause_resume(struct virtio_dev *dev,
                                            struct vring *vr)
 {
-    test_result_t r = do_read(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(do_read(dev, vr, 0));
     sleep(2);
     return do_read(dev, vr, 1);
 }

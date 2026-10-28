@@ -21,10 +21,7 @@ static test_result_t test_scsi_mode_sense_err(struct virtio_dev *dev,
     req->cdb[2] = 0x01;      /* read write error recovery page */
     req->cdb[4] = 64;
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 64,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 64, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

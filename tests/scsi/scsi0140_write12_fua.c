@@ -26,10 +26,7 @@ static test_result_t test_scsi_write12_fua(struct virtio_dev *dev,
     req->cdb[5] = 130;       /* LBA */
     req->cdb[9] = 1;
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 512,
-                                  SCSI_DATA_OUT, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 512, SCSI_DATA_OUT, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

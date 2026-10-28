@@ -153,9 +153,7 @@ static test_result_t test_crypto_large_keys(struct virtio_dev *dev,
     vring_attach(dev, &cvr, (uint16_t)cfg->max_dataqueues);
 
     uint16_t cseq = 0, dseq = 0;
-    test_result_t r = roundtrip_keylen(dev, &cvr, vr, &cseq, &dseq, 24);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(roundtrip_keylen(dev, &cvr, vr, &cseq, &dseq, 24));
     return roundtrip_keylen(dev, &cvr, vr, &cseq, &dseq, 32);
 }
 

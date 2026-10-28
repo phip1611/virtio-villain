@@ -26,9 +26,7 @@ static test_result_t test_pcm_info_response_split(struct virtio_dev *dev,
     vring_raw_set_avail(vr, vr->avail->idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, vr->avail->idx + 1);
 
-    test_result_t result = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS));
     uint32_t used_len = vr->used->ring[used_idx % vr->size].len;
     if (used_len != response_len)
         TFAIL("split PCM_INFO used length %u, expected %u",

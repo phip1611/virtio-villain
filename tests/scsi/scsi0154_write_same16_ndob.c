@@ -21,10 +21,7 @@ static test_result_t test_scsi_write_same16_ndob(struct virtio_dev *dev,
     req->cdb[9] = 45;        /* LBA */
     req->cdb[13] = 1;
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, NULL, 0,
-                                  SCSI_DATA_NONE, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, NULL, 0, SCSI_DATA_NONE, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

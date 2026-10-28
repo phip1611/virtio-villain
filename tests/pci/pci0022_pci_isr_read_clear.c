@@ -36,9 +36,7 @@ static test_result_t test_pci_isr_read_clear(struct virtio_dev *dev,
     vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* First ISR read: should have queue bit set */
     __sync_synchronize();

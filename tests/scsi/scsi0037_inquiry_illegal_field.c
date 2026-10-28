@@ -22,10 +22,7 @@ static test_result_t test_scsi_inquiry_illegal(struct virtio_dev *dev,
     req->cdb[2] = 0x01;      /* page code must be zero when EVPD is clear */
     req->cdb[4] = 36;
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 36,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 36, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

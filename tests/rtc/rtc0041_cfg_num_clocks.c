@@ -34,9 +34,7 @@ static test_result_t test_rtc_cfg_num_clocks(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, base + 64, sizeof(*resp),
                        VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     if (resp->status != VIRTIO_RTC_S_OK)
         TFAIL("CFG status %u, expected OK", resp->status);

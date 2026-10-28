@@ -18,10 +18,7 @@ static test_result_t test_scsi_bad_opcode(struct virtio_dev *dev,
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0xFF;      /* not a defined operation code */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, NULL, 0,
-                                  SCSI_DATA_NONE, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, NULL, 0, SCSI_DATA_NONE, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

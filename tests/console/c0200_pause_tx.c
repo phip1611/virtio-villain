@@ -32,9 +32,7 @@ static test_result_t do_tx(struct virtio_dev *dev, struct vring *vr,
 static test_result_t test_console_pause_tx(struct virtio_dev *dev,
                                            struct vring *vr)
 {
-    test_result_t r = do_tx(dev, vr, "vv-a\n", 5);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(do_tx(dev, vr, "vv-a\n", 5));
     sleep(2);
     return do_tx(dev, vr, "vv-b\n", 5);
 }

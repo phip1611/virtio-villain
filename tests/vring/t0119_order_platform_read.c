@@ -31,9 +31,7 @@ static test_result_t test_order_platform_read_completes(struct virtio_dev *dev,
     vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     if (*status != VIRTIO_BLK_S_OK)
         TFAIL("read status 0x%02x with ORDER_PLATFORM negotiated", *status);

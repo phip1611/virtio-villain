@@ -19,10 +19,7 @@ static test_result_t test_scsi_reassign(struct virtio_dev *dev,
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x07;      /* REASSIGN BLOCKS */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 4,
-                                  SCSI_DATA_OUT, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 4, SCSI_DATA_OUT, seq));
     __sync_synchronize();
     if (resp->response != VIRTIO_SCSI_S_OK)
         TFAIL("response 0x%02x", resp->response);

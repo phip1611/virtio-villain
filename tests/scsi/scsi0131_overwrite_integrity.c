@@ -30,10 +30,7 @@ static test_result_t test_scsi_overwrite(struct virtio_dev *dev,
         req->cdb[5] = 200;
         req->cdb[8] = 1;
         uint8_t *src = pass == 0 ? a : b;
-        test_result_t r = scsi_do_cmd(dev, vr, req, resp, src, 512,
-                                      SCSI_DATA_OUT, seq++);
-        if (r != TEST_PASS)
-            return r;
+        VV_TRY(scsi_do_cmd(dev, vr, req, resp, src, 512, SCSI_DATA_OUT, seq++));
         __sync_synchronize();
         if (resp->status != 0)
             TFAIL("write status 0x%02x", resp->status);
@@ -45,10 +42,7 @@ static test_result_t test_scsi_overwrite(struct virtio_dev *dev,
     req->cdb[5] = 200;
     req->cdb[8] = 1;
     memset(rbuf, 0, 512);
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, rbuf, 512,
-                                  SCSI_DATA_IN, seq++);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, rbuf, 512, SCSI_DATA_IN, seq++));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("read status 0x%02x", resp->status);

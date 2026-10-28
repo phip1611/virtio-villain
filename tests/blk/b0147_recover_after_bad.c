@@ -76,9 +76,7 @@ static test_result_t test_blk_recover_after_bad(struct virtio_dev *dev,
     vring_raw_set_avail(&nv, 0, 0);
     vring_raw_set_avail_idx(&nv, 1);
 
-    test_result_t r = vv_kick_and_wait(dev, &nv, 0, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait(dev, &nv, 0, VV_TIMEOUT_MS));
     if (*st != 0)
         TFAIL("*st != 0");
     return TEST_PASS;

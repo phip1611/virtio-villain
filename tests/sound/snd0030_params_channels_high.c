@@ -6,10 +6,7 @@ static test_result_t test_params_channels_high(struct virtio_dev *dev,
 {
     struct virtio_snd_pcm_set_params params;
     struct virtio_snd_pcm_info info;
-    test_result_t result = snd_make_valid_params(
-        dev, vr, 0, &params, &info);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_make_valid_params( dev, vr, 0, &params, &info));
     if (info.channels_max == UINT8_MAX)
         return TEST_SKIP;
     params.channels = info.channels_max + 1;

@@ -17,10 +17,7 @@ static test_result_t test_scsi_bad_lun(struct virtio_dev *dev,
     scsi_set_lun(req->lun, 0, 5);   /* LUN 5 does not exist */
     req->cdb[0] = 0x00;      /* TEST UNIT READY */
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, NULL, 0,
-                                  SCSI_DATA_NONE, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, NULL, 0, SCSI_DATA_NONE, 0));
     __sync_synchronize();
     if (resp->response == VIRTIO_SCSI_S_BAD_TARGET)
         return TEST_PASS;

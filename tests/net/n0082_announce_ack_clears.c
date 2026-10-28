@@ -54,10 +54,7 @@ static test_result_t test_net_announce_ack_clears(struct virtio_dev *dev,
     vring_raw_set_avail(&ctrl_vr, 0, 0);
     vring_raw_set_avail_idx(&ctrl_vr, 1);
 
-    test_result_t r = vv_kick_and_wait(dev, &ctrl_vr,
-                                       cfg->num_queues - 1, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait(dev, &ctrl_vr, cfg->num_queues - 1, VV_TIMEOUT_MS));
 
     /* After ACK the status announce bit must be clear */
     volatile uint16_t *status = (volatile uint16_t *)(

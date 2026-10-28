@@ -61,9 +61,7 @@ static test_result_t do_batch(struct virtio_dev *dev, struct vring *vr,
                             (uint16_t)(j * 3));
     vring_raw_set_avail_idx(vr, (uint16_t)(idx + BATCH));
 
-    test_result_t r = vv_kick_and_wait_n(dev, vr, 0, BATCH, VV_TIMEOUT_MS * 4);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait_n(dev, vr, 0, BATCH, VV_TIMEOUT_MS * 4));
 
     for (int j = 0; j < BATCH; j++)
         if (*slots[j].st != 0)
@@ -87,9 +85,7 @@ static test_result_t test_blk_resize_memory_during_io(struct virtio_dev *dev,
      * memory hot-add.
      */
     for (int i = 0; i < 200; i++) {
-        test_result_t r = do_batch(dev, vr, slots);
-        if (r != TEST_PASS)
-            return r;
+        VV_TRY(do_batch(dev, vr, slots));
         usleep(20000); /* 20ms */
     }
     return TEST_PASS;

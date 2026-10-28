@@ -22,9 +22,7 @@ static test_result_t test_rng_after_q_reset(struct virtio_dev *dev,
     /* Submit an initial request */
     uint8_t *buf = vv_alloc_pages(1);
     vv_desc(vr, 0, buf, 64, VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* Reset queue 0 via the queue_reset register (spec 2.6.1) */
     if (virtio_pci_queue_reset(dev, 0) < 0)

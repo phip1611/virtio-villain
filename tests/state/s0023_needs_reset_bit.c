@@ -37,9 +37,7 @@ static test_result_t test_needs_reset_detection(struct virtio_dev *dev,
     vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
 
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* After successful I/O, NEEDS_RESET should still be clear */
     __sync_synchronize();

@@ -20,10 +20,7 @@ static test_result_t test_scsi_tur_lun1(struct virtio_dev *dev,
     memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 1);
     req->cdb[0] = 0x00;      /* TEST UNIT READY */
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, NULL, 0,
-                                  SCSI_DATA_NONE, 1);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, NULL, 0, SCSI_DATA_NONE, 1));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

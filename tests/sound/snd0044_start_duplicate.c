@@ -4,9 +4,7 @@
 static test_result_t test_start_duplicate(struct virtio_dev *dev,
                                           struct vring *vr)
 {
-    test_result_t result = snd_start_stream(dev, vr, 0);
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_start_stream(dev, vr, 0));
 
     return snd_expect_pcm_command_safe(
         dev, vr, 0, VIRTIO_SND_R_PCM_START);

@@ -134,9 +134,7 @@ static test_result_t test_blk_hotplug_add(struct virtio_dev *dev,
     vring_raw_set_avail(&q0, 0, 0);
     vring_raw_set_avail_idx(&q0, 1);
 
-    test_result_t r = vv_kick_and_wait(&hp, &q0, 0, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait(&hp, &q0, 0, VV_TIMEOUT_MS));
     if (*st != 0)
         TFAIL("*st != 0");
     return TEST_PASS;

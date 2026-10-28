@@ -41,9 +41,7 @@ static test_result_t create_session(struct virtio_dev *dev, struct vring *cvr,
     vring_raw_set_avail(cvr, slot, 0);
     vring_raw_set_avail_idx(cvr, (uint16_t)(slot + 1));
 
-    test_result_t r = vv_kick_and_wait(dev, cvr, 0, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait(dev, cvr, 0, VV_TIMEOUT_MS));
     if (sin->status == VIRTIO_CRYPTO_NOTSUPP ||
         sin->status == VIRTIO_CRYPTO_ERR)
         return TEST_SKIP;
@@ -83,9 +81,7 @@ static test_result_t encrypt_block(struct virtio_dev *dev, struct vring *vr,
     vring_raw_set_avail(vr, slot, 0);
     vring_raw_set_avail_idx(vr, (uint16_t)(slot + 1));
 
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS));
     if (inhdr->status != VIRTIO_CRYPTO_OK)
         TFAIL("encrypt status %u, expected OK", inhdr->status);
     memcpy(dst_out, dst, 16);

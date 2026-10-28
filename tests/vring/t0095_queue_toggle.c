@@ -41,9 +41,7 @@ static test_result_t test_queue_toggle(struct virtio_dev *dev,
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
-    test_result_t r = do_one_read(dev, vr, 0, 0, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(do_one_read(dev, vr, 0, 0, 0));
 
     cfg->queue_select = 0;
     __sync_synchronize();

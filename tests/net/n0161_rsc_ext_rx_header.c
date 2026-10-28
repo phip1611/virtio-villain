@@ -28,9 +28,7 @@ static test_result_t test_net_rsc_ext_rx_header(struct virtio_dev *dev,
      * header plus a full frame. */
     vv_desc(vr, 0, buf, sizeof(struct virtio_net_hdr_mrg) + 1500,
             VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     /* The device completed the buffer. If it set the RSC info flag
      * the coalesced-packet count must be non-zero. */

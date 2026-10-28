@@ -52,10 +52,7 @@ static test_result_t test_scsi_query_task(struct virtio_dev *dev,
     tmf->subtype = VIRTIO_SCSI_T_TMF_QUERY_TASK;
     scsi_set_lun(tmf->lun, 0, 0);
     tmf->tag = QUERY_TAG;
-    test_result_t pending = scsi_tmf_when_pending(
-        dev, vr, rb, rb_resp, tmf, tmf_resp);
-    if (pending != TEST_PASS)
-        return pending;
+    VV_TRY(scsi_tmf_when_pending( dev, vr, rb, rb_resp, tmf, tmf_resp));
 
     if (tmf_resp->response == VIRTIO_SCSI_S_FUNCTION_SUCCEEDED)
         return TEST_PASS;

@@ -37,9 +37,7 @@ static test_result_t test_rtc_alarm_enable_unarmed(struct virtio_dev *dev,
 
     vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
     vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     if (resp->status == VIRTIO_RTC_S_ENODEV)
         return TEST_SKIP;

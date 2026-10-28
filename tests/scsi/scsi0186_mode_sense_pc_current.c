@@ -21,10 +21,7 @@ static test_result_t test_scsi_ms_pc0(struct virtio_dev *dev,
     req->cdb[2] = 0x3F;      /* page control current, all pages */
     req->cdb[4] = 192;
 
-    test_result_t r = scsi_do_cmd(dev, vr, req, resp, data, 192,
-                                  SCSI_DATA_IN, seq);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_cmd(dev, vr, req, resp, data, 192, SCSI_DATA_IN, seq));
     __sync_synchronize();
     if (resp->status != 0)
         TFAIL("status 0x%02x", resp->status);

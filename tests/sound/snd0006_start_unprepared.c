@@ -17,9 +17,7 @@ static test_result_t test_pcm_start_unprepared_safe(struct virtio_dev *dev,
         .format = SND_PCM_FMT_S16,
         .rate = SND_PCM_RATE_48000,
     };
-    test_result_t result = snd_expect_ok(dev, vr, &params, sizeof(params));
-    if (result != TEST_PASS)
-        return result;
+    VV_TRY(snd_expect_ok(dev, vr, &params, sizeof(params)));
 
     struct virtio_snd_pcm_hdr req = {
         .hdr.code = VIRTIO_SND_R_PCM_START,

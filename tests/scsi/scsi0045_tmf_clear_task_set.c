@@ -17,9 +17,7 @@ static test_result_t test_scsi_tmf_clear_task_set(struct virtio_dev *dev,
     req->subtype = VIRTIO_SCSI_T_TMF_CLEAR_TASK_SET;
     scsi_set_lun(req->lun, 0, 0);
 
-    test_result_t r = scsi_do_tmf(dev, vr, req, resp, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(scsi_do_tmf(dev, vr, req, resp, 0));
     __sync_synchronize();
     if (!scsi_tmf_response_valid(resp->response))
         TFAIL("response 0x%02x", resp->response);

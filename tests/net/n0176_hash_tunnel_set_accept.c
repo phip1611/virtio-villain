@@ -43,9 +43,7 @@ static test_result_t test_net_hash_tunnel_set_accept(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 2);
     vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
-    test_result_t r = vv_submit_and_wait(dev, vr, 0);
-    if (r != TEST_PASS)
-        return r;
+    VV_TRY(vv_submit_and_wait(dev, vr, 0));
 
     if (*status != VIRTIO_NET_OK)
         TFAIL("HASH_TUNNEL_SET acked 0x%02x, expected VIRTIO_NET_OK",
