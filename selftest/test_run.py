@@ -278,7 +278,7 @@ def test_unit_probe_cache_hit_prepares_nothing():
                 except SystemExit as error:
                     assert error.code == 0
 
-            with patch.object(RUN_MOD.subprocess, "run", return_value=(
+            with patch.object(RUN_MOD.process, "capture", return_value=(
                     subprocess.CompletedProcess(
                         [], 0, b"PROBE\t1042\t0\t1\n", b""))) as launch:
                 main()
@@ -288,7 +288,7 @@ def test_unit_probe_cache_hit_prepares_nothing():
             assert not os.path.exists(os.path.dirname(probe_disk))
             backend.build_cmd.reset_mock()
             with patch.object(RUN_MOD.tempfile, "TemporaryDirectory") as prepare, \
-                 patch.object(RUN_MOD.subprocess, "run") as launch, \
+                 patch.object(RUN_MOD.process, "capture") as launch, \
                  patch.object(RUN_MOD, "run_test") as run_case:
                 main()
             prepare.assert_not_called()
@@ -313,7 +313,7 @@ def test_unit_mmio_boot_cache_shares_and_invalidates():
         backend = SimpleNamespace(
             binary=paths[0], name="qemu-mmio", console_device="ttyS0",
             build_cmd=Mock(return_value=["boot-vmm"]))
-        with patch.object(RUN_MOD.subprocess, "run", return_value=(
+        with patch.object(RUN_MOD.process, "capture", return_value=(
                 subprocess.CompletedProcess([], 0, b"[vv]\n", b""))) as launch:
             assert RUN_MOD._mmio_boots(backend, *paths[1:])
         launch.assert_called_once()
@@ -324,7 +324,7 @@ def test_unit_mmio_boot_cache_shares_and_invalidates():
         def worker():
             with patch.object(RUN_MOD.tempfile, "TemporaryDirectory",
                               side_effect=AssertionError("prepared disk")), \
-                 patch.object(RUN_MOD.subprocess, "run",
+                 patch.object(RUN_MOD.process, "capture",
                               side_effect=AssertionError("launched VM")):
                 assert RUN_MOD._mmio_boots(backend, *paths[1:])
             backend.build_cmd.assert_not_called()
@@ -340,7 +340,7 @@ def test_unit_mmio_boot_cache_shares_and_invalidates():
         for path in paths:
             with open(path, "a") as stream:
                 stream.write("changed")
-            with patch.object(RUN_MOD.subprocess, "run", return_value=(
+            with patch.object(RUN_MOD.process, "capture", return_value=(
                     subprocess.CompletedProcess(
                         [], 0, b"[vv]\n", b""))) as launch:
                 assert RUN_MOD._mmio_boots(backend, *paths[1:])
@@ -363,7 +363,7 @@ def test_unit_mmio_boot_cache_retries_failed_checks():
             backend = SimpleNamespace(
                 console_device="ttyS0",
                 build_cmd=Mock(return_value=["boot-vmm"]))
-            with patch.object(RUN_MOD.subprocess, "run",
+            with patch.object(RUN_MOD.process, "capture",
                               side_effect=[failure, subprocess.TimeoutExpired(
                                   ["boot-vmm"], 2, output=b"[vv]\n")]) as launch:
                 assert not RUN_MOD._mmio_boots(backend, "kernel", "initramfs")
@@ -383,7 +383,7 @@ def test_unit_mmio_boot_cache_failure_warns_and_checks_boot():
     output = io.StringIO()
     with patch.object(RUN_MOD, "_cached_probe",
                       side_effect=PermissionError("cache denied")), \
-         patch.object(RUN_MOD.subprocess, "run", return_value=(
+         patch.object(RUN_MOD.process, "capture", return_value=(
              subprocess.CompletedProcess([], 0, b"[vv]\n", b""))) as launch, \
          contextlib.redirect_stderr(output):
         assert RUN_MOD._mmio_boots(backend, "kernel", "initramfs")
@@ -446,7 +446,7 @@ def test_unit_mmio_probe_filters_each_launch_configuration():
                               side_effect=lambda name: name), \
                  patch.object(RUN_MOD, "_load_sidecar",
                               side_effect=lambda path: modules[path]), \
-                 patch.object(RUN_MOD.subprocess, "run", side_effect=launch), \
+                 patch.object(RUN_MOD.process, "capture", side_effect=launch), \
                  patch.object(RUN_MOD, "run_test", side_effect=(
                      lambda b, k, name, *args: [(name, "PASS", "")])) as run_case, \
                  patch.object(sys, "argv", argv), \
@@ -491,7 +491,7 @@ def test_unit_openvmm_probe_filters_capabilities_and_releases_terminal():
                     "--initramfs", RUN, "--skip-unsupported",
                     "--format", "json", *names]
             descriptors = []
-            real_openpty = RUN_MOD.pty.openpty
+            real_openpty = RUN_MOD.process.pty.openpty
 
             def openpty():
                 pair = real_openpty()
@@ -503,19 +503,23 @@ def test_unit_openvmm_probe_filters_capabilities_and_releases_terminal():
                 assert kwargs["start_new_session"] is False
                 assert callable(kwargs["preexec_fn"])
                 assert backend.build_cmd.call_args.args[4]["exit_on_guest_end"]
-                if outcome == "timeout":
-                    raise subprocess.TimeoutExpired(cmd, kwargs["timeout"])
+                stdout, stderr = b"PROBE\t1042\t100000000\t1\t0\t0\n", b""
                 if outcome == "exit":
-                    return subprocess.CompletedProcess(
-                        cmd, 1, b"", b"probe startup failed")
-                if outcome == "interleaved":
-                    return subprocess.CompletedProcess(
-                        cmd, 0,
+                    stdout, stderr = b"", b"probe startup failed"
+                elif outcome == "interleaved":
+                    stdout = (
                         b"PR[    0.517323] clk: Disabling unused clocks\n"
                         b"OBE\t1042\t100[    0.525669] Run /init\n"
-                        b"000000\t1\t0\t0\n", b"")
-                return subprocess.CompletedProcess(
-                    cmd, 0, b"PROBE\t1042\t100000000\t1\t0\t0\n", b"")
+                        b"000000\t1\t0\t0\n")
+                proc = Mock(returncode=1 if outcome == "exit" else 0)
+                proc.stdin = None
+                proc.stdout, proc.stderr = io.BytesIO(stdout), io.BytesIO(stderr)
+                proc.poll.return_value = proc.returncode
+                proc.communicate.return_value = (stdout, stderr)
+                if outcome == "timeout":
+                    proc.communicate.side_effect = [
+                        subprocess.TimeoutExpired(cmd, 5), (b"", b"")]
+                return proc
 
             output = io.StringIO()
             errors = io.StringIO()
@@ -526,8 +530,9 @@ def test_unit_openvmm_probe_filters_capabilities_and_releases_terminal():
                  patch.object(RUN_MOD, "_install_termination_as_interrupt"), \
                  patch.object(RUN_MOD, "get_test_list",
                               return_value=(names, {}, metadata)), \
-                 patch.object(RUN_MOD.pty, "openpty", side_effect=openpty), \
-                 patch.object(RUN_MOD.subprocess, "run",
+                 patch.object(RUN_MOD.process.pty, "openpty", side_effect=openpty), \
+                 patch.object(RUN_MOD.process, "kill_process"), \
+                 patch.object(RUN_MOD.subprocess, "Popen",
                               side_effect=launch_probe) as probe, \
                  patch.object(RUN_MOD, "run_test", side_effect=(
                      lambda b, k, name, *args: [
@@ -1407,7 +1412,7 @@ def test_unit_readonly_probe_and_batch_configuration():
                  patch.object(RUN_MOD, "_find_sidecar", side_effect=(
                      lambda name: "sidecar" if name == "B0057" else None)), \
                  patch.object(RUN_MOD, "_load_sidecar", return_value=sidecar), \
-                 patch.object(RUN_MOD.subprocess, "run", side_effect=launch), \
+                 patch.object(RUN_MOD.process, "capture", side_effect=launch), \
                  patch.object(RUN_MOD, "run_test",
                               side_effect=run_case) as run_test, \
                  patch.object(sys, "argv", argv), \
@@ -3635,6 +3640,124 @@ def test_unit_batch_chunking():
     assert work_items == [["A", "B"], ["C", "D"], ["E"]]
 
 
+def test_unit_batch_retry_pipeline_matches_sequential_and_parallel_execution():
+    import contextlib
+    import io
+    import threading
+    from collections import Counter
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    names = ["B0001", "B0002", "B0003", "B0200", "N0130", "RNG0001"]
+    metadata = {name: {"flags": 4 if name == "N0130" else 0} for name in names}
+    expected_statuses = {
+        "B0001": "PASS", "B0002": "PASS", "B0003": "PASS",
+        "B0200": "PASS", "N0130": "XFAIL", "RNG0001": "FAIL"}
+    expected_calls = {
+        ("B0001", "B0002"): 1, ("RNG0001",): 3,
+        ("B0002",): 2, ("B0003",): 1, ("B0200",): 1, ("N0130",): 1}
+    observed = []
+    for jobs in (1, 3):
+        calls = Counter()
+        lock = threading.Lock()
+
+        def run_case(backend, kernel, selected, *args):
+            batch = [selected] if isinstance(selected, str) else selected
+            with lock:
+                calls[tuple(batch)] += 1
+                attempt = calls[tuple(batch)]
+            if len(batch) > 1:
+                assert batch == ["B0001", "B0002"]
+                output = "shared batch output\n[vv] TIMEOUT after 10s\n"
+                return [("B0001", "PASS", output), ("B0002", "WEDGED", output)]
+            name = batch[0]
+            if name == "B0002":
+                return [(name, "FAIL" if attempt == 1 else "PASS",
+                         "first solo failure\n" if attempt == 1 else "solo recovery\n")]
+            return [(name, expected_statuses[name], f"{name} solo attempt {attempt}\n")]
+
+        argv = [RUN, "--vmm", MOCK_LINK, "--kernel", "/dev/null",
+                "--initramfs", RUN, "--order", "alpha", "--batch", "2",
+                "--retries", "2", "--format", "json", "-j", str(jobs), *names]
+        with patch.object(RUN_MOD, "detect_vmm", return_value=SimpleNamespace(
+                name="ch", mmio_transport=False)), \
+             patch.object(RUN_MOD, "print_banner"), \
+             patch.object(RUN_MOD, "_install_termination_as_interrupt"), \
+             patch.object(RUN_MOD, "get_test_list", return_value=(names[:], {}, metadata)), \
+             patch.object(RUN_MOD, "_find_sidecar", side_effect=(
+                 lambda name: "host action" if name == "B0003" else None)), \
+             patch.object(RUN_MOD, "run_test", side_effect=run_case), \
+             patch.object(RUN_MOD, "build_results_doc",
+                          wraps=RUN_MOD.build_results_doc) as report, \
+             patch.object(sys, "argv", argv), \
+             contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
+            try:
+                RUN_MOD.main()
+            except SystemExit as error:
+                assert error.code == 1, error.code
+            else:
+                raise AssertionError("A stable failure did not gate the run")
+        results = report.call_args.args[0]
+        assert {name: status for name, status, _ in results} == expected_statuses
+        assert dict(calls) == expected_calls, calls
+        recovered = next(output for name, _, output in results if name == "B0002")
+        assert recovered == "[vv] attempts: FAIL, PASS\nsolo recovery\n", recovered
+        failure = next(output for name, _, output in results if name == "RNG0001")
+        assert failure.startswith("[vv] attempts: FAIL, FAIL, FAIL\n"), failure
+        observed.append(sorted(results))
+    assert observed[0] == observed[1]
+
+
+def test_unit_stopped_run_never_prepares_images_or_sidecars():
+    import threading
+    from unittest.mock import patch
+
+    stop = threading.Event()
+    stop.set()
+    with patch.object(RUN_MOD.images, "create") as image, \
+         patch.object(RUN_MOD, "_find_sidecar") as sidecar:
+        try:
+            RUN_MOD.run_test(None, None, "B0001", 5, stop=stop)
+        except KeyboardInterrupt:
+            pass
+        else:
+            raise AssertionError("Cancelled work started")
+    image.assert_not_called()
+    sidecar.assert_not_called()
+
+
+def test_unit_reader_failure_cancels_the_test_deadline():
+    from unittest.mock import Mock, patch
+
+    class Backend:
+        name = "fake"
+        console_device = "ttyS0"
+
+        def build_cmd(self, *args):
+            return [sys.executable, "-c",
+                    "import os, signal\nos.write(1, b'guest started\\n')\nsignal.pause()\n"]
+
+    timers = []
+    timer = RUN_MOD.threading.Timer
+
+    def deadline(*args, **kwargs):
+        result = timer(*args, **kwargs)
+        timers.append(result)
+        return result
+
+    destination = Mock()
+    destination.buffer.write.side_effect = OSError("Console sink failed")
+    with patch.object(RUN_MOD.sys, "stdout", destination), \
+         patch.object(RUN_MOD.threading, "Timer", side_effect=deadline), \
+         patch.object(RUN_MOD, "_find_sidecar", return_value=None):
+        results = RUN_MOD.run_test(Backend(), "kernel", "B0001", 5, console=True)
+    assert results == [("B0001", "FAIL", "Console sink failed")], results
+    assert len(timers) == 1
+    assert timers[0].finished.is_set()
+    assert not timers[0].is_alive()
+
+
 # ---------------------------------------------------------------------------
 # --order fast interleave.
 
@@ -4299,7 +4422,7 @@ def test_run_vmm_shares_image_creation_without_replacing_existing_data():
         disk = os.path.join(work, "selected.raw")
         result = subprocess.CompletedProcess([], 0, stdout=b"", stderr=b"")
         with patch.object(FUZZ_MOD, "_detect_backend", return_value=VMM_MOD.Qemu("/vmm")), \
-             patch.object(FUZZ_MOD.subprocess, "run", return_value=result), \
+             patch.object(FUZZ_MOD.process, "capture", return_value=result), \
              patch.object(FUZZ_MOD.images, "create_raw",
                           wraps=FUZZ_MOD.images.create_raw) as create:
             FUZZ_MOD.run_vmm("/vmm", "/archive", work, kernel_path="/kernel", disk_path=disk)
@@ -4858,24 +4981,145 @@ def test_run_vmm_timeout_reports_timed_out():
     """A boot timeout returns crashed and timed_out set, so the fuzz
     loop can reconfirm it instead of trusting a scheduling stall."""
     import tempfile
-    orig_run = FUZZ_MOD.subprocess.run
+    orig_run = FUZZ_MOD.process.capture
 
     def _raise_timeout(*a, **k):
-        raise FUZZ_MOD.subprocess.TimeoutExpired(cmd="vmm", timeout=3)
+        raise FUZZ_MOD.subprocess.TimeoutExpired(
+            cmd="vmm", timeout=3, output=b"FUZZ: guest\n", stderr=b"vmm diagnostics\xff\n")
 
     with tempfile.TemporaryDirectory() as d:
         kernel = os.path.join(d, "vmlinux")
         open(kernel, "wb").close()
         vmm = os.path.join(d, "cloud-hypervisor")
         try:
-            FUZZ_MOD.subprocess.run = _raise_timeout
+            FUZZ_MOD.process.capture = _raise_timeout
             rc, crashed, out, timed_out = FUZZ_MOD.run_vmm(
                 vmm, os.path.join(d, "initramfs"), d,
                 timeout=1, kernel_path=kernel)
         finally:
-            FUZZ_MOD.subprocess.run = orig_run
+            FUZZ_MOD.process.capture = orig_run
     assert crashed is True
     assert timed_out is True
+    assert rc == -1
+    assert out == "vmm diagnostics\ufffd\nFUZZ: guest\n", out
+
+
+def test_fuzz_execution_preserves_worker_slots_timeouts_and_cancellation():
+    import contextlib
+    import io
+    import threading
+    from collections import Counter
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    for mode, jobs in (("normal", 1), ("normal", 3), ("confirm", 2),
+                       ("interrupt", 2), ("error", 2)):
+        with tempfile.TemporaryDirectory() as root:
+            target = os.path.join(root, "target")
+            os.mkdir(target)
+            with open(os.path.join(target, "fuzz"), "wb") as stream:
+                stream.write(b"fuzz executable")
+            args = SimpleNamespace(
+                vmm="/vmm", corpus_dir=os.path.join(root, "corpus"),
+                crashes_dir=os.path.join(root, "crashes"), no_coverage=True,
+                device=None, kernel="/kernel", jobs=jobs, iterations=6,
+                timeout=3, cpus=2, memory="128M", no_confirm_timeouts=False)
+            lock = threading.Lock()
+            barrier = threading.Barrier(jobs)
+            started = threading.Event()
+            release = threading.Event()
+            active = set()
+            directories = set()
+            calls = []
+            attempts = Counter()
+            peak = 0
+
+            def boot(vmm, archive, directory, timeout, **kwargs):
+                nonlocal peak
+                assert kwargs["stop"] is not None
+                with lock:
+                    assert directory not in active, "A worker slot was reused while active"
+                    active.add(directory)
+                    directories.add(directory)
+                    calls.append((directory, timeout))
+                    call_index = len(calls)
+                    attempts[directory] += 1
+                    attempt = attempts[directory]
+                    peak = max(peak, len(active))
+                    if len(active) == jobs:
+                        started.set()
+                try:
+                    if call_index <= jobs:
+                        barrier.wait(timeout=5)
+                    if mode == "error" and call_index == 1:
+                        raise RuntimeError("Worker failed")
+                    if mode in ("error", "interrupt"):
+                        assert release.wait(timeout=5), "Cancellation did not stop active work"
+                    if mode == "confirm" and attempt % 2:
+                        return -1, True, "FUZZ: guest\n", True
+                    return 0, False, "FUZZ: guest\n", False
+                finally:
+                    assert os.path.isdir(directory), "Scratch was removed before the worker exited"
+                    with lock:
+                        active.remove(directory)
+
+            def interrupted_wait(*args, **kwargs):
+                assert started.wait(timeout=5), "Parallel workers did not start"
+                raise KeyboardInterrupt
+
+            with contextlib.ExitStack() as patches:
+                for name, value in (
+                        ("_SCRIPT_DIR", root), ("_corpus_ref", []), ("_STRUCT_PRESERVE", False)):
+                    patches.enter_context(patch.object(FUZZ_MOD, name, value))
+                for name in ("_require_vmm", "patch_blob", "build_initramfs"):
+                    patches.enter_context(patch.object(FUZZ_MOD, name))
+                patches.enter_context(patch.object(
+                    FUZZ_MOD, "_detect_backend", return_value=SimpleNamespace(name="ch")))
+                patches.enter_context(patch.object(
+                    FUZZ_MOD, "find_fuzz_section_offset", return_value=0))
+                patches.enter_context(patch.object(
+                    FUZZ_MOD, "_sweep_stale_workdirs", return_value=0))
+                patches.enter_context(patch.object(
+                    FUZZ_MOD, "mutate", side_effect=lambda blob: blob))
+                patches.enter_context(patch.object(
+                    FUZZ_MOD.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)))
+                patches.enter_context(patch.object(FUZZ_MOD, "run_vmm", side_effect=boot))
+                kill = patches.enter_context(patch.object(
+                    FUZZ_MOD.process, "kill_all_processes", side_effect=release.set))
+                queue = patches.enter_context(patch.object(
+                    FUZZ_MOD.execution, "CompletionQueue",
+                    wraps=FUZZ_MOD.execution.CompletionQueue))
+                if mode == "interrupt":
+                    patches.enter_context(patch.object(
+                        FUZZ_MOD.execution, "wait", side_effect=interrupted_wait))
+                captured = patches.enter_context(contextlib.redirect_stdout(io.StringIO()))
+                if mode == "error":
+                    try:
+                        FUZZ_MOD.cmd_fuzz(args)
+                    except RuntimeError as error:
+                        assert str(error) == "Worker failed", error
+                    else:
+                        raise AssertionError("A worker failure was ignored")
+                else:
+                    FUZZ_MOD.cmd_fuzz(args)
+            assert not active
+            assert peak == jobs, (mode, peak)
+            assert all(not os.path.exists(directory) for directory in directories)
+            if jobs > 1:
+                kill.assert_called_once_with()
+                assert queue.call_args.kwargs["limit"] == jobs * 2
+                assert queue.call_args.kwargs["stop"].is_set()
+            else:
+                kill.assert_not_called()
+                queue.assert_not_called()
+            if mode in ("interrupt", "error"):
+                assert len(calls) == jobs, (mode, calls)
+                if mode == "interrupt":
+                    assert "[*] Interrupted" in captured.getvalue()
+            else:
+                expected_timeouts = {3: 6, 12: 6} if mode == "confirm" else {3: 6}
+                assert dict(Counter(timeout for _, timeout in calls)) == expected_timeouts
+                assert "[*] Done: 6 iterations" in captured.getvalue()
 
 
 def test_detect_backend_maps_binary_names():
@@ -4902,7 +5146,7 @@ def test_run_vmm_routes_qemu_binary_through_qemu_backend():
         stdout = b""
 
     captured = {}
-    orig_run = FUZZ_MOD.subprocess.run
+    orig_run = FUZZ_MOD.process.capture
 
     def _capture(cmd, *a, **k):
         captured["cmd"] = cmd
@@ -4914,11 +5158,11 @@ def test_run_vmm_routes_qemu_binary_through_qemu_backend():
         vmm = os.path.join(d, "qemu-system-x86_64")
         FUZZ_MOD._BACKEND_CACHE.clear()
         try:
-            FUZZ_MOD.subprocess.run = _capture
+            FUZZ_MOD.process.capture = _capture
             FUZZ_MOD.run_vmm(vmm, os.path.join(d, "initramfs"), d,
                              timeout=5, kernel_path=kernel)
         finally:
-            FUZZ_MOD.subprocess.run = orig_run
+            FUZZ_MOD.process.capture = orig_run
             FUZZ_MOD._BACKEND_CACHE.clear()
     cmd = captured["cmd"]
     assert vmm == cmd[0]
