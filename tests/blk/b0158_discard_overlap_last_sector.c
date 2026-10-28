@@ -25,12 +25,10 @@ static test_result_t test_blk_discard_overlap_last(struct virtio_dev *dev,
     if (capacity == 0)
         return TEST_SKIP;
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_DISCARD, 0);
     struct virtio_blk_discard_write_zeroes *seg = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_DISCARD;
-    hdr->sector = 0;
     *status = 0xFF;
 
     /* Start two sectors before the end, length four sectors */

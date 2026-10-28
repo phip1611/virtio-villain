@@ -20,10 +20,7 @@
 static test_result_t test_blk_only_head_descriptor(struct virtio_dev *dev,
                                                     struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
-
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0x7fffffff;
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0x7fffffff);
 
     /* Lone header descriptor: readable, no NEXT, no data, no status. */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0, 0);

@@ -26,11 +26,10 @@ static test_result_t test_blk_read_oob_status(struct virtio_dev *dev,
     uint64_t cap = bcfg->capacity;
     if (cap == 0) return TEST_SKIP;
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *st = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
     hdr->sector = cap;  /* one past the last valid sector */
     *st = 0xFF;
 

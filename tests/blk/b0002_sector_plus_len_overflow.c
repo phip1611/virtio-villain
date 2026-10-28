@@ -16,7 +16,8 @@
 static test_result_t test_blk_sector_plus_len_overflow(struct virtio_dev *dev,
                                                        struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr =
+        blk_hdr(VIRTIO_BLK_T_IN, 0xFFFFFFFFFFFFFFFEULL);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
@@ -24,8 +25,6 @@ static test_result_t test_blk_sector_plus_len_overflow(struct virtio_dev *dev,
      * sector near max: sector * 512 is close to 2^64.
      * Adding data length wraps around.
      */
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0xFFFFFFFFFFFFFFFEULL;
     *status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

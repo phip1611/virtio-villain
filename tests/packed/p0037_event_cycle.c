@@ -22,12 +22,10 @@
 static int submit_one(struct virtio_dev *dev, struct vring_packed *vr,
                       uint64_t sector)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, sector);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = sector;
     *status = 0xFF;
 
     uint16_t head = vr->next_avail;

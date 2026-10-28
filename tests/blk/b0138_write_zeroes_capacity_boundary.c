@@ -24,12 +24,10 @@ static test_result_t test_blk_write_zeroes_capacity_boundary(
     if (capacity < 2)
         return TEST_SKIP;
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_WRITE_ZEROES, 0);
     struct virtio_blk_discard_write_zeroes *seg = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_WRITE_ZEROES;
-    hdr->sector = 0;
     *status = 0xFF;
 
     /* Request from last sector to end of device */

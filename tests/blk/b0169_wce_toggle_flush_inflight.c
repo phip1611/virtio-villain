@@ -39,22 +39,18 @@ static test_result_t test_blk_wce_toggle_flush_inflight(struct virtio_dev *dev,
     *wce = 1;
     __sync_synchronize();
 
-    struct virtio_blk_outhdr *whdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *whdr = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *wdata = vv_alloc_pages(1);
     uint8_t *wstatus = vv_alloc_pages(1);
 
-    struct virtio_blk_outhdr *fhdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *fhdr = blk_hdr(VIRTIO_BLK_T_FLUSH, 0);
     uint8_t *fstatus = vv_alloc_pages(1);
 
     /* WRITE request: sector 0, 512 bytes */
-    whdr->type = VIRTIO_BLK_T_OUT;
-    whdr->sector = 0;
     memset(wdata, 0x42, 512);
     *wstatus = 0xFF;
 
     /* FLUSH request */
-    fhdr->type = VIRTIO_BLK_T_FLUSH;
-    fhdr->sector = 0;
     *fstatus = 0xFF;
 
     /* Chain 0: WRITE (descs 0,1,2) */

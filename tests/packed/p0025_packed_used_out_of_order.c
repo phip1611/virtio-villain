@@ -22,20 +22,16 @@ static test_result_t test_packed_used_out_of_order(struct virtio_dev *dev,
     if (vr->size < 8)
         return TEST_SKIP;
 
-    struct virtio_blk_outhdr *hdr0 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr0 = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data0 = vv_alloc_pages(1);
     uint8_t *st0 = vv_alloc_pages(1);
 
-    struct virtio_blk_outhdr *hdr1 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr1 = blk_hdr(VIRTIO_BLK_T_IN, 1);
     uint8_t *data1 = vv_alloc_pages(1);
     uint8_t *st1 = vv_alloc_pages(1);
 
-    hdr0->type = VIRTIO_BLK_T_IN;
-    hdr0->sector = 0;
     *st0 = 0xFF;
 
-    hdr1->type = VIRTIO_BLK_T_IN;
-    hdr1->sector = 1;
     *st1 = 0xFF;
 
     /* Build indirect tables for each request */

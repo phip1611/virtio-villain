@@ -55,7 +55,7 @@ static test_result_t test_blk_write_partial_oob(struct virtio_dev *dev,
     if (capacity < 2)
         return TEST_SKIP;
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_OUT, capacity - 1);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
@@ -63,8 +63,6 @@ static test_result_t test_blk_write_partial_oob(struct virtio_dev *dev,
      * Write 2 sectors starting at (capacity - 1).
      * Sector (capacity - 1) is valid, sector (capacity) is OOB.
      */
-    hdr->type = VIRTIO_BLK_T_OUT;
-    hdr->sector = capacity - 1;
     *status = 0xFF;
     memset(data, 0xAA, 1024);
 

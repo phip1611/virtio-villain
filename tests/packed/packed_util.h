@@ -51,11 +51,9 @@ static inline test_result_t pk_blk_chain(struct virtio_dev *dev,
                                          uint32_t data_len,
                                          uint16_t data_flags)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(hdr_type, 0);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = hdr_type;
-    hdr->sector = 0;
     *status = 0xFF;
 
     uint16_t a0 = vr->next_avail;
@@ -80,12 +78,10 @@ static inline test_result_t pk_blk_chain(struct virtio_dev *dev,
 static inline uint64_t pk_indirect_blk_table(void)
 {
     struct vring_packed_desc *tab = vv_alloc_pages(1);
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *status = 0xFF;
 
     tab[0].addr = vv_virt_to_phys(hdr);

@@ -37,12 +37,10 @@ static test_result_t test_blk_discard_wz_overlap(struct virtio_dev *dev,
     vring_attach(dev, &vr2, 1);
 
     /* DISCARD on queue 0 */
-    struct virtio_blk_outhdr *hdr0 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr0 = blk_hdr(VIRTIO_BLK_T_DISCARD, 0);
     struct virtio_blk_discard_write_zeroes *seg0 = vv_alloc_pages(1);
     uint8_t *st0 = vv_alloc_pages(1);
 
-    hdr0->type = VIRTIO_BLK_T_DISCARD;
-    hdr0->sector = 0;
     seg0->sector = 0;
     seg0->num_sectors = 8;
     seg0->flags = 0;
@@ -57,12 +55,10 @@ static test_result_t test_blk_discard_wz_overlap(struct virtio_dev *dev,
     vring_submit(vr, 0);
 
     /* WRITE_ZEROES on queue 1 - same sector range */
-    struct virtio_blk_outhdr *hdr1 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr1 = blk_hdr(VIRTIO_BLK_T_WRITE_ZEROES, 0);
     struct virtio_blk_discard_write_zeroes *seg1 = vv_alloc_pages(1);
     uint8_t *st1 = vv_alloc_pages(1);
 
-    hdr1->type = VIRTIO_BLK_T_WRITE_ZEROES;
-    hdr1->sector = 0;
     seg1->sector = 0;
     seg1->num_sectors = 8;
     seg1->flags = 0;

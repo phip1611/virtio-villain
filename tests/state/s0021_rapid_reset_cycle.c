@@ -76,12 +76,10 @@ static test_result_t test_rapid_reset_cycle(struct virtio_dev *dev,
     vring_alloc(&tvr, 16);
     vring_attach(dev, &tvr, 0);
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *status = 0xFF;
 
     vring_raw_set_desc(&tvr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

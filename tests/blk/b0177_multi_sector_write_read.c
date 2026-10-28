@@ -19,12 +19,10 @@ static test_result_t test_blk_multi_sector(struct virtio_dev *dev,
                                            struct vring *vr)
 {
     /* Write 4K */
-    struct virtio_blk_outhdr *whdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *whdr = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *wdata = vv_alloc_pages(1);
     uint8_t *wst = vv_alloc_pages(1);
 
-    whdr->type = VIRTIO_BLK_T_OUT;
-    whdr->sector = 0;
     for (int i = 0; i < 4096; i++)
         wdata[i] = (uint8_t)((i * 7 + 13) & 0xFF);
     *wst = 0xFF;
@@ -40,12 +38,10 @@ static test_result_t test_blk_multi_sector(struct virtio_dev *dev,
     if (*wst != VIRTIO_BLK_S_OK) TFAIL("write status %u", *wst);
 
     /* Read 4K */
-    struct virtio_blk_outhdr *rhdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *rhdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *rdata = vv_alloc_pages(1);
     uint8_t *rst = vv_alloc_pages(1);
 
-    rhdr->type = VIRTIO_BLK_T_IN;
-    rhdr->sector = 0;
     *rst = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(rhdr), sizeof(*rhdr),

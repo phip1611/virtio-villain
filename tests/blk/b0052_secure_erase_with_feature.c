@@ -26,12 +26,9 @@ static test_result_t test_blk_secure_erase(struct virtio_dev *dev,
     if (!(offered & (1U << VIRTIO_BLK_F_SECURE_ERASE)))
         return TEST_SKIP;
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_SECURE_ERASE, 0);
     struct virtio_blk_discard_write_zeroes *seg = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
-
-    hdr->type = VIRTIO_BLK_T_SECURE_ERASE;
-    hdr->sector = 0;
 
     seg->sector = 0;
     seg->num_sectors = 8; /* erase 8 sectors */

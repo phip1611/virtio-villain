@@ -18,13 +18,11 @@
 static test_result_t test_blk_write_then_flush(struct virtio_dev *dev,
                                                struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
     /* First: write one sector */
-    hdr->type = VIRTIO_BLK_T_OUT;
-    hdr->sector = 0;
     memset(data, 0xAB, 512);
     *status = 0xFF;
 
@@ -40,11 +38,9 @@ static test_result_t test_blk_write_then_flush(struct virtio_dev *dev,
         return r;
 
     /* Second: flush */
-    struct virtio_blk_outhdr *flush_hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *flush_hdr = blk_hdr(VIRTIO_BLK_T_FLUSH, 0);
     uint8_t *flush_status = vv_alloc_pages(1);
 
-    flush_hdr->type = VIRTIO_BLK_T_FLUSH;
-    flush_hdr->sector = 0;
     *flush_status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(flush_hdr), sizeof(*flush_hdr),

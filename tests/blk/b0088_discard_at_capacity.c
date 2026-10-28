@@ -24,12 +24,9 @@ static test_result_t test_blk_discard_at_capacity(struct virtio_dev *dev,
     for (int i = 0; i < 8; i++)
         ((uint8_t *)&capacity)[i] = cfg_space[i];
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_DISCARD, 0);
     struct virtio_blk_discard_write_zeroes *seg = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
-
-    hdr->type = VIRTIO_BLK_T_DISCARD;
-    hdr->sector = 0;
 
     seg->sector = capacity; /* at capacity = beyond valid */
     seg->num_sectors = 1;

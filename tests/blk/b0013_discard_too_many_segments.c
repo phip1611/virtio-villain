@@ -17,13 +17,11 @@
 static test_result_t test_blk_discard_too_many(struct virtio_dev *dev,
                                                struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_DISCARD, 0);
     /* Pack 256 segments - way beyond any reasonable max_discard_seg */
     struct virtio_blk_discard_write_zeroes *segs = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_DISCARD;
-    hdr->sector = 0;
     *status = 0xFF;
 
     /* Fill 256 discard segments */

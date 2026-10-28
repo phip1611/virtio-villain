@@ -17,11 +17,9 @@
 static test_result_t test_blk_discard_empty(struct virtio_dev *dev,
                                             struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_DISCARD, 0);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_DISCARD;
-    hdr->sector = 0;
     *status = 0xFF;
 
     /* header → status, no data descriptor at all (0 segments) */

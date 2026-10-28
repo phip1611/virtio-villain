@@ -57,12 +57,9 @@ static test_result_t test_blk_concurrent_discard_write(struct virtio_dev *dev,
     (void)vr;
 
     /* Queue 0: discard sectors 0-7 */
-    struct virtio_blk_outhdr *dhdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *dhdr = blk_hdr(VIRTIO_BLK_T_DISCARD, 0);
     struct virtio_blk_discard_write_zeroes *seg = vv_alloc_pages(1);
     uint8_t *dstatus = vv_alloc_pages(1);
-
-    dhdr->type = VIRTIO_BLK_T_DISCARD;
-    dhdr->sector = 0;
 
     seg->sector = 0;
     seg->num_sectors = 8;
@@ -79,12 +76,10 @@ static test_result_t test_blk_concurrent_discard_write(struct virtio_dev *dev,
     vring_raw_set_avail_idx(&q0, 1);
 
     /* Queue 1: write to sector 0 (overlapping) */
-    struct virtio_blk_outhdr *whdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *whdr = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *wdata = vv_alloc_pages(1);
     uint8_t *wstatus = vv_alloc_pages(1);
 
-    whdr->type = VIRTIO_BLK_T_OUT;
-    whdr->sector = 0;
     memset(wdata, 0xBB, 512);
     *wstatus = 0xFF;
 

@@ -17,12 +17,10 @@
 static test_result_t test_blk_secure_erase_no_feature(struct virtio_dev *dev,
                                                       struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_SECURE_ERASE, 0);
     struct virtio_blk_discard_write_zeroes *seg = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_SECURE_ERASE;
-    hdr->sector = 0;
     *status = 0xFF;
 
     seg->sector = 0;

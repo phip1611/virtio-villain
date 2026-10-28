@@ -19,11 +19,10 @@
 static test_result_t test_blk_wz_beyond(struct virtio_dev *dev,
                                         struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr =
+        blk_hdr(VIRTIO_BLK_T_WRITE_ZEROES, 0xFFFFFFFFFFFFULL);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_WRITE_ZEROES;
-    hdr->sector = 0xFFFFFFFFFFFFULL;
     *status = 0xFF;
 
     /* WRITE_ZEROES has a discard/write_zeroes data segment */

@@ -27,12 +27,10 @@ static test_result_t test_needs_reset_detection(struct virtio_dev *dev,
         TFAIL("status & VIRTIO_STATUS_NEEDS_RESET"); /* spuriously set before any error */
 
     /* Do a valid I/O to confirm the device is healthy */
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *st = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *st = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

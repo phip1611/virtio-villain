@@ -17,12 +17,10 @@
 static test_result_t test_blk_get_id_short(struct virtio_dev *dev,
                                            struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_GET_ID, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_GET_ID;
-    hdr->sector = 0;
     *status = 0xFF;
 
     /* GET_ID with only 4 bytes for data (needs 20) */

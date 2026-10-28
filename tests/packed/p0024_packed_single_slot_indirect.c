@@ -24,12 +24,10 @@ static test_result_t test_packed_qsize_one_indirect(struct virtio_dev *dev,
      * If the device doesn't support size=1, we still test with an
      * indirect descriptor (since one slot is all we need for indirect).
      */
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *status = 0xFF;
 
     /* Build indirect table: 3 descriptors for header, data, status */

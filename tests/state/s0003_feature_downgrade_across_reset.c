@@ -96,11 +96,9 @@ static test_result_t test_feature_downgrade(struct virtio_dev *dev,
      * Phase 3: Send a FLUSH as if VIRTIO_BLK_F_FLUSH was still active.
      * With zero features negotiated, flush should not be accepted.
      */
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_FLUSH, 0);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_FLUSH;
-    hdr->sector = 0;
     *status = 0xFF;
 
     uint64_t hdr_phys = vv_virt_to_phys(hdr);
