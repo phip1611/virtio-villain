@@ -20,10 +20,9 @@ static test_result_t test_net_tx_all_flags(struct virtio_dev *dev,
 {
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE |
-                           VRING_DESC_F_INDIRECT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(hdr), sizeof(*hdr), 0, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr),
+            VRING_DESC_F_NEXT | VRING_DESC_F_WRITE | VRING_DESC_F_INDIRECT, 1);
+    vv_desc(vr, 1, hdr, sizeof(*hdr), 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

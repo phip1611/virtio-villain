@@ -22,13 +22,11 @@ static test_result_t test_scsi_datain_over(struct virtio_dev *dev,
     req->cdb[8] = 1;         /* one block, 512 bytes */
     resp->status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+            2);
     /* Data-in buffer is 1024 bytes for a 512-byte transfer. */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(data), 1024,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, data, 1024, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, seq, 0);
     vring_raw_set_avail_idx(vr, seq + 1);
 

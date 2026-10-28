@@ -29,8 +29,7 @@ static test_result_t test_scsi_events_missed(struct virtio_dev *dev,
     usleep(3000000);
 
     /* Now offer a buffer; the device reports the missed event. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(ev), sizeof(*ev),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, ev, sizeof(*ev), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     scsi_kick(dev, vr->queue);

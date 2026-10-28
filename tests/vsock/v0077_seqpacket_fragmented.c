@@ -36,7 +36,7 @@ static test_result_t test_vsock_seqpacket_frag(struct virtio_dev *dev,
     conn->flags = 0;
     conn->buf_alloc = 65536; conn->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(conn), sizeof(*conn), 0, 0);
+    vv_desc(vr, 0, conn, sizeof(*conn), 0, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 
@@ -65,12 +65,10 @@ static test_result_t test_vsock_seqpacket_frag(struct virtio_dev *dev,
     memset(p2, 'B', 16);
 
     /* Submit both fragments */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(frag1), sizeof(*frag1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(p1), 16, 0, 0);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(frag2), sizeof(*frag2),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(p2), 16, 0, 0);
+    vv_desc(vr, 0, frag1, sizeof(*frag1), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, p1, 16, 0, 0);
+    vv_desc(vr, 2, frag2, sizeof(*frag2), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, p2, 16, 0, 0);
 
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail(vr, 2, 2);

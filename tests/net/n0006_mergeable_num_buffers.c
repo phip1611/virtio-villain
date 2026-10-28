@@ -29,8 +29,7 @@ static test_result_t test_net_mergeable_abuse(struct virtio_dev *dev,
     buf->num_buffers = 0xFFFF;
 
     /* Single RX buffer (writable) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), PAGE_SIZE,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, PAGE_SIZE, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

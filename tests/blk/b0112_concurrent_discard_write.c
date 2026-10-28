@@ -66,12 +66,9 @@ static test_result_t test_blk_concurrent_discard_write(struct virtio_dev *dev,
     seg->flags = 0;
     *dstatus = 0xFF;
 
-    vring_raw_set_desc(&q0, 0, vv_virt_to_phys(dhdr), sizeof(*dhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&q0, 1, vv_virt_to_phys(seg), sizeof(*seg),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&q0, 2, vv_virt_to_phys(dstatus), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&q0, 0, dhdr, sizeof(*dhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&q0, 1, seg, sizeof(*seg), VRING_DESC_F_NEXT, 2);
+    vv_desc(&q0, 2, dstatus, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&q0, 0, 0);
     vring_raw_set_avail_idx(&q0, 1);
 
@@ -83,12 +80,9 @@ static test_result_t test_blk_concurrent_discard_write(struct virtio_dev *dev,
     memset(wdata, 0xBB, 512);
     *wstatus = 0xFF;
 
-    vring_raw_set_desc(&q1, 0, vv_virt_to_phys(whdr), sizeof(*whdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&q1, 1, vv_virt_to_phys(wdata), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&q1, 2, vv_virt_to_phys(wstatus), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&q1, 0, whdr, sizeof(*whdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&q1, 1, wdata, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(&q1, 2, wstatus, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&q1, 0, 0);
     vring_raw_set_avail_idx(&q1, 1);
 

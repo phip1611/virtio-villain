@@ -30,12 +30,9 @@ static inline test_result_t blk_mmio_read(struct virtio_mmio_dev *dev,
     void *data = vv_alloc_pages(1);
     volatile uint8_t *status = vv_alloc_pages(1);
     *status = 0xff;
-    vring_raw_set_desc(ring, 0, vv_virt_to_phys(header), sizeof(*header),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(ring, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(ring, 2, vv_virt_to_phys((void *)status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(ring, 0, header, sizeof(*header), VRING_DESC_F_NEXT, 1);
+    vv_desc(ring, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(ring, 2, (void *)status, 1, VRING_DESC_F_WRITE, 0);
     uint16_t before = ring->used->idx;
     vring_submit(ring, 0);
     virtio_mmio_kick(dev, 0);

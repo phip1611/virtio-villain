@@ -56,8 +56,7 @@ static test_result_t test_balloon_stats_any_order(struct virtio_dev *dev,
         entries[i].val = (uint64_t)(i + 1) << 20;
     }
 
-    vring_raw_set_desc(&sq, 0, vv_virt_to_phys(entries),
-                       n * sizeof(struct virtio_balloon_stat), 0, 0);
+    vv_desc(&sq, 0, entries, n * sizeof(struct virtio_balloon_stat), 0, 0);
     vring_raw_set_avail(&sq, 0, 0);
     vring_raw_set_avail_idx(&sq, 1);
 

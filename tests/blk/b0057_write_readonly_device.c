@@ -34,10 +34,8 @@ static test_result_t test_blk_write_readonly(struct virtio_dev *dev,
 
     hdr->sector = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
 
     for (unsigned phase = 0; phase < 3; phase++) {
         int writing = phase == 1;
@@ -49,9 +47,8 @@ static test_result_t test_blk_write_readonly(struct virtio_dev *dev,
             memset(data, 0xFF, sizeof(original));
         }
         *st = 0xFF;
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), sizeof(original),
-                           VRING_DESC_F_NEXT |
-                           (writing ? 0 : VRING_DESC_F_WRITE), 2);
+        vv_desc(vr, 1, data, sizeof(original),
+                VRING_DESC_F_NEXT | (writing ? 0 : VRING_DESC_F_WRITE), 2);
         uint16_t idx = vr->avail->idx;
         vring_raw_set_avail(vr, idx % vr->size, 0);
         vring_raw_set_avail_idx(vr, idx + 1);

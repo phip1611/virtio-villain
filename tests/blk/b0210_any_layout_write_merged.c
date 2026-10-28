@@ -42,8 +42,7 @@ static test_result_t test_blk_any_layout_write_merged(struct virtio_dev *dev,
      * desc 0: header + data in one readable descriptor (16 + 512 bytes)
      * desc 1: status (writable, 1 byte)
      */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), sizeof(*hdr) + 512,
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, buf, sizeof(*hdr) + 512, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, status_phys, 1, VRING_DESC_F_WRITE, 0);
 
     test_result_t r = vv_submit_and_wait(dev, vr, 0);

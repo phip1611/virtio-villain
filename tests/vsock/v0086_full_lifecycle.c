@@ -30,7 +30,7 @@ static test_result_t test_vsock_lifecycle(struct virtio_dev *dev,
     conn->op = VIRTIO_VSOCK_OP_REQUEST;
     conn->flags = 0; conn->buf_alloc = 65536; conn->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(conn), sizeof(*conn), 0, 0);
+    vv_desc(vr, 0, conn, sizeof(*conn), 0, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 
@@ -42,9 +42,8 @@ static test_result_t test_vsock_lifecycle(struct virtio_dev *dev,
     rw->flags = 0; rw->buf_alloc = 65536; rw->fwd_cnt = 0;
     memcpy(payload, "testdata", 8);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rw), sizeof(*rw),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(payload), 8, 0, 0);
+    vv_desc(vr, 0, rw, sizeof(*rw), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, payload, 8, 0, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -58,7 +57,7 @@ static test_result_t test_vsock_lifecycle(struct virtio_dev *dev,
     shut->flags = VIRTIO_VSOCK_SHUTDOWN_BOTH;
     shut->buf_alloc = 65536; shut->fwd_cnt = 8;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(shut), sizeof(*shut), 0, 0);
+    vv_desc(vr, 0, shut, sizeof(*shut), 0, 0);
     vring_raw_set_avail(vr, 2, 0);
     vring_raw_set_avail_idx(vr, 3);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -71,7 +70,7 @@ static test_result_t test_vsock_lifecycle(struct virtio_dev *dev,
     rst->op = VIRTIO_VSOCK_OP_RST;
     rst->flags = 0; rst->buf_alloc = 0; rst->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rst), sizeof(*rst), 0, 0);
+    vv_desc(vr, 0, rst, sizeof(*rst), 0, 0);
     vring_raw_set_avail(vr, 3, 0);
     vring_raw_set_avail_idx(vr, 4);
 

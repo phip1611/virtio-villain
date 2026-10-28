@@ -30,7 +30,7 @@ static test_result_t test_balloon_inflate_actual(struct virtio_dev *dev,
     void *page = vv_alloc_pages(1);
     pfn_buf[0] = (uint32_t)(vv_virt_to_phys(page) >> VIRTIO_BALLOON_PFN_SHIFT);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pfn_buf), 4, 0, 0);
+    vv_desc(vr, 0, pfn_buf, 4, 0, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 

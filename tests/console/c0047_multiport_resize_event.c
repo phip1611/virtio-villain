@@ -36,8 +36,7 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     m->id = 0; m->event = VIRTIO_CONSOLE_RESIZE; m->value = 0;
     r->rows = 80; r->cols = 24;
 
-    vring_raw_set_desc(&cq, 0, vv_virt_to_phys(p),
-                       (uint32_t)(sizeof(*m) + sizeof(*r)), 0, 0);
+    vv_desc(&cq, 0, p, (uint32_t)(sizeof(*m) + sizeof(*r)), 0, 0);
     vring_raw_set_avail(&cq, 0, 0);
     vring_raw_set_avail_idx(&cq, 1);
 

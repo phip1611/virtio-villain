@@ -11,8 +11,7 @@ static test_result_t test_info_response_addr_wrap(struct virtio_dev *dev,
     req->count = 0;
     req->size = SND_PCM_INFO_SIZE;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, 0xfffffffffffff000ULL, 0x2000,
                        VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, vr->avail->idx % vr->size, 0);

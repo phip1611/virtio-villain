@@ -45,9 +45,8 @@ static test_result_t test_net_tx_gso_tcp4(struct virtio_dev *dev,
     frame[16] = 0x00; frame[17] = 140; /* total length */
     frame[23] = 6;                  /* protocol = TCP */
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(frame), 154, 0, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, frame, 154, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

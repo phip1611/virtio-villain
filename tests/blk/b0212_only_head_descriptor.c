@@ -23,7 +23,7 @@ static test_result_t test_blk_only_head_descriptor(struct virtio_dev *dev,
     struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0x7fffffff);
 
     /* Lone header descriptor: readable, no NEXT, no data, no status. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), 0, 0);
 
     vring_submit(vr, 0);
 

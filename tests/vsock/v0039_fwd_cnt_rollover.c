@@ -42,8 +42,7 @@ static test_result_t test_vsock_fwd_cnt_rollover(struct virtio_dev *dev,
     pkt->fwd_cnt = 0xFFFFFFF0; /* near UINT32_MAX */
     memset(payload, 0xEE, 32);
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(pkt),
-                       sizeof(*pkt) + 32, 0, 0);
+    vv_desc(&txvr, 0, pkt, sizeof(*pkt) + 32, 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 

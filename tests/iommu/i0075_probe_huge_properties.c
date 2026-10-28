@@ -31,8 +31,7 @@ static test_result_t test_iommu_probe_huge(struct virtio_dev *dev,
     uint64_t out_phys;
     vv_alloc_page_high(&out_phys);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), (uint32_t)in_len,
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, req, (uint32_t)in_len, VRING_DESC_F_NEXT, 1);
     /* Output buffer with a comically large length */
     vring_raw_set_desc(vr, 1, out_phys, 0xFFFFF000,
                        VRING_DESC_F_WRITE, 0);

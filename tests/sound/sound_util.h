@@ -40,10 +40,8 @@ static inline test_result_t snd_submit_control(struct virtio_dev *dev,
     memcpy(req, request, request_len);
     memset(resp, 0xff, response_len);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), request_len,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), response_len,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, request_len, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, response_len, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, avail_idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, avail_idx + 1);
 
@@ -135,10 +133,8 @@ static inline test_result_t snd_get_pcm_info(struct virtio_dev *dev,
     req->size = sizeof(*info);
     memset(resp, 0xff, response_len);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), response_len,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, response_len, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, vr->avail->idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, vr->avail->idx + 1);
 
@@ -310,13 +306,10 @@ static inline test_result_t snd_submit_pcm_xfer(
     memset(data, capture ? 0xff : 0, data_len);
     memset(status, 0xff, sizeof(*status));
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(xfer), sizeof(*xfer),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), data_len,
-                       VRING_DESC_F_NEXT |
-                       (capture ? VRING_DESC_F_WRITE : 0), 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), sizeof(*status),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, xfer, sizeof(*xfer), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, data_len,
+            VRING_DESC_F_NEXT | (capture ? VRING_DESC_F_WRITE : 0), 2);
+    vv_desc(vr, 2, status, sizeof(*status), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, avail_idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, avail_idx + 1);
 
@@ -378,13 +371,10 @@ static inline test_result_t snd_submit_pcm_xfer_safe(
     memset(data, capture ? 0xff : 0, data_len);
     memset(status, 0xff, sizeof(*status));
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(xfer), sizeof(*xfer),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), data_len,
-                       VRING_DESC_F_NEXT |
-                       (capture ? VRING_DESC_F_WRITE : 0), 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), sizeof(*status),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, xfer, sizeof(*xfer), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, data_len,
+            VRING_DESC_F_NEXT | (capture ? VRING_DESC_F_WRITE : 0), 2);
+    vv_desc(vr, 2, status, sizeof(*status), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, avail_idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, avail_idx + 1);
 

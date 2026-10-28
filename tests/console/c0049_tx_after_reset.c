@@ -61,7 +61,7 @@ static test_result_t test_console_tx_after_reset(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
     memcpy(buf, "hello\n", 6);
 
-    vring_raw_set_desc(&txq, 0, vv_virt_to_phys(buf), 6, 0, 0);
+    vv_desc(&txq, 0, buf, 6, 0, 0);
     vring_raw_set_avail(&txq, 0, 0);
     vring_raw_set_avail_idx(&txq, 1);
 

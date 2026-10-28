@@ -36,12 +36,9 @@ static test_result_t test_blk_mq_oob_queue(struct virtio_dev *dev,
 
     *status = 0xFF;
 
-    vring_raw_set_desc(&oob_vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&oob_vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&oob_vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&oob_vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&oob_vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&oob_vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&oob_vr, 0, 0);
     vring_raw_set_avail_idx(&oob_vr, 1);

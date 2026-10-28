@@ -44,7 +44,7 @@ static test_result_t test_console_ctrl_bad_port(struct virtio_dev *dev,
     msg->event = VIRTIO_CONSOLE_PORT_OPEN;
     msg->value = 1;
 
-    vring_raw_set_desc(&cq, 0, vv_virt_to_phys(msg), sizeof(*msg), 0, 0);
+    vv_desc(&cq, 0, msg, sizeof(*msg), 0, 0);
     vring_raw_set_avail(&cq, 0, 0);
     vring_raw_set_avail_idx(&cq, 1);
 

@@ -68,12 +68,9 @@ static test_result_t test_rss_non_power_of_2(struct virtio_dev *dev,
     uint16_t rss_len = 21 + 40;
     *ack = 0xFF;
 
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(ctrl), sizeof(*ctrl),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(rss_buf), rss_len,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&cvr, 2, vv_virt_to_phys(ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, ctrl, sizeof(*ctrl), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, rss_buf, rss_len, VRING_DESC_F_NEXT, 2);
+    vv_desc(&cvr, 2, ack, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);

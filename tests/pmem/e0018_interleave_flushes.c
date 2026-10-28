@@ -24,10 +24,8 @@ static int do_flush(struct virtio_dev *dev, struct vring *vr,
     req->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
     resp->ret = 0xDEADBEEF;
 
-    vring_raw_set_desc(vr, base, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, base + 1);
-    vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, base, req, sizeof(*req), VRING_DESC_F_NEXT, base + 1);
+    vv_desc(vr, base + 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, avail_slot, base);
     vring_raw_set_avail_idx(vr, avail_slot + 1);
 

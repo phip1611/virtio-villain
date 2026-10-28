@@ -42,12 +42,9 @@ static test_result_t test_zone_reset_during_append(struct virtio_dev *dev,
     memset(data0, 0x42, 512);
     *st0 = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr0), sizeof(*hdr0),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data0), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st0), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr0, sizeof(*hdr0), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data0, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, st0, 1, VRING_DESC_F_WRITE, 0);
     vring_submit(vr, 0);
 
     /* Zone reset on queue 1 */
@@ -57,10 +54,8 @@ static test_result_t test_zone_reset_during_append(struct virtio_dev *dev,
     hdr1->sector = 0; /* same zone */
     *st1 = 0xFF;
 
-    vring_raw_set_desc(&vr2, 0, vv_virt_to_phys(hdr1), sizeof(*hdr1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&vr2, 1, vv_virt_to_phys(st1), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&vr2, 0, hdr1, sizeof(*hdr1), VRING_DESC_F_NEXT, 1);
+    vv_desc(&vr2, 1, st1, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&vr2, 0, 0);
     vring_raw_set_avail_idx(&vr2, 1);
 

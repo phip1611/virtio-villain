@@ -58,9 +58,8 @@ static test_result_t test_net_speed_no_feature(struct virtio_dev *dev,
     hdr->csum_offset = 0;
     memset(frame, 0xFF, 60);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), 10,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(frame), 60, 0, 0);
+    vv_desc(vr, 0, hdr, 10, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, frame, 60, 0, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);

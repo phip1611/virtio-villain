@@ -41,10 +41,8 @@ static test_result_t test_crypto_data_desc_cycle(struct virtio_dev *dev,
     dreq->u.sym_cipher.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
 
     /* Descriptor 0 links to 1, descriptor 1 links back to 0. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(buf), 64,
-                       VRING_DESC_F_NEXT, 0);
+    vv_desc(vr, 0, dreq, sizeof(*dreq), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, buf, 64, VRING_DESC_F_NEXT, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("device reported failure on a cyclic descriptor chain");

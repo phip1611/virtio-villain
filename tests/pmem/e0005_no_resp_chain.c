@@ -19,7 +19,7 @@ static test_result_t test_pmem_no_resp_chain(struct virtio_dev *dev,
 {
     struct virtio_pmem_req *req = vv_alloc_pages(1);
     req->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req), 0, 0);
+    vv_desc(vr, 0, req, sizeof(*req), 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

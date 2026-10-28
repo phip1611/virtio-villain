@@ -24,8 +24,8 @@ static test_result_t test_console_tx_batch(struct virtio_dev *dev,
     memcpy(buf1, "hello\n", 6);
     memcpy(buf2, "world\n", 6);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf1), 6, 0, 0);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(buf2), 6, 0, 0);
+    vv_desc(vr, 0, buf1, 6, 0, 0);
+    vv_desc(vr, 1, buf2, 6, 0, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 1);

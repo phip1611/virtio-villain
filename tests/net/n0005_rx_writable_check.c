@@ -21,7 +21,7 @@ static test_result_t test_net_rx_writable(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
 
     /* RX buffer without WRITE flag - device cannot write into it */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 1526, 0, 0);
+    vv_desc(vr, 0, buf, 1526, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

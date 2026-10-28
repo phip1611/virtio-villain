@@ -26,8 +26,7 @@ static test_result_t test_chain_qsize_plus_one(struct virtio_dev *dev,
     uint16_t qsz = vr->size;
 
     /* Slot 0: header */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
 
     /* Slots 1..qsz-2: data buffers chained forward */
     for (uint16_t i = 1; i < qsz - 1; i++) {

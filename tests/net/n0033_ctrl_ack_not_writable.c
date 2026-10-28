@@ -33,10 +33,8 @@ static test_result_t test_net_ctrl_ack_ro(struct virtio_dev *dev,
     uint64_t ack_phys = vv_virt_to_phys(ack);
 
     /* hdr (readable) -> data (readable) -> ack (readable - WRONG!) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 1,
-                       VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 1, VRING_DESC_F_NEXT, 2);
     vring_raw_set_desc(vr, 2, ack_phys, 1, 0, 0); /* no WRITE flag */
 
     return vv_submit_and_wait(dev, vr, 0);

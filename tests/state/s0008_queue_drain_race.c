@@ -41,13 +41,11 @@ static test_result_t test_queue_drain_race(struct virtio_dev *dev,
         *statuses[i] = 0xFF;
 
         int base = i * 3;
-        vring_raw_set_desc(vr, base, vv_virt_to_phys(hdrs[i]),
-                           sizeof(*hdrs[i]), VRING_DESC_F_NEXT, base + 1);
-        vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(datas[i]),
-                           512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
-                           base + 2);
-        vring_raw_set_desc(vr, base + 2, vv_virt_to_phys(statuses[i]),
-                           1, VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, base, hdrs[i], sizeof(*hdrs[i]), VRING_DESC_F_NEXT,
+                base + 1);
+        vv_desc(vr, base + 1, datas[i], 512,
+                VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, base + 2);
+        vv_desc(vr, base + 2, statuses[i], 1, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, i, base);
     }
 
@@ -113,12 +111,9 @@ static test_result_t test_queue_drain_race(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
     *status = 0xFF;
 
-    vring_raw_set_desc(&vr2, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&vr2, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&vr2, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&vr2, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&vr2, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&vr2, 2, status, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&vr2, 0, 0);
     vring_raw_set_avail_idx(&vr2, 1);
 

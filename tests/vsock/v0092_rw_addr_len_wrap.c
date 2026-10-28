@@ -29,7 +29,7 @@ static test_result_t test_vsock_rw_addr_len_wrap(struct virtio_dev *dev,
     conn->flags = 0;
     conn->buf_alloc = 65536; conn->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(conn), sizeof(*conn), 0, 0);
+    vv_desc(vr, 0, conn, sizeof(*conn), 0, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
         return r;
@@ -48,8 +48,7 @@ static test_result_t test_vsock_rw_addr_len_wrap(struct virtio_dev *dev,
      * normal readable buffer; only the data region is malformed.
      * desc[1].addr = 0xFFFFFFFF_FFFFF000, len = 0x2000 -> end 0x1000.
      */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rw), sizeof(*rw),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, rw, sizeof(*rw), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, 0xFFFFFFFFFFFFF000ULL, 0x2000, 0, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);

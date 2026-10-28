@@ -31,16 +31,12 @@ static test_result_t test_rtc_concurrent_reads(struct virtio_dev *dev,
     req2->clock_id = 0;
 
     /* Chain 1: desc 0 -> desc 1 */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req1),
-                       (uint32_t)sizeof(*req1), VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp1),
-                       (uint32_t)sizeof(*resp1), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req1, (uint32_t)sizeof(*req1), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp1, (uint32_t)sizeof(*resp1), VRING_DESC_F_WRITE, 0);
 
     /* Chain 2: desc 2 -> desc 3 */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(req2),
-                       (uint32_t)sizeof(*req2), VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(resp2),
-                       (uint32_t)sizeof(*resp2), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, req2, (uint32_t)sizeof(*req2), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, resp2, (uint32_t)sizeof(*resp2), VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 2);

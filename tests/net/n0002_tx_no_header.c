@@ -20,7 +20,7 @@ static test_result_t test_net_tx_no_header(struct virtio_dev *dev,
     /* A 4-byte buffer - too short for the 10-byte virtio_net_hdr */
     uint8_t *buf = vv_alloc_pages(1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 4, 0, 0);
+    vv_desc(vr, 0, buf, 4, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

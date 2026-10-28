@@ -30,14 +30,12 @@ static test_result_t test_blk_zone_report_zero(struct virtio_dev *dev,
     *status = 0xFF;
 
     /* header (readable) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     /* report header (writable) - only room for the header, 0 zone entries */
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(report), sizeof(*report),
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 1, report, sizeof(*report),
+            VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
     /* status */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

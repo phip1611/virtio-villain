@@ -22,8 +22,7 @@ static test_result_t test_watchdog_flags_combo(struct virtio_dev *dev,
     memset(buf, 0xAA, 8);
 
     /* Descriptor 0: readable (no WRITE flag) chained to writable */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 4,
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, buf, 4, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, vv_virt_to_phys(buf) + 4, 4,
                        VRING_DESC_F_WRITE, 0);
 

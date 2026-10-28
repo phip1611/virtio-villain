@@ -33,8 +33,8 @@ static test_result_t test_vsock_multi_conn(struct virtio_dev *dev,
     c2->op = VIRTIO_VSOCK_OP_REQUEST;
     c2->flags = 0; c2->buf_alloc = 65536; c2->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(c1), sizeof(*c1), 0, 0);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(c2), sizeof(*c2), 0, 0);
+    vv_desc(vr, 0, c1, sizeof(*c1), 0, 0);
+    vv_desc(vr, 1, c2, sizeof(*c2), 0, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 1);

@@ -32,12 +32,9 @@ static test_result_t test_queue_size_change(struct virtio_dev *dev,
 
     *status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
         return TEST_SKIP;
@@ -97,12 +94,9 @@ static test_result_t test_queue_size_change(struct virtio_dev *dev,
 
     *status2 = 0xFF;
 
-    vring_raw_set_desc(&vr2, 0, vv_virt_to_phys(hdr2), sizeof(*hdr2),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&vr2, 1, vv_virt_to_phys(data2), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&vr2, 2, vv_virt_to_phys(status2), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&vr2, 0, hdr2, sizeof(*hdr2), VRING_DESC_F_NEXT, 1);
+    vv_desc(&vr2, 1, data2, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&vr2, 2, status2, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&vr2, 0, 0);
     vring_raw_set_avail_idx(&vr2, 1);
 

@@ -49,10 +49,8 @@ static test_result_t test_net_announce_ack_clears(struct virtio_dev *dev,
     hdr->command = VIRTIO_NET_CTRL_ANNOUNCE_ACK;
     *ack = 0xFF;
 
-    vring_raw_set_desc(&ctrl_vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&ctrl_vr, 1, vv_virt_to_phys(ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&ctrl_vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&ctrl_vr, 1, ack, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&ctrl_vr, 0, 0);
     vring_raw_set_avail_idx(&ctrl_vr, 1);
 

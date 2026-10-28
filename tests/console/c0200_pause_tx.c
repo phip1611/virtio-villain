@@ -49,7 +49,7 @@ static test_result_t do_tx_mmio(struct virtio_mmio_dev *dev,
     char *buffer = vv_alloc_pages(1);
     size_t length = strlen(message);
     memcpy(buffer, message, length);
-    vring_raw_set_desc(ring, 0, vv_virt_to_phys(buffer), length, 0, 0);
+    vv_desc(ring, 0, buffer, length, 0, 0);
     uint16_t before = ring->used->idx;
     vring_submit(ring, 0);
     virtio_mmio_kick(dev, 1);

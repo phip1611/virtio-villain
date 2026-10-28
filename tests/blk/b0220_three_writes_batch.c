@@ -33,12 +33,10 @@ static test_result_t test_blk_three_writes(struct virtio_dev *dev,
         *sts[i] = 0xFF;
 
         int base = i * 3;
-        vring_raw_set_desc(vr, base, vv_virt_to_phys(hdrs[i]),
-                           sizeof(*hdrs[i]), VRING_DESC_F_NEXT, base + 1);
-        vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(datas[i]), 512,
-                           VRING_DESC_F_NEXT, base + 2);
-        vring_raw_set_desc(vr, base + 2, vv_virt_to_phys(sts[i]), 1,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, base, hdrs[i], sizeof(*hdrs[i]), VRING_DESC_F_NEXT,
+                base + 1);
+        vv_desc(vr, base + 1, datas[i], 512, VRING_DESC_F_NEXT, base + 2);
+        vv_desc(vr, base + 2, sts[i], 1, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, i, base);
     }
     vring_raw_set_avail_idx(vr, 3);

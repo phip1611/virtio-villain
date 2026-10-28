@@ -21,8 +21,7 @@ static test_result_t test_net_rx_buffer_too_short(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
 
     /* Post a 4-byte writable buffer - smaller than virtio_net_hdr (10/12) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 4,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, 4, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

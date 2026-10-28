@@ -30,8 +30,7 @@ static test_result_t test_watchdog_indirect_zero(struct virtio_dev *dev,
     /* Indirect descriptor with len=0 (no entries reachable) */
     void *table = vv_alloc_pages(1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(table), 0,
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, table, 0, VRING_DESC_F_INDIRECT, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

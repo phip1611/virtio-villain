@@ -34,12 +34,9 @@ static test_result_t test_blk_wz_then_read(struct virtio_dev *dev,
     memset(wdata, 0xAA, 512);
     *wst = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(whdr), sizeof(*whdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(wdata), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(wst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, whdr, sizeof(*whdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, wdata, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, wst, 1, VRING_DESC_F_WRITE, 0);
 
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
@@ -57,12 +54,9 @@ static test_result_t test_blk_wz_then_read(struct virtio_dev *dev,
     zseg->flags = 0;
     *zst = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(zhdr), sizeof(*zhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(zseg), sizeof(*zseg),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(zst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, zhdr, sizeof(*zhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, zseg, sizeof(*zseg), VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, zst, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
@@ -81,12 +75,9 @@ static test_result_t test_blk_wz_then_read(struct virtio_dev *dev,
     memset(rdata, 0xBB, 512);
     *rst = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rhdr), sizeof(*rhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(rdata), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(rst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, rhdr, sizeof(*rhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, rdata, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, rst, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 2, 0);
     vring_raw_set_avail_idx(vr, 3);

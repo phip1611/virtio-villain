@@ -45,9 +45,9 @@ static test_result_t test_vsock_rst_after_shutdown(struct virtio_dev *dev,
     rst->op = VIRTIO_VSOCK_OP_RST;
     rst->flags = 0; rst->buf_alloc = 0; rst->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(conn), sizeof(*conn), 0, 0);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(shut), sizeof(*shut), 0, 0);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(rst), sizeof(*rst), 0, 0);
+    vv_desc(vr, 0, conn, sizeof(*conn), 0, 0);
+    vv_desc(vr, 1, shut, sizeof(*shut), 0, 0);
+    vv_desc(vr, 2, rst, sizeof(*rst), 0, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 1);

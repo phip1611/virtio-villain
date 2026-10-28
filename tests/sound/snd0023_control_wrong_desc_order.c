@@ -14,10 +14,9 @@ static test_result_t test_control_wrong_desc_order(struct virtio_dev *dev,
     req->size = SND_PCM_INFO_SIZE;
     memset(resp, 0xff, sizeof(struct virtio_snd_hdr) + 1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(resp),
-                       sizeof(struct virtio_snd_hdr),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(req), sizeof(*req), 0, 0);
+    vv_desc(vr, 0, resp, sizeof(struct virtio_snd_hdr),
+            VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 1);
+    vv_desc(vr, 1, req, sizeof(*req), 0, 0);
     vring_raw_set_avail(vr, vr->avail->idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, vr->avail->idx + 1);
 

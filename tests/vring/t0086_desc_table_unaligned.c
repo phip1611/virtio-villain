@@ -69,12 +69,10 @@ static test_result_t test_desc_table_unaligned(struct virtio_dev *dev,
 
     *st = 0xFF;
 
-    vring_raw_set_desc(&misaligned_vr, 0, vv_virt_to_phys(hdr),
-                       sizeof(*hdr), VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&misaligned_vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&misaligned_vr, 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&misaligned_vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&misaligned_vr, 1, data, 512,
+            VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&misaligned_vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&misaligned_vr, 0, 0);
     vring_raw_set_avail_idx(&misaligned_vr, 1);

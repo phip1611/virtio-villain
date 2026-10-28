@@ -21,11 +21,9 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 
     a->head.type = VIRTIO_IOMMU_T_ATTACH;
     a->domain = 0xA201; a->endpoint = 0; a->tail.status = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(a),
-                       (uint32_t)((uint8_t *)&a->tail - (uint8_t *)a),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(&a->tail),
-                       sizeof(a->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, a, (uint32_t)((uint8_t *)&a->tail - (uint8_t *)a),
+            VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, &a->tail, sizeof(a->tail), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -36,11 +34,9 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     m->virt_start = 0; m->virt_end = 0xFFF;
     m->phys_start = 0; m->flags = VIRTIO_IOMMU_MAP_F_READ;
     m->tail.status = 0xFF;
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(m),
-                       (uint32_t)((uint8_t *)&m->tail - (uint8_t *)m),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(&m->tail),
-                       sizeof(m->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, m, (uint32_t)((uint8_t *)&m->tail - (uint8_t *)m),
+            VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, &m->tail, sizeof(m->tail), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 1, 2);
     vring_raw_set_avail_idx(vr, 2);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -50,11 +46,9 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     u->domain = 0xA201;
     u->virt_start = 0; u->virt_end = 0xFFF;
     u->tail.status = 0xFF;
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(u),
-                       (uint32_t)((uint8_t *)&u->tail - (uint8_t *)u),
-                       VRING_DESC_F_NEXT, 5);
-    vring_raw_set_desc(vr, 5, vv_virt_to_phys(&u->tail),
-                       sizeof(u->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 4, u, (uint32_t)((uint8_t *)&u->tail - (uint8_t *)u),
+            VRING_DESC_F_NEXT, 5);
+    vv_desc(vr, 5, &u->tail, sizeof(u->tail), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 2, 4);
     vring_raw_set_avail_idx(vr, 3);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -62,11 +56,9 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 
     /* Re MAP the same range. */
     m->tail.status = 0xFF;
-    vring_raw_set_desc(vr, 6, vv_virt_to_phys(m),
-                       (uint32_t)((uint8_t *)&m->tail - (uint8_t *)m),
-                       VRING_DESC_F_NEXT, 7);
-    vring_raw_set_desc(vr, 7, vv_virt_to_phys(&m->tail),
-                       sizeof(m->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 6, m, (uint32_t)((uint8_t *)&m->tail - (uint8_t *)m),
+            VRING_DESC_F_NEXT, 7);
+    vv_desc(vr, 7, &m->tail, sizeof(m->tail), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 3, 6);
     vring_raw_set_avail_idx(vr, 4);
     return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

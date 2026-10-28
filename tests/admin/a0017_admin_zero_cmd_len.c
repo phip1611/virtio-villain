@@ -29,10 +29,8 @@ static test_result_t test_admin_zero_cmd_len(struct virtio_dev *dev,
     memset(result, 0xFF, 64);
 
     /* Command descriptor with len=0 (invalid) */
-    vring_raw_set_desc(&avr, 0, vv_virt_to_phys(cmd), 0,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&avr, 1, vv_virt_to_phys(result), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&avr, 0, cmd, 0, VRING_DESC_F_NEXT, 1);
+    vv_desc(&avr, 1, result, 64, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&avr, 0, 0);
     vring_raw_set_avail_idx(&avr, 1);

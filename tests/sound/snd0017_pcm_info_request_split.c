@@ -20,12 +20,9 @@ static test_result_t test_pcm_info_request_split(struct virtio_dev *dev,
     req->size = sizeof(struct virtio_snd_pcm_info);
     memset(resp, 0xff, response_len);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), 8,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys((uint8_t *)req + 8),
-                       sizeof(*req) - 8, VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(resp), response_len,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, 8, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, (uint8_t *)req + 8, sizeof(*req) - 8, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, resp, response_len, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, vr->avail->idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, vr->avail->idx + 1);
 

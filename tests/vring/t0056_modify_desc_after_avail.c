@@ -27,12 +27,9 @@ static test_result_t test_modify_desc_after_avail(struct virtio_dev *dev,
     *status = 0xFF;
 
     /* Set up valid chain */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     vring_submit(vr, 0);
     __sync_synchronize();
@@ -40,8 +37,7 @@ static test_result_t test_modify_desc_after_avail(struct virtio_dev *dev,
     virtio_pci_kick(dev, 0);
 
     /* Race: immediately rewrite desc[1] to point elsewhere */
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(bogus), 4096,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 1, bogus, 4096, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     __sync_synchronize();
 
     usleep(500000);

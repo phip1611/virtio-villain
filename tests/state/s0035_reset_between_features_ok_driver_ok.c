@@ -82,12 +82,9 @@ static test_result_t test_reset_between_features_ok_driver_ok(
 
     *st = 0xFF;
 
-    vring_raw_set_desc(&nv, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&nv, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&nv, 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&nv, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&nv, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&nv, 2, st, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&nv, 0, 0);
     vring_raw_set_avail_idx(&nv, 1);
 

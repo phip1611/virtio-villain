@@ -37,12 +37,9 @@ static test_result_t test_blk_discard_then_read_safe(struct virtio_dev *dev,
     seg->flags = 0;
     *dst = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dhdr), sizeof(*dhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(seg), sizeof(*seg),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(dst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, dhdr, sizeof(*dhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, seg, sizeof(*seg), VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, dst, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
     if (*dst != VIRTIO_BLK_S_OK) TFAIL("discard status %u", *dst);
@@ -54,12 +51,9 @@ static test_result_t test_blk_discard_then_read_safe(struct virtio_dev *dev,
 
     *rst = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rhdr), sizeof(*rhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(rdata), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(rst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, rhdr, sizeof(*rhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, rdata, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, rst, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
 

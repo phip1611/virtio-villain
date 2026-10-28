@@ -23,12 +23,9 @@ static test_result_t test_blk_zeros(struct virtio_dev *dev, struct vring *vr)
     /* First write non-zero so we know zeros are fresh */
     hdr->type = VIRTIO_BLK_T_OUT; hdr->ioprio = 0; hdr->sector = 0;
     memset(data, 0xCD, 512); *st = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 
@@ -43,8 +40,7 @@ static test_result_t test_blk_zeros(struct virtio_dev *dev, struct vring *vr)
     /* Read back */
     hdr->type = VIRTIO_BLK_T_IN;
     memset(data, 0xEE, 512); *st = 0xFF;
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vring_raw_set_avail(vr, 2, 0);
     vring_raw_set_avail_idx(vr, 3);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

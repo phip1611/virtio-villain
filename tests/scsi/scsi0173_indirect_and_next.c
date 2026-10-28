@@ -37,9 +37,8 @@ static test_result_t test_scsi_indirect_next(struct virtio_dev *dev,
     tbl[2].next = 0;
 
     /* Both indirect and next set, which the spec forbids. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(tbl),
-                       3 * sizeof(struct vring_desc),
-                       VRING_DESC_F_INDIRECT | VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, tbl, 3 * sizeof(struct vring_desc),
+            VRING_DESC_F_INDIRECT | VRING_DESC_F_NEXT, 1);
     vring_submit(vr, 0);
 
     /* Some devices reject this, others ignore the extra flag. Either

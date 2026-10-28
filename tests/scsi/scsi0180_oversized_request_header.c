@@ -23,12 +23,10 @@ static test_result_t test_scsi_oversized_header(struct virtio_dev *dev,
     resp->status = 0xFF;
 
     /* Header descriptor advertises 64 extra readable bytes. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req) + 64,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, sizeof(*req) + 64, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+            2);
+    vv_desc(vr, 2, data, 512, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, seq, 0);
     vring_raw_set_avail_idx(vr, seq + 1);
 

@@ -26,12 +26,10 @@ static void plant_read(struct vring *vr, uint16_t base,
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *st = vv_alloc_pages(1);
     *st = 0xFF;
-    vring_raw_set_desc(vr, base, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, base + 1);
-    vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, base + 2);
-    vring_raw_set_desc(vr, base + 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, base, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, base + 1);
+    vv_desc(vr, base + 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+            base + 2);
+    vv_desc(vr, base + 2, st, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, avail_slot, base);
 }
 

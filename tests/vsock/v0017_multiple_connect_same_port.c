@@ -38,9 +38,9 @@ static test_result_t test_vsock_multi_connect(struct virtio_dev *dev,
         p->fwd_cnt = 0;
     }
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt0), sizeof(*pkt0), 0, 0);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(pkt1), sizeof(*pkt1), 0, 0);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(pkt2), sizeof(*pkt2), 0, 0);
+    vv_desc(vr, 0, pkt0, sizeof(*pkt0), 0, 0);
+    vv_desc(vr, 1, pkt1, sizeof(*pkt1), 0, 0);
+    vv_desc(vr, 2, pkt2, sizeof(*pkt2), 0, 0);
 
     /* Submit all three */
     vring_raw_set_avail(vr, 0, 0);

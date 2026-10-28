@@ -47,8 +47,7 @@ static test_result_t test_net_rx_indirect_write(struct virtio_dev *dev,
     indirect[0].next = 0;
 
     /* Post indirect descriptor on queue 0 (RX queue) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect), 16,
-                       VRING_DESC_F_INDIRECT | VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, indirect, 16, VRING_DESC_F_INDIRECT | VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

@@ -33,8 +33,7 @@ static test_result_t test_desc_next_oob(struct virtio_dev *dev, struct vring *vr
      *
      * Slot 0 is valid but its next index exceeds the table boundary.
      */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, qsz);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, qsz);
 
     /* Put a plausible descriptor just past the table boundary in case
      * the VMM reads it without crashing (we want to distinguish

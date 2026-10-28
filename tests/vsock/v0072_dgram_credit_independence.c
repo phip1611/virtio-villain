@@ -29,7 +29,7 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     h->op = VIRTIO_VSOCK_OP_RW;
     h->buf_alloc = 0; h->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(h), sizeof(*h), 0, 0);
+    vv_desc(vr, 0, h, sizeof(*h), 0, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

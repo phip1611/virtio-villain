@@ -71,7 +71,7 @@ static test_result_t test_fs_forget_unknown(struct virtio_dev *dev,
     forget->nlookup = 1;
 
     /* FORGET has no response; hiprio queue, read only chain */
-    vring_raw_set_desc(&hiprio, 0, vv_virt_to_phys(page), hdr->len, 0, 0);
+    vv_desc(&hiprio, 0, page, hdr->len, 0, 0);
     vring_raw_set_avail(&hiprio, 0, 0);
     vring_raw_set_avail_idx(&hiprio, 1);
 

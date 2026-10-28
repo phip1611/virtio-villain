@@ -32,13 +32,11 @@ static test_result_t test_rtc_read_and_cross(struct virtio_dev *dev,
     r2->clock_id = 0;
     r2->hw_counter = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(p1), sizeof(*r1),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, p1, sizeof(*r1), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, vv_virt_to_phys(p1) + 256,
                        sizeof(struct rtc_resp_read),
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(p2), sizeof(*r2),
-                       VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 2, p2, sizeof(*r2), VRING_DESC_F_NEXT, 3);
     vring_raw_set_desc(vr, 3, vv_virt_to_phys(p2) + 256, 32,
                        VRING_DESC_F_WRITE, 0);
 

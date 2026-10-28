@@ -20,8 +20,7 @@ static test_result_t one_ping(struct virtio_dev *dev, struct vring *vr,
                               uint8_t *resp, uint16_t slot)
 {
     *resp = 0;
-    vring_raw_set_desc(vr, slot, vv_virt_to_phys(resp), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, slot, resp, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, slot, slot);
     vring_raw_set_avail_idx(vr, (uint16_t)(slot + 1));
     return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

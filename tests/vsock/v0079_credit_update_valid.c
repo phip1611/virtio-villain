@@ -29,7 +29,7 @@ static test_result_t test_vsock_credit_update(struct virtio_dev *dev,
     conn->flags = 0;
     conn->buf_alloc = 65536; conn->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(conn), sizeof(*conn), 0, 0);
+    vv_desc(vr, 0, conn, sizeof(*conn), 0, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 
@@ -44,7 +44,7 @@ static test_result_t test_vsock_credit_update(struct virtio_dev *dev,
     cu->buf_alloc = 131072;  /* increased buffer */
     cu->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(cu), sizeof(*cu), 0, 0);
+    vv_desc(vr, 0, cu, sizeof(*cu), 0, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
 

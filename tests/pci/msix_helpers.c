@@ -200,12 +200,11 @@ test_result_t msix_read(struct msix_test *ctx, unsigned queue)
         TFAIL("invalid read queue %u", queue);
     struct vring *vr = &ctx->queue[queue];
     *ctx->status[queue] = 0xff;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(ctx->header[queue]),
-                       sizeof(*ctx->header[queue]), VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(ctx->data[queue]), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(ctx->status[queue]), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, ctx->header[queue], sizeof(*ctx->header[queue]),
+            VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, ctx->data[queue], 512,
+            VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, ctx->status[queue], 1, VRING_DESC_F_WRITE, 0);
     uint16_t previous = ctx->completed[queue];
     uint16_t expected = previous + 1;
     vring_submit(vr, 0);

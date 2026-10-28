@@ -53,7 +53,7 @@ static test_result_t test_balloon_free_page_hint(struct virtio_dev *dev,
     /* Desc 0: command ID (4 bytes, readable) */
     vring_raw_set_desc(&fpq, 0, cmd_phys, 4, VRING_DESC_F_NEXT, 1);
     /* Desc 1: free page range (one page, readable) */
-    vring_raw_set_desc(&fpq, 1, vv_virt_to_phys(page), 4096, 0, 0);
+    vv_desc(&fpq, 1, page, 4096, 0, 0);
 
     vring_raw_set_avail(&fpq, 0, 0);
     vring_raw_set_avail_idx(&fpq, 1);

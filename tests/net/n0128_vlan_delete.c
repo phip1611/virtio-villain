@@ -28,12 +28,9 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     *vid = 0x0FFE;
     *ack = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(h), sizeof(*h),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(vid), sizeof(*vid),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, h, sizeof(*h), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, vid, sizeof(*vid), VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, ack, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

@@ -28,12 +28,10 @@ static test_result_t test_scsi_truncated_req(struct virtio_dev *dev,
 
     /* Command header advertised as only 8 bytes, well short of the real
      * header, so the device gathers a truncated request. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), 8,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, 8, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+            2);
+    vv_desc(vr, 2, data, 512, VRING_DESC_F_WRITE, 0);
 
     vring_submit(vr, 0);
 

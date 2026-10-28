@@ -36,8 +36,7 @@ static test_result_t test_desc_chain_too_long(struct virtio_dev *dev, struct vri
      *
      * A safe VMM must cap the walk at qsz entries.
      */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
 
     for (uint16_t i = 1; i < qsz - 1; i++) {
         vring_raw_set_desc(vr, i, data_phys, 512,

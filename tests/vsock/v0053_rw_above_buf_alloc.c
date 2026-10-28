@@ -35,8 +35,7 @@ static test_result_t test_vsock_rw_above_buf_alloc(struct virtio_dev *dev,
 
     memset(page + sizeof(*pkt), 0x55, 4096);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(page),
-                       sizeof(*pkt) + 4096, 0, 0);
+    vv_desc(vr, 0, page, sizeof(*pkt) + 4096, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

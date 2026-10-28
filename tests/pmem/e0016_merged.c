@@ -18,8 +18,7 @@ static test_result_t test_pmem_merged(struct virtio_dev *dev,
 {
     uint32_t *buf = vv_alloc_pages(1);
     buf[0] = VIRTIO_PMEM_REQ_TYPE_FLUSH;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 8,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, 8, VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

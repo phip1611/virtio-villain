@@ -56,14 +56,10 @@ static test_result_t test_crypto_header_fragmented(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 2, base + 2 * chunk, chunk, VRING_DESC_F_NEXT, 3);
     vring_raw_set_desc(vr, 3, base + 3 * chunk, total - 3 * chunk,
                        VRING_DESC_F_NEXT, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(iv), 16,
-                       VRING_DESC_F_NEXT, 5);
-    vring_raw_set_desc(vr, 5, vv_virt_to_phys(src), 16,
-                       VRING_DESC_F_NEXT, 6);
-    vring_raw_set_desc(vr, 6, vv_virt_to_phys(dst), 16,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 7);
-    vring_raw_set_desc(vr, 7, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 4, iv, 16, VRING_DESC_F_NEXT, 5);
+    vv_desc(vr, 5, src, 16, VRING_DESC_F_NEXT, 6);
+    vv_desc(vr, 6, dst, 16, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 7);
+    vv_desc(vr, 7, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("device reported failure on a fragmented request header");

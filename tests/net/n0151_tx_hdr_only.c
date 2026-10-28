@@ -28,7 +28,7 @@ static test_result_t test_net_tx_hdr_only(struct virtio_dev *dev,
     hdr->csum_offset = 0;
 
     /* Single descriptor: just the virtio header, no Ethernet frame */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

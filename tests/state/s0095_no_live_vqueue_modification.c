@@ -20,8 +20,7 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 16,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, 16, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     virtio_pci_kick(dev, vr->queue);

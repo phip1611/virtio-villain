@@ -37,12 +37,9 @@ static test_result_t test_net_ctrl_mq_pairs_max(struct virtio_dev *dev,
     *pairs = max_pairs; /* exactly the maximum */
     *ack = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(ctrl), sizeof(*ctrl),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(pairs), sizeof(*pairs),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, ctrl, sizeof(*ctrl), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, pairs, sizeof(*pairs), VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, ack, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

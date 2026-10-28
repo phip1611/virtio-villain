@@ -27,7 +27,7 @@ static test_result_t test_console_tx_write_flag(struct virtio_dev *dev,
     char *buf = (char *)vv_alloc_pages(1);
     memcpy(buf, "x\n", 2);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 2, VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, 2, VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

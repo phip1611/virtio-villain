@@ -33,14 +33,12 @@ static test_result_t test_desc_total_len_overflow(struct virtio_dev *dev,
      * Sum = 4 GiB + header + status → overflows uint32.
      * The addresses are bogus but we're testing length arithmetic.
      */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, data_phys, 0x80000000,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vring_raw_set_desc(vr, 2, data_phys, 0x80000000,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 3, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

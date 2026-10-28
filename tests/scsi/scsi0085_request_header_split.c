@@ -26,10 +26,9 @@ static test_result_t test_scsi_header_split(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 1, req_phys + 20, 20, VRING_DESC_F_NEXT, 2);
     vring_raw_set_desc(vr, 2, req_phys + 40, sizeof(*req) - 40,
                        VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 3, resp, sizeof(*resp), VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+            4);
+    vv_desc(vr, 4, data, 512, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, seq, 0);
     vring_raw_set_avail_idx(vr, seq + 1);
 

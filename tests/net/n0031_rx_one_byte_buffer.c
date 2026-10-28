@@ -22,7 +22,7 @@ static test_result_t test_net_rx_one_byte(struct virtio_dev *dev,
     *buf = 0xCC;
 
     /* Single 1-byte writable descriptor on RX queue */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 1, VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

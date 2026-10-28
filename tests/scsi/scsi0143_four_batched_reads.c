@@ -20,13 +20,10 @@ static test_result_t test_scsi_four_reads(struct virtio_dev *dev,
 
     for (int k = 0; k < 4; k++) {
         uint16_t base = (uint16_t)(k * 3);
-        vring_raw_set_desc(vr, base, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, base + 1);
-        vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(resp),
-                           sizeof(*resp),
-                           VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, base + 2);
-        vring_raw_set_desc(vr, base + 2, vv_virt_to_phys(data), 512,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, base, req, sizeof(*req), VRING_DESC_F_NEXT, base + 1);
+        vv_desc(vr, base + 1, resp, sizeof(*resp),
+                VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, base + 2);
+        vv_desc(vr, base + 2, data, 512, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, k, base);
     }
     vring_raw_set_avail_idx(vr, 4);

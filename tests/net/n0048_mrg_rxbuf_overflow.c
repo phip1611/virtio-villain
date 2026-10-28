@@ -35,8 +35,7 @@ static test_result_t test_net_mrg_rxbuf_overflow(struct virtio_dev *dev,
      * This is far too small for a full frame with mergeable headers.
      */
     uint8_t *rxbuf = vv_alloc_pages(1);
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rxbuf), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, rxbuf, 64, VRING_DESC_F_WRITE, 0);
     vring_submit(vr, 0);
     __sync_synchronize();
     virtio_pci_kick(dev, 0);
@@ -55,9 +54,8 @@ static test_result_t test_net_mrg_rxbuf_overflow(struct virtio_dev *dev,
     frame[12] = 0x08; frame[13] = 0x00;
     memset(frame + 14, 0xAA, 500);
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(txhdr), sizeof(*txhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&txvr, 1, vv_virt_to_phys(frame), 514, 0, 0);
+    vv_desc(&txvr, 0, txhdr, sizeof(*txhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&txvr, 1, frame, 514, 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 

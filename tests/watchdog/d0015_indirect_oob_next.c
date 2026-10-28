@@ -37,9 +37,8 @@ static test_result_t test_watchdog_indirect_oob_next(struct virtio_dev *dev,
     ind[2].flags = VRING_DESC_F_WRITE;
     ind[2].next = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(ind),
-                       3 * sizeof(struct vring_desc),
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, ind, 3 * sizeof(struct vring_desc), VRING_DESC_F_INDIRECT,
+            0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

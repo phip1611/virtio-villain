@@ -26,9 +26,8 @@ static test_result_t test_net_rsc_ext_rx_header(struct virtio_dev *dev,
 
     /* Post a writable receive buffer large enough for a mergeable
      * header plus a full frame. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf),
-                       sizeof(struct virtio_net_hdr_mrg) + 1500,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, sizeof(struct virtio_net_hdr_mrg) + 1500,
+            VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
         return r;

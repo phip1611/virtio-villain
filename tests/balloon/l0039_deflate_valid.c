@@ -39,7 +39,7 @@ static test_result_t test_balloon_deflate_valid(struct virtio_dev *dev,
     void *page = vv_alloc_pages(1);
     pfn_buf[0] = (uint32_t)(vv_virt_to_phys(page) >> VIRTIO_BALLOON_PFN_SHIFT);
 
-    vring_raw_set_desc(&dq, 0, vv_virt_to_phys(pfn_buf), 4, 0, 0);
+    vv_desc(&dq, 0, pfn_buf, 4, 0, 0);
     vring_raw_set_avail(&dq, 0, 0);
     vring_raw_set_avail_idx(&dq, 1);
 

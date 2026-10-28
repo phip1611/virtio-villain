@@ -43,7 +43,7 @@ static test_result_t test_balloon_report_huge(struct virtio_dev *dev,
     void *page = vv_alloc_pages(1);
 
     /* Report claiming 1 GiB */
-    vring_raw_set_desc(&rq, 0, vv_virt_to_phys(page), 1u << 30, 0, 0);
+    vv_desc(&rq, 0, page, 1u << 30, 0, 0);
     vring_raw_set_avail(&rq, 0, 0);
     vring_raw_set_avail_idx(&rq, 1);
 

@@ -56,12 +56,10 @@ static test_result_t test_scsi_abort_inflight(struct virtio_dev *dev,
     rb_resp->response = 0xFF;
     rb_resp->status = 0xFF;
 
-    vring_raw_set_desc(&rq, 0, vv_virt_to_phys(rb), sizeof(*rb),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&rq, 1, vv_virt_to_phys(rb_resp), sizeof(*rb_resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&rq, 2, vv_virt_to_phys(db), 512,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&rq, 0, rb, sizeof(*rb), VRING_DESC_F_NEXT, 1);
+    vv_desc(&rq, 1, rb_resp, sizeof(*rb_resp),
+            VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&rq, 2, db, 512, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&rq, rseq, 0);
     vring_raw_set_avail_idx(&rq, rseq + 1);
     uint16_t rq_before = rq.used->idx;

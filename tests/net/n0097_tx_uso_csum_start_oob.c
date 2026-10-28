@@ -33,8 +33,7 @@ static test_result_t test_net_tx_uso_csum_oob(struct virtio_dev *dev,
 
     memset(pkt + sizeof(*h), 0xBB, payload_len);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt),
-                       sizeof(*h) + payload_len, 0, 0);
+    vv_desc(vr, 0, pkt, sizeof(*h) + payload_len, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

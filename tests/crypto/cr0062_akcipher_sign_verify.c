@@ -74,14 +74,11 @@ static test_result_t test_crypto_sign_verify(struct virtio_dev *dev,
     dreq->u.akcipher.para.src_data_len = SHA1_DIGEST_LEN;
     dreq->u.akcipher.para.dst_data_len = RSA_KEY_BYTES;
     inhdr->status = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(digest), SHA1_DIGEST_LEN,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(sig), RSA_KEY_BYTES,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, dreq, sizeof(*dreq), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, digest, SHA1_DIGEST_LEN, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, sig, RSA_KEY_BYTES, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+            3);
+    vv_desc(vr, 3, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     if (vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS) != TEST_PASS)
@@ -101,14 +98,10 @@ static test_result_t test_crypto_sign_verify(struct virtio_dev *dev,
     dreq->u.akcipher.para.src_data_len = RSA_KEY_BYTES;
     dreq->u.akcipher.para.dst_data_len = SHA1_DIGEST_LEN;
     inhdr->status = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(sig), RSA_KEY_BYTES,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(digest), SHA1_DIGEST_LEN,
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, dreq, sizeof(*dreq), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, sig, RSA_KEY_BYTES, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, digest, SHA1_DIGEST_LEN, VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
     if (vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS) != TEST_PASS)

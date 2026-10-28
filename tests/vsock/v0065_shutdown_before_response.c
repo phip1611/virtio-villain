@@ -43,8 +43,8 @@ static test_result_t test_vsock_shutdown_before_response(struct virtio_dev *dev,
     fill(req, VIRTIO_VSOCK_OP_REQUEST, 0);
     fill(sd,  VIRTIO_VSOCK_OP_SHUTDOWN, VIRTIO_VSOCK_SHUTDOWN_BOTH);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req), 0, 0);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(sd),  sizeof(*sd),  0, 0);
+    vv_desc(vr, 0, req, sizeof(*req), 0, 0);
+    vv_desc(vr, 1, sd, sizeof(*sd), 0, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 1);
     vring_raw_set_avail_idx(vr, 2);

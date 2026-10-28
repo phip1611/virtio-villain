@@ -42,7 +42,7 @@ static test_result_t test_console_ctrl_short(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
 
     /* Only 2 bytes, way shorter than 8 byte control struct */
-    vring_raw_set_desc(&cq, 0, vv_virt_to_phys(buf), 2, 0, 0);
+    vv_desc(&cq, 0, buf, 2, 0, 0);
     vring_raw_set_avail(&cq, 0, 0);
     vring_raw_set_avail_idx(&cq, 1);
 

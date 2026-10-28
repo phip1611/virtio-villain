@@ -41,11 +41,8 @@ static test_result_t test_net_mac_table_oversized(struct virtio_dev *dev,
     *status = 0xFF;
 
     /* Header + unicast table (truncated) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(page),
-                       sizeof(*ctrl) + 4 + 4,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, page, sizeof(*ctrl) + 4 + 4, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

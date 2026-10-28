@@ -33,8 +33,7 @@ static test_result_t test_balloon_deflate_on_oom(struct virtio_dev *dev,
     pfns[1] = (uint32_t)((base >> VIRTIO_BALLOON_PFN_SHIFT) + 1);
 
     /* Inflate on default queue (idx 0). */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pfns),
-                       2 * sizeof(uint32_t), 0, 0);
+    vv_desc(vr, 0, pfns, 2 * sizeof(uint32_t), 0, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 
@@ -43,8 +42,7 @@ static test_result_t test_balloon_deflate_on_oom(struct virtio_dev *dev,
     if (vring_alloc(&dvr, 16) < 0) return TEST_SKIP;
     vring_attach(dev, &dvr, 1);
 
-    vring_raw_set_desc(&dvr, 0, vv_virt_to_phys(pfns),
-                       2 * sizeof(uint32_t), 0, 0);
+    vv_desc(&dvr, 0, pfns, 2 * sizeof(uint32_t), 0, 0);
     vring_raw_set_avail(&dvr, 0, 0);
     vring_raw_set_avail_idx(&dvr, 1);
     return vv_kick_and_wait(dev, &dvr, 1, VV_TIMEOUT_MS);

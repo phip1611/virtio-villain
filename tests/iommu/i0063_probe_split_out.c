@@ -40,9 +40,8 @@ static test_result_t test_iommu_probe_split_out(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 1, req_phys + in_len, half,
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
     /* Second half of properties + tail in a different page. */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(out2),
-                       (sizeof(req->properties) - half) + sizeof(req->tail),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, out2, (sizeof(req->properties) - half) + sizeof(req->tail),
+            VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

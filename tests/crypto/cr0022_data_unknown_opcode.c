@@ -46,16 +46,11 @@ static test_result_t test_crypto_data_unknown_opcode(struct virtio_dev *dev,
     memset(src, 0x41, 16);
     inhdr->status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(iv), 16,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(src), 16,
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(dst), 16,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, dreq, sizeof(*dreq), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, iv, 16, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, src, 16, VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, dst, 16, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
+    vv_desc(vr, 4, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("device reported failure on an unknown data opcode");

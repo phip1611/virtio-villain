@@ -45,9 +45,8 @@ static test_result_t test_vsock_dgram_type(struct virtio_dev *dev,
 
     memset(payload, 0xEE, 64);
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(pkt), sizeof(*pkt),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&txvr, 1, vv_virt_to_phys(payload), 64, 0, 0);
+    vv_desc(&txvr, 0, pkt, sizeof(*pkt), VRING_DESC_F_NEXT, 1);
+    vv_desc(&txvr, 1, payload, 64, 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 

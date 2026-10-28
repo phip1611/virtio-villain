@@ -26,12 +26,8 @@ static test_result_t test_rtc_bad_clock(struct virtio_dev *dev,
 
     struct rtc_resp_read *resp = (void *)(buf + 256);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req),
-                       (uint32_t)sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp),
-                       (uint32_t)sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, (uint32_t)sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, (uint32_t)sizeof(*resp), VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

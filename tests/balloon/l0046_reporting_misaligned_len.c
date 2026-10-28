@@ -49,7 +49,7 @@ static test_result_t test_balloon_reporting_misaligned_len(struct virtio_dev *de
      * multiple so the reported range ends inside the second page. */
     void *page = vv_alloc_pages(2);
 
-    vring_raw_set_desc(&rq, 0, vv_virt_to_phys(page), 4096 + 100, 0, 0);
+    vv_desc(&rq, 0, page, 4096 + 100, 0, 0);
     vring_raw_set_avail(&rq, 0, 0);
     vring_raw_set_avail_idx(&rq, 1);
 

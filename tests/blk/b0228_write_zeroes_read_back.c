@@ -36,12 +36,9 @@ static test_result_t test_blk_wz_read_back(struct virtio_dev *dev,
     /* Seed sector 0 with a nonzero pattern. */
     hdr->type = VIRTIO_BLK_T_OUT; hdr->ioprio = 0; hdr->sector = 0;
     memset(data, 0x5A, 512); *st = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, ai++, 0);
     vring_raw_set_avail_idx(vr, ai);
     test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -53,12 +50,9 @@ static test_result_t test_blk_wz_read_back(struct virtio_dev *dev,
     hdr->type = VIRTIO_BLK_T_WRITE_ZEROES; hdr->ioprio = 0; hdr->sector = 0;
     seg->sector = 0; seg->num_sectors = 1; seg->flags = 0;
     *st = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(seg), sizeof(*seg),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, seg, sizeof(*seg), VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, ai++, 0);
     vring_raw_set_avail_idx(vr, ai);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -69,12 +63,9 @@ static test_result_t test_blk_wz_read_back(struct virtio_dev *dev,
     /* Read sector 0 back and verify it is all zero. */
     hdr->type = VIRTIO_BLK_T_IN; hdr->ioprio = 0; hdr->sector = 0;
     memset(data, 0xFF, 512); *st = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, ai++, 0);
     vring_raw_set_avail_idx(vr, ai);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

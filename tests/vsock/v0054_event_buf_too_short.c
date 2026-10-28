@@ -22,8 +22,7 @@ static test_result_t test_vsock_event_short(struct virtio_dev *dev,
     uint8_t *guard = vv_alloc_pages(1);
     memset(guard, 0xCC, 4096);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(guard), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, guard, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
 
     /* Bytes 1 and beyond must remain 0xCC */

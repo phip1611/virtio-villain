@@ -28,7 +28,7 @@ static test_result_t test_console_tx_burst(struct virtio_dev *dev,
         char *buf = (char *)vv_alloc_pages(1);
         buf[0] = 'a' + (i % 26);
         buf[1] = '\n';
-        vring_raw_set_desc(vr, i, vv_virt_to_phys(buf), 2, 0, 0);
+        vv_desc(vr, i, buf, 2, 0, 0);
         vring_raw_set_avail(vr, i, i);
         vring_raw_set_avail_idx(vr, i + 1);
 

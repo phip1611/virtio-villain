@@ -29,20 +29,16 @@ static test_result_t test_blk_get_id_batch(struct virtio_dev *dev,
     *status1 = 0xFF;
 
     /* First chain: descs 0-2 */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr0), sizeof(*hdr0),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data0), VIRTIO_BLK_ID_BYTES,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status0), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr0, sizeof(*hdr0), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data0, VIRTIO_BLK_ID_BYTES,
+            VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, status0, 1, VRING_DESC_F_WRITE, 0);
 
     /* Second chain: descs 3-5 */
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(hdr1), sizeof(*hdr1),
-                       VRING_DESC_F_NEXT, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(data1), VIRTIO_BLK_ID_BYTES,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 5);
-    vring_raw_set_desc(vr, 5, vv_virt_to_phys(status1), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 3, hdr1, sizeof(*hdr1), VRING_DESC_F_NEXT, 4);
+    vv_desc(vr, 4, data1, VIRTIO_BLK_ID_BYTES,
+            VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 5);
+    vv_desc(vr, 5, status1, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 3);

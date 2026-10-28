@@ -31,8 +31,7 @@ static test_result_t test_state_queue_device_in_bar(struct virtio_dev *dev,
     virtio_store64(&cfg->queue_used, mmio_phys);
     __sync_synchronize();
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(vv_alloc_pages(1)), 8,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, vv_alloc_pages(1), 8, VRING_DESC_F_WRITE, 0);
     vring_submit(vr, 0);
 
     virtio_pci_kick(dev, vr->queue);

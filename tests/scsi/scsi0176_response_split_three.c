@@ -22,16 +22,14 @@ static test_result_t test_scsi_resp_three(struct virtio_dev *dev,
     resp->status = 0xFF;
 
     uint64_t rp = vv_virt_to_phys(resp);
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, rp, 12,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vring_raw_set_desc(vr, 2, rp + 12, 12,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
     vring_raw_set_desc(vr, 3, rp + 24, sizeof(*resp) - 24,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 4, data, 512, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, seq, 0);
     vring_raw_set_avail_idx(vr, seq + 1);
 

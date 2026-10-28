@@ -68,12 +68,9 @@ static test_result_t test_queue_setup_after_driver_ok(struct virtio_dev *dev,
 
     *status = 0xFF;
 
-    vring_raw_set_desc(&vr2, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&vr2, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&vr2, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&vr2, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&vr2, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&vr2, 2, status, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&vr2, 0, 0);
     vring_raw_set_avail_idx(&vr2, 1);
 
@@ -91,12 +88,9 @@ static test_result_t test_queue_setup_after_driver_ok(struct virtio_dev *dev,
 
     *status0 = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr0), sizeof(*hdr0),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data0), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status0), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr0, sizeof(*hdr0), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data0, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, status0, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
 

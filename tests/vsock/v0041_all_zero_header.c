@@ -32,8 +32,7 @@ static test_result_t test_vsock_all_zero_hdr(struct virtio_dev *dev,
 
     /* All zeros: src_cid=0, dst_cid=0, type=0, op=0, etc. */
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(pkt),
-                       sizeof(*pkt), 0, 0);
+    vv_desc(&txvr, 0, pkt, sizeof(*pkt), 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 

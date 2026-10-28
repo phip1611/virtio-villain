@@ -39,7 +39,7 @@ static test_result_t test_net_tx_num_buffers(struct virtio_dev *dev,
     uint64_t hdr_phys = vv_virt_to_phys(hdr);
 
     vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(frame), 60, 0, 0);
+    vv_desc(vr, 1, frame, 60, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

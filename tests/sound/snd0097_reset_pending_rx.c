@@ -20,10 +20,8 @@ static test_result_t test_reset_pending_rx(struct virtio_dev *dev,
     volatile struct vring_used *old_used = rx_vr->used;
     xfer->stream_id = stream_id;
     memset(response, 0xff, 1032);
-    vring_raw_set_desc(rx_vr, 0, vv_virt_to_phys(xfer), sizeof(*xfer),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(rx_vr, 1, vv_virt_to_phys(response), 1032,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(rx_vr, 0, xfer, sizeof(*xfer), VRING_DESC_F_NEXT, 1);
+    vv_desc(rx_vr, 1, response, 1032, VRING_DESC_F_WRITE, 0);
     vring_submit(rx_vr, 0);
     virtio_pci_kick(dev, rx_vr->queue);
 

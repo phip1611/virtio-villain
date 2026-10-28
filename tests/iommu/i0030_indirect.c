@@ -42,8 +42,7 @@ static test_result_t test_iommu_indirect(struct virtio_dev *dev,
     itab[1].flags = VRING_DESC_F_WRITE;
     itab[1].next  = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(itab), 2 * sizeof(*itab),
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, itab, 2 * sizeof(*itab), VRING_DESC_F_INDIRECT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

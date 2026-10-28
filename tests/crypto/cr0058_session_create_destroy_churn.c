@@ -54,12 +54,9 @@ static test_result_t test_crypto_create_destroy_churn(struct virtio_dev *dev,
         req->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
         memset(sin, 0, sizeof(*sin));
         sin->status = 0xFF;
-        vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, 1);
-        vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(key), 16,
-                           VRING_DESC_F_NEXT, 2);
-        vring_raw_set_desc(&cvr, 2, vv_virt_to_phys(sin), sizeof(*sin),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(&cvr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+        vv_desc(&cvr, 1, key, 16, VRING_DESC_F_NEXT, 2);
+        vv_desc(&cvr, 2, sin, sizeof(*sin), VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(&cvr, (uint16_t)(idx % 16), 0);
         vring_raw_set_avail_idx(&cvr, (uint16_t)(idx + 1));
         idx++;
@@ -78,10 +75,8 @@ static test_result_t test_crypto_create_destroy_churn(struct virtio_dev *dev,
         req->header.opcode = VIRTIO_CRYPTO_CIPHER_DESTROY_SESSION;
         req->u.destroy.session_id = sin->session_id;
         inhdr->status = 0xFF;
-        vring_raw_set_desc(&cvr, 3, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, 4);
-        vring_raw_set_desc(&cvr, 4, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(&cvr, 3, req, sizeof(*req), VRING_DESC_F_NEXT, 4);
+        vv_desc(&cvr, 4, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(&cvr, (uint16_t)(idx % 16), 3);
         vring_raw_set_avail_idx(&cvr, (uint16_t)(idx + 1));
         idx++;

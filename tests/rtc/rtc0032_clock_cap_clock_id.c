@@ -28,12 +28,8 @@ static test_result_t test_rtc_clock_cap_bad_id(struct virtio_dev *dev,
     struct rtc_resp_clock_cap_legacy *resp = (void *)(buf + 256);
     resp->status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req),
-                       (uint32_t)sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp),
-                       (uint32_t)sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, (uint32_t)sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, (uint32_t)sizeof(*resp), VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
         return r;

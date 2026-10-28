@@ -53,7 +53,7 @@ static test_result_t test_fs_batch_forget_zero(struct virtio_dev *dev,
     bf->count    = 0;
 
     /* BATCH_FORGET expects no response */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(page2), bhdr->len, 0, 0);
+    vv_desc(vr, 2, page2, bhdr->len, 0, 0);
     vring_raw_set_avail(vr, 1, 2);
     vring_raw_set_avail_idx(vr, 2);
 

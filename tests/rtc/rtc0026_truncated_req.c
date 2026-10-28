@@ -27,10 +27,8 @@ static test_result_t test_rtc_truncated_req(struct virtio_dev *dev,
     struct rtc_resp_read *resp = (void *)(buf + 256);
 
     /* Request descriptor only 2 bytes (just msg_type) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), 2,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp),
-                       (uint32_t)sizeof(*resp), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, 2, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, (uint32_t)sizeof(*resp), VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

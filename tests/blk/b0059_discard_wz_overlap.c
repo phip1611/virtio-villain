@@ -46,12 +46,9 @@ static test_result_t test_blk_discard_wz_overlap(struct virtio_dev *dev,
     seg0->flags = 0;
     *st0 = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr0), sizeof(*hdr0),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(seg0), sizeof(*seg0),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st0), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr0, sizeof(*hdr0), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, seg0, sizeof(*seg0), VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, st0, 1, VRING_DESC_F_WRITE, 0);
     vring_submit(vr, 0);
 
     /* WRITE_ZEROES on queue 1 - same sector range */
@@ -64,12 +61,9 @@ static test_result_t test_blk_discard_wz_overlap(struct virtio_dev *dev,
     seg1->flags = 0;
     *st1 = 0xFF;
 
-    vring_raw_set_desc(&vr2, 0, vv_virt_to_phys(hdr1), sizeof(*hdr1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&vr2, 1, vv_virt_to_phys(seg1), sizeof(*seg1),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&vr2, 2, vv_virt_to_phys(st1), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&vr2, 0, hdr1, sizeof(*hdr1), VRING_DESC_F_NEXT, 1);
+    vv_desc(&vr2, 1, seg1, sizeof(*seg1), VRING_DESC_F_NEXT, 2);
+    vv_desc(&vr2, 2, st1, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&vr2, 0, 0);
     vring_raw_set_avail_idx(&vr2, 1);
 

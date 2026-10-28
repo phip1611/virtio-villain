@@ -33,8 +33,7 @@ static test_result_t test_blk_max_chain(struct virtio_dev *dev,
     uint16_t chain_len = qsz < 128 ? qsz : 128;
 
     /* Desc 0: header */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
 
     /* Descs 1..chain_len-2: data (each 512 bytes = 1 sector) */
     for (uint16_t i = 1; i < chain_len - 1; i++) {

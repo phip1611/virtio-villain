@@ -26,13 +26,11 @@ static test_result_t test_blk_discard_data_writable(struct virtio_dev *dev,
 
     *status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     /* Segment marked WRITE (wrong - should be readable) */
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(seg), sizeof(*seg),
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 1, seg, sizeof(*seg), VRING_DESC_F_WRITE | VRING_DESC_F_NEXT,
+            2);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

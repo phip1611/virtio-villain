@@ -50,8 +50,7 @@ static test_result_t test_vsock_seqpacket_zero_len(struct virtio_dev *dev,
     pkt->buf_alloc = 4096;
     pkt->fwd_cnt = 0;
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(pkt),
-                       sizeof(*pkt), 0, 0);
+    vv_desc(&txvr, 0, pkt, sizeof(*pkt), 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 

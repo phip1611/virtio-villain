@@ -28,9 +28,7 @@ static test_result_t test_vring_indirect_huge(struct virtio_dev *dev,
     ind[0].flags = VRING_DESC_F_WRITE;
     ind[0].next = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(ind),
-                       (uint32_t)(4096u * 64u),
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, ind, (uint32_t)(4096u * 64u), VRING_DESC_F_INDIRECT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

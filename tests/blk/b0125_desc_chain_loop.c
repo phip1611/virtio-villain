@@ -20,10 +20,8 @@ static test_result_t test_blk_desc_chain_loop(struct virtio_dev *dev,
     uint8_t *data = vv_alloc_pages(1);
 
     /* desc 0 -> desc 1 -> desc 0 (loop) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

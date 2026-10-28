@@ -54,18 +54,13 @@ static test_result_t test_blk_wce_toggle_flush_inflight(struct virtio_dev *dev,
     *fstatus = 0xFF;
 
     /* Chain 0: WRITE (descs 0,1,2) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(whdr), sizeof(*whdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(wdata), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(wstatus), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, whdr, sizeof(*whdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, wdata, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, wstatus, 1, VRING_DESC_F_WRITE, 0);
 
     /* Chain 1: FLUSH (descs 3,4) */
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(fhdr), sizeof(*fhdr),
-                       VRING_DESC_F_NEXT, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(fstatus), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 3, fhdr, sizeof(*fhdr), VRING_DESC_F_NEXT, 4);
+    vv_desc(vr, 4, fstatus, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 3);

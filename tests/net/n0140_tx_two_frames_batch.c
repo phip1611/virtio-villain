@@ -40,14 +40,12 @@ static test_result_t test_net_tx_batch(struct virtio_dev *dev,
     memset(f2 + 14, 0x02, 46);
 
     /* Chain 1: descs 0,1 */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(h1), sizeof(*h1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(f1), 60, 0, 0);
+    vv_desc(vr, 0, h1, sizeof(*h1), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, f1, 60, 0, 0);
 
     /* Chain 2: descs 2,3 */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(h2), sizeof(*h2),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(f2), 60, 0, 0);
+    vv_desc(vr, 2, h2, sizeof(*h2), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, f2, 60, 0, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 2);

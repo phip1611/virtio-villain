@@ -29,8 +29,8 @@ static test_result_t test_net_tx_indirect_self_loop(struct virtio_dev *dev,
     indirect[0].flags = VRING_DESC_F_NEXT;
     indirect[0].next = 0;      /* points at itself */
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect),
-                       sizeof(struct vring_desc), VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, indirect, sizeof(struct vring_desc), VRING_DESC_F_INDIRECT,
+            0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

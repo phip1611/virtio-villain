@@ -21,12 +21,9 @@ static test_result_t test_rx_data_zero(struct virtio_dev *dev,
     uint16_t used_idx = rx_vr->used->idx;
     xfer->stream_id = stream_id;
     memset(status, 0xff, sizeof(*status));
-    vring_raw_set_desc(rx_vr, 0, vv_virt_to_phys(xfer), sizeof(*xfer),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(rx_vr, 1, vv_virt_to_phys(data), 0,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(rx_vr, 2, vv_virt_to_phys(status), sizeof(*status),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(rx_vr, 0, xfer, sizeof(*xfer), VRING_DESC_F_NEXT, 1);
+    vv_desc(rx_vr, 1, data, 0, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(rx_vr, 2, status, sizeof(*status), VRING_DESC_F_WRITE, 0);
     vring_submit(rx_vr, 0);
 
     return snd_wait_pcm_safe(

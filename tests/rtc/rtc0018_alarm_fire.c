@@ -67,8 +67,7 @@ static test_result_t test_rtc_alarm_fire(struct virtio_dev *dev,
 
     /* Post writable buffer on alarmq */
     struct rtc_notif_alarm *notif = vv_alloc_pages(1);
-    vring_raw_set_desc(&aq, 0, vv_virt_to_phys(notif), sizeof(*notif),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&aq, 0, notif, sizeof(*notif), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&aq, 0, 0);
     vring_raw_set_avail_idx(&aq, 1);
     __sync_synchronize();
@@ -83,10 +82,8 @@ static test_result_t test_rtc_alarm_fire(struct virtio_dev *dev,
     req->clock_id = 0;
     req->flags = VIRTIO_RTC_FLAG_ALARM_ENABLED;
 
-    vring_raw_set_desc(&rq, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&rq, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&rq, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(&rq, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&rq, 0, 0);
     vring_raw_set_avail_idx(&rq, 1);
     __sync_synchronize();

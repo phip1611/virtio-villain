@@ -32,8 +32,7 @@ static test_result_t test_vsock_tx_invalid_type(struct virtio_dev *dev,
     pkt->type = 0xFFFF; /* invalid */
     pkt->op = VIRTIO_VSOCK_OP_REQUEST;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt), sizeof(*pkt),
-                       0, 0);
+    vv_desc(vr, 0, pkt, sizeof(*pkt), 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

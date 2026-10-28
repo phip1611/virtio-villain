@@ -25,9 +25,8 @@ static test_result_t test_net_hash_report_rx(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
 
     /* Post a writable receive buffer large enough for hdr + data */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf),
-                       sizeof(struct virtio_net_hdr_hash) + 1500,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, sizeof(struct virtio_net_hdr_hash) + 1500,
+            VRING_DESC_F_WRITE, 0);
     vring_submit(vr, 0);
 
     /* We just verify the device does not crash when processing

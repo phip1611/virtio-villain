@@ -56,16 +56,14 @@ static test_result_t test_scsi_abort_one_of_two(struct virtio_dev *dev,
     ra_resp->response = 0xFF;
     rb_resp->response = 0xFF;
 
-    vring_raw_set_desc(&rq, 0, vv_virt_to_phys(ra), sizeof(*ra),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&rq, 1, vv_virt_to_phys(ra_resp), sizeof(*ra_resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&rq, 2, vv_virt_to_phys(da), 512, VRING_DESC_F_WRITE, 0);
-    vring_raw_set_desc(&rq, 3, vv_virt_to_phys(rb), sizeof(*rb),
-                       VRING_DESC_F_NEXT, 4);
-    vring_raw_set_desc(&rq, 4, vv_virt_to_phys(rb_resp), sizeof(*rb_resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 5);
-    vring_raw_set_desc(&rq, 5, vv_virt_to_phys(db), 512, VRING_DESC_F_WRITE, 0);
+    vv_desc(&rq, 0, ra, sizeof(*ra), VRING_DESC_F_NEXT, 1);
+    vv_desc(&rq, 1, ra_resp, sizeof(*ra_resp),
+            VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&rq, 2, da, 512, VRING_DESC_F_WRITE, 0);
+    vv_desc(&rq, 3, rb, sizeof(*rb), VRING_DESC_F_NEXT, 4);
+    vv_desc(&rq, 4, rb_resp, sizeof(*rb_resp),
+            VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 5);
+    vv_desc(&rq, 5, db, 512, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&rq, rseq, 0);
     vring_raw_set_avail(&rq, rseq + 1, 3);
     vring_raw_set_avail_idx(&rq, rseq + 2);

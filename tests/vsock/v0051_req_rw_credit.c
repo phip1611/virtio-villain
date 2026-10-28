@@ -45,9 +45,9 @@ static test_result_t test_vsock_req_rw_credit(struct virtio_dev *dev,
     memset(payload, 'A', 16);
     fill(p2, VIRTIO_VSOCK_OP_CREDIT_REQUEST, 0);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(p0), sizeof(*p0), 0, 0);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(p1), sizeof(*p1) + 16, 0, 0);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(p2), sizeof(*p2), 0, 0);
+    vv_desc(vr, 0, p0, sizeof(*p0), 0, 0);
+    vv_desc(vr, 1, p1, sizeof(*p1) + 16, 0, 0);
+    vv_desc(vr, 2, p2, sizeof(*p2), 0, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 1);
     vring_raw_set_avail(vr, 2, 2);

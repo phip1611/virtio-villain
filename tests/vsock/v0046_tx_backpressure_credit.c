@@ -56,10 +56,8 @@ static test_result_t test_vsock_backpressure(struct virtio_dev *dev,
         memset(payload, 0xDD, PAYLOAD_SIZE);
 
         uint16_t base = (uint16_t)(i * 2);
-        vring_raw_set_desc(&txvr, base, vv_virt_to_phys(pkt),
-                           sizeof(*pkt), VRING_DESC_F_NEXT, base + 1);
-        vring_raw_set_desc(&txvr, base + 1, vv_virt_to_phys(payload),
-                           PAYLOAD_SIZE, 0, 0);
+        vv_desc(&txvr, base, pkt, sizeof(*pkt), VRING_DESC_F_NEXT, base + 1);
+        vv_desc(&txvr, base + 1, payload, PAYLOAD_SIZE, 0, 0);
         vring_raw_set_avail(&txvr, i, base);
     }
 

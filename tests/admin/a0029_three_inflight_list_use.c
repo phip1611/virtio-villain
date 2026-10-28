@@ -35,12 +35,9 @@ static test_result_t test_admin_three_inflight(struct virtio_dev *dev,
         cmd->group_member_id = 0;
 
         uint16_t d0 = (uint16_t)(i * 3);
-        vring_raw_set_desc(&avr, d0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                           VRING_DESC_F_NEXT, d0 + 1);
-        vring_raw_set_desc(&avr, d0 + 1, vv_virt_to_phys(data), 64,
-                           VRING_DESC_F_NEXT, d0 + 2);
-        vring_raw_set_desc(&avr, d0 + 2, vv_virt_to_phys(result), 64,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(&avr, d0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, d0 + 1);
+        vv_desc(&avr, d0 + 1, data, 64, VRING_DESC_F_NEXT, d0 + 2);
+        vv_desc(&avr, d0 + 2, result, 64, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(&avr, (uint16_t)i, d0);
     }
     vring_raw_set_avail_idx(&avr, 3);

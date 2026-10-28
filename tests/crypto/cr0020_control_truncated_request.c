@@ -40,10 +40,8 @@ static test_result_t test_crypto_control_truncated(struct virtio_dev *dev,
     sin->status = 0xFF;
 
     /* Request descriptor is 4 bytes, far shorter than the control header. */
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(req), 4,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(sin), sizeof(*sin),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, req, 4, VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, sin, sizeof(*sin), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);
 

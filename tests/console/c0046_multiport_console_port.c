@@ -35,7 +35,7 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     m->event = VIRTIO_CONSOLE_CONSOLE_PORT;
     m->value = 1;
 
-    vring_raw_set_desc(&cq, 0, vv_virt_to_phys(m), sizeof(*m), 0, 0);
+    vv_desc(&cq, 0, m, sizeof(*m), 0, 0);
     vring_raw_set_avail(&cq, 0, 0);
     vring_raw_set_avail_idx(&cq, 1);
 

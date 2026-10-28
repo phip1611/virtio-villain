@@ -41,12 +41,10 @@ static test_result_t test_blk_fill_avail(struct virtio_dev *dev,
         uint8_t *s = statuses + i;
         *s = 0xFF;
 
-        vring_raw_set_desc(vr, base, vv_virt_to_phys(h), sizeof(*h),
-                           VRING_DESC_F_NEXT, base + 1);
-        vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(d), 512,
-                           VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, base + 2);
-        vring_raw_set_desc(vr, base + 2, vv_virt_to_phys(s), 1,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, base, h, sizeof(*h), VRING_DESC_F_NEXT, base + 1);
+        vv_desc(vr, base + 1, d, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+                base + 2);
+        vv_desc(vr, base + 2, s, 1, VRING_DESC_F_WRITE, 0);
 
         vring_raw_set_avail(vr, i, base);
     }

@@ -41,8 +41,7 @@ static test_result_t test_vsock_connect_flood(struct virtio_dev *dev,
     uint16_t count = NUM_CONNECTS < qsz ? NUM_CONNECTS : qsz;
 
     for (uint16_t i = 0; i < count; i++) {
-        vring_raw_set_desc(vr, i, vv_virt_to_phys(pkts[i]),
-                           sizeof(struct virtio_vsock_hdr), 0, 0);
+        vv_desc(vr, i, pkts[i], sizeof(struct virtio_vsock_hdr), 0, 0);
         vring_raw_set_avail(vr, i, i);
     }
     vring_raw_set_avail_idx(vr, count);

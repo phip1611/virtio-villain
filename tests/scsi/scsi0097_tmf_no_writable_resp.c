@@ -18,9 +18,8 @@ static test_result_t test_scsi_tmf_no_resp(struct virtio_dev *dev,
     req->subtype = VIRTIO_SCSI_T_TMF_LOGICAL_UNIT_RESET;
     scsi_set_lun(req->lun, 0, 0);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp), 0, 0);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), 0, 0);
     vring_submit(vr, 0);
 
     if (vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS) == TEST_PASS)

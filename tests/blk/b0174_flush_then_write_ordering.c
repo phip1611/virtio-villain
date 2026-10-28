@@ -33,12 +33,9 @@ static test_result_t test_blk_flush_ordering(struct virtio_dev *dev,
     h1->type = VIRTIO_BLK_T_OUT; h1->ioprio = 0; h1->sector = 0;
     memset(d1, 0xAA, 512); *s1 = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(h1), sizeof(*h1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(d1), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(s1), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, h1, sizeof(*h1), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, d1, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, s1, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
     if (*s1 != VIRTIO_BLK_S_OK) TFAIL("write0 status %u", *s1);
@@ -49,10 +46,8 @@ static test_result_t test_blk_flush_ordering(struct virtio_dev *dev,
     hf->type = VIRTIO_BLK_T_FLUSH; hf->ioprio = 0; hf->sector = 0;
     *sf = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hf), sizeof(*hf),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(sf), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hf, sizeof(*hf), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, sf, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
 
@@ -67,12 +62,9 @@ static test_result_t test_blk_flush_ordering(struct virtio_dev *dev,
     h2->type = VIRTIO_BLK_T_OUT; h2->ioprio = 0; h2->sector = 1;
     memset(d2, 0xBB, 512); *s2 = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(h2), sizeof(*h2),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(d2), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(s2), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, h2, sizeof(*h2), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, d2, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, s2, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 2, 0);
     vring_raw_set_avail_idx(vr, 3);
 
@@ -87,12 +79,9 @@ static test_result_t test_blk_flush_ordering(struct virtio_dev *dev,
     hr->type = VIRTIO_BLK_T_IN; hr->ioprio = 0; hr->sector = 0;
     memset(dr, 0, 512); *sr = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hr), sizeof(*hr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(dr), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(sr), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hr, sizeof(*hr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, dr, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, sr, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 3, 0);
     vring_raw_set_avail_idx(vr, 4);
 

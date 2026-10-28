@@ -20,8 +20,7 @@ static test_result_t test_rng_three_inflight(struct virtio_dev *dev,
     for (int i = 0; i < 3; i++) {
         uint8_t *buf = vv_alloc_pages(1);
 
-        vring_raw_set_desc(vr, (uint16_t)i, vv_virt_to_phys(buf), 16,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, (uint16_t)i, buf, 16, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, (uint16_t)i, (uint16_t)i);
     }
     vring_raw_set_avail_idx(vr, 3);

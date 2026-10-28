@@ -31,8 +31,7 @@ static test_result_t test_iommu_probe_addr_len_wrap(struct virtio_dev *dev,
 
     size_t in_len = (size_t)((uint8_t *)&req->properties - (uint8_t *)req);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), in_len,
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, req, in_len, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, 0xFFFFFFFFFFFFF000ULL, 0x2000,
                        VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);

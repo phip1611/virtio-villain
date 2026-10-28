@@ -40,12 +40,9 @@ static test_result_t test_net_mac_set_broadcast(struct virtio_dev *dev,
     memset(mac, 0xFF, 6);
     *ack = 0xFF;
 
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(mac), 6,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&cvr, 2, vv_virt_to_phys(ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, mac, 6, VRING_DESC_F_NEXT, 2);
+    vv_desc(&cvr, 2, ack, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);
 

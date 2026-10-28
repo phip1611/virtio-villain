@@ -30,16 +30,12 @@ static test_result_t test_pmem_double_flush(struct virtio_dev *dev,
     resp2->ret = 0xFF;
 
     /* First request: descs 0-1 */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req1), sizeof(*req1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp1), sizeof(*resp1),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req1, sizeof(*req1), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp1, sizeof(*resp1), VRING_DESC_F_WRITE, 0);
 
     /* Second request: descs 2-3 */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(req2), sizeof(*req2),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(resp2), sizeof(*resp2),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, req2, sizeof(*req2), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, resp2, sizeof(*resp2), VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 2);

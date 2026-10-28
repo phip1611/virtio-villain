@@ -24,7 +24,7 @@ static test_result_t test_vsock_hdr_in_bar(struct virtio_dev *dev,
     uint64_t mmio_phys = dev->common_phys;
 
     vring_raw_set_desc(vr, 0, mmio_phys, 44, VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(payload), 16, 0, 0);
+    vv_desc(vr, 1, payload, 16, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

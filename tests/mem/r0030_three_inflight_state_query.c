@@ -31,10 +31,8 @@ static test_result_t test_mem_three_state(struct virtio_dev *dev,
         req->nb_blocks = 1;
 
         uint16_t d0 = (uint16_t)(i * 2);
-        vring_raw_set_desc(vr, d0, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, d0 + 1);
-        vring_raw_set_desc(vr, d0 + 1, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, d0, req, sizeof(*req), VRING_DESC_F_NEXT, d0 + 1);
+        vv_desc(vr, d0 + 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, (uint16_t)i, d0);
     }
     vring_raw_set_avail_idx(vr, 3);

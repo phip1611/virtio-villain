@@ -38,7 +38,7 @@ static test_result_t test_vsock_ten_ports(struct virtio_dev *dev,
         h->buf_alloc = 65536;
         h->fwd_cnt = 0;
 
-        vring_raw_set_desc(vr, i, vv_virt_to_phys(h), sizeof(*h), 0, 0);
+        vv_desc(vr, i, h, sizeof(*h), 0, 0);
         vring_raw_set_avail(vr, i, i);
     }
     vring_raw_set_avail_idx(vr, n);

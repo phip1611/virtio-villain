@@ -22,10 +22,9 @@ static test_result_t test_scsi_datain_eight(struct virtio_dev *dev,
     resp->status = 0xFF;
 
     uint64_t dphys = vv_virt_to_phys(data);
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+            2);
     for (int i = 0; i < 8; i++) {
         uint16_t d = (uint16_t)(2 + i);
         uint16_t flags = VRING_DESC_F_WRITE;

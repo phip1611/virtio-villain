@@ -23,7 +23,7 @@ static test_result_t test_watchdog_all_flags(struct virtio_dev *dev,
     /* WRITE bit plus every reserved bit in the 16 bit flags field. */
     uint16_t flags = (uint16_t)(VRING_DESC_F_WRITE | 0xFFF8);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 1, flags, 0);
+    vv_desc(vr, 0, buf, 1, flags, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

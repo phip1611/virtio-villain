@@ -46,7 +46,7 @@ static test_result_t test_vsock_oversized_hdr(struct virtio_dev *dev,
     memset(buf + sizeof(*pkt), 0xDD, PAGE_SIZE - sizeof(*pkt));
 
     /* Descriptor len = 4096 (way larger than header) */
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(buf), PAGE_SIZE, 0, 0);
+    vv_desc(&txvr, 0, buf, PAGE_SIZE, 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 

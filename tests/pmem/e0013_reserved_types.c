@@ -22,10 +22,8 @@ static test_result_t test_pmem_reserved_types(struct virtio_dev *dev,
     for (uint32_t t = 1; t <= 7; t++) {
         req->type = t;
         resp->ret = 0;
-        vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, 1);
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+        vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, t - 1, 0);
         vring_raw_set_avail_idx(vr, t);
         test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

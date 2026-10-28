@@ -47,9 +47,8 @@ static test_result_t test_net_tx_csum_valid(struct virtio_dev *dev,
     frame[16] = 0x00; frame[17] = 32; /* total length */
     frame[23] = 17;                 /* protocol = UDP */
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(frame), 60, 0, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, frame, 60, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

@@ -27,12 +27,9 @@ static test_result_t test_admin_oversized(struct virtio_dev *dev,
 
     memset(data, 0xAA, 8 * 4096);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 8 * 4096,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(result), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 8 * 4096, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, result, 64, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

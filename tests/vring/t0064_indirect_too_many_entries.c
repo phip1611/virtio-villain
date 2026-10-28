@@ -50,9 +50,8 @@ static test_result_t test_indirect_too_many(struct virtio_dev *dev,
     memset(&indirect[3], 0, (num_entries - 3) * sizeof(struct vring_desc));
 
     /* Point ring descriptor at indirect table with oversized len */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect),
-                       num_entries * sizeof(struct vring_desc),
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, indirect, num_entries * sizeof(struct vring_desc),
+            VRING_DESC_F_INDIRECT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

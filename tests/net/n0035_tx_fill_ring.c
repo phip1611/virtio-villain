@@ -33,9 +33,8 @@ static test_result_t test_net_tx_fill_ring(struct virtio_dev *dev,
         uint8_t *f = frames + (i * 64);
         memset(f, 0x42, 64);
 
-        vring_raw_set_desc(vr, base, vv_virt_to_phys(h), sizeof(*h),
-                           VRING_DESC_F_NEXT, base + 1);
-        vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(f), 64, 0, 0);
+        vv_desc(vr, base, h, sizeof(*h), VRING_DESC_F_NEXT, base + 1);
+        vv_desc(vr, base + 1, f, 64, 0, 0);
 
         vring_raw_set_avail(vr, i, base);
     }

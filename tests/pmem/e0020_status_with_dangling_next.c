@@ -25,10 +25,9 @@ static test_result_t test_pmem_status_dangling(struct virtio_dev *dev,
     req->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
     resp->ret = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 5);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE | VRING_DESC_F_NEXT,
+            5);
     /* Slot 5 left as zero addr/len */
 
     return vv_submit_and_wait(dev, vr, 0);

@@ -20,8 +20,7 @@ static test_result_t test_watchdog_oob_next(struct virtio_dev *dev,
 {
     uint8_t *buf = vv_alloc_pages(1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 1,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 0xFFFE);
+    vv_desc(vr, 0, buf, 1, VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 0xFFFE);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

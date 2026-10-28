@@ -47,8 +47,7 @@ static test_result_t test_console_driver_sends_port_name(struct virtio_dev *dev,
     msg->value = 0;
     memcpy(p + sizeof(*msg), "evil\0", 5);
 
-    vring_raw_set_desc(&cq, 0, vv_virt_to_phys(p),
-                       sizeof(*msg) + 5, 0, 0);
+    vv_desc(&cq, 0, p, sizeof(*msg) + 5, 0, 0);
     vring_raw_set_avail(&cq, 0, 0);
     vring_raw_set_avail_idx(&cq, 1);
 
