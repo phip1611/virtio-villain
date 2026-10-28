@@ -15,7 +15,6 @@ static test_result_t test_blk_read_sector_max(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = UINT64_MAX;
     *status = 0xFF;
 

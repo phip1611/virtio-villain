@@ -19,12 +19,10 @@ static test_result_t test_packed_duplicate_id(struct virtio_dev *dev,
     uint8_t *status2 = vv_alloc_pages(1);
 
     hdr1->type = VIRTIO_BLK_T_IN;
-    hdr1->ioprio = 0;
     hdr1->sector = 0;
     *status1 = 0xFF;
 
     hdr2->type = VIRTIO_BLK_T_IN;
-    hdr2->ioprio = 0;
     hdr2->sector = 1;
     *status2 = 0xFF;
 

@@ -23,7 +23,6 @@ static test_result_t test_any_layout_read_completes(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xff;
 

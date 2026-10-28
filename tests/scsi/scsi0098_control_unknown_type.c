@@ -14,7 +14,6 @@ static test_result_t test_scsi_control_unknown(struct virtio_dev *dev,
     struct virtio_scsi_ctrl_tmf_req *req = vv_alloc_pages(1);
     struct virtio_scsi_ctrl_tmf_resp *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     req->type = 0x5EED;      /* not a defined control request type */
     scsi_set_lun(req->lun, 0, 0);
     resp->response = 0xAA;

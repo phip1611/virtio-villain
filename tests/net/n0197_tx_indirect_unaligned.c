@@ -17,7 +17,6 @@ static test_result_t test_net_tx_indirect_unaligned(struct virtio_dev *dev,
 
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
     struct vring_desc *indirect = vv_alloc_pages(1);
-    memset(hdr, 0, sizeof(*hdr));
 
     indirect[0].addr = vv_virt_to_phys(hdr);
     indirect[0].len = sizeof(*hdr);

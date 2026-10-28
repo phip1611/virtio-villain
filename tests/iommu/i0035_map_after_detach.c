@@ -20,9 +20,6 @@ static test_result_t test_iommu_map_after_detach(struct virtio_dev *dev,
     struct virtio_iommu_req_attach *a = vv_alloc_pages(1);
     struct virtio_iommu_req_detach *d = vv_alloc_pages(1);
     struct virtio_iommu_req_map    *m = vv_alloc_pages(1);
-    memset(a, 0, sizeof(*a));
-    memset(d, 0, sizeof(*d));
-    memset(m, 0, sizeof(*m));
 
     a->head.type = VIRTIO_IOMMU_T_ATTACH;
     a->domain    = 1;

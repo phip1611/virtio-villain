@@ -14,11 +14,8 @@ static test_result_t test_scsi_mode_select10(struct virtio_dev *dev,
     struct virtio_scsi_cmd_resp *resp = vv_alloc_pages(1);
     uint8_t *data = vv_alloc_pages(1);
 
-    memset(data, 0, 8);      /* eight byte mode parameter header */
-
     uint16_t seq = scsi_clear_ua(dev, vr, 0);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x55;      /* MODE SELECT(10) */
     req->cdb[1] = 0x10;      /* page format */

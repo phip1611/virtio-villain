@@ -16,7 +16,6 @@ static test_result_t test_net_rsc_ext_rx_header(struct virtio_dev *dev,
                                                 struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 4096);
 
     /* Post a writable receive buffer large enough for a mergeable
      * header plus a full frame. */

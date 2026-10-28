@@ -19,9 +19,7 @@ static test_result_t test_desc_next_oob(struct virtio_dev *dev, struct vring *vr
     uint8_t *data = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
-    memset(data, 0, 512);
 
     uint16_t qsz = vr->size;
 

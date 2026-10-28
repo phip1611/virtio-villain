@@ -40,7 +40,6 @@ static test_result_t test_net_ctrl_promisc_during_tx(struct virtio_dev *dev,
     /* Submit TX */
     struct virtio_net_hdr *txhdr = vv_alloc_pages(1);
     uint8_t *frame = vv_alloc_pages(1);
-    memset(txhdr, 0, sizeof(*txhdr));
     memset(frame, 0xFF, 6);
     memset(frame + 6, 0x02, 6);
     frame[12] = 0x08; frame[13] = 0x00;

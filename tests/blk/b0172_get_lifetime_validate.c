@@ -24,7 +24,6 @@ static test_result_t test_blk_lifetime_fields(struct virtio_dev *dev,
     uint8_t *st = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_GET_LIFETIME;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     memset(life, 0xFF, sizeof(*life));
     *st = 0xFF;

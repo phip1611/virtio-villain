@@ -28,7 +28,6 @@ static test_result_t test_net_rss_overflow(struct virtio_dev *dev,
 
     /* RSS config with oversized mask */
     struct virtio_net_rss_config *rss = vv_alloc_pages(1);
-    memset(rss, 0, sizeof(*rss));
     rss->hash_types = 0x1; /* some hash type */
     rss->indirection_table_mask = 0xFFFF; /* way beyond table size */
     rss->unclassified_queue = 0;

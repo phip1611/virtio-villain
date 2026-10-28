@@ -24,7 +24,6 @@ static test_result_t test_vsock_all_zero_hdr(struct virtio_dev *dev,
     struct virtio_vsock_hdr *pkt = vv_alloc_pages(1);
 
     /* All zeros: src_cid=0, dst_cid=0, type=0, op=0, etc. */
-    memset(pkt, 0, sizeof(*pkt));
 
     vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(pkt),
                        sizeof(*pkt), 0, 0);

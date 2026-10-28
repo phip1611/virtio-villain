@@ -24,7 +24,6 @@ static test_result_t test_net_tx_one_byte(struct virtio_dev *dev,
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
     uint8_t *payload = vv_alloc_pages(1);
 
-    memset(hdr, 0, sizeof(*hdr));
     payload[0] = 0x42; /* 1 byte of frame data */
 
     vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

@@ -18,7 +18,6 @@ static test_result_t test_iommu_indirect(struct virtio_dev *dev,
 {
     struct virtio_iommu_req_attach *req = vv_alloc_pages(1);
     struct vring_desc *itab = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     memset(itab, 0, 2 * sizeof(*itab));
 
     req->head.type   = VIRTIO_IOMMU_T_ATTACH;

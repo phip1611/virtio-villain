@@ -23,7 +23,6 @@ static test_result_t test_rtc_alarm_enable_unarmed(struct virtio_dev *dev,
 
     struct rtc_req_set_alarm_nested *req = vv_alloc_pages(1);
     struct rtc_resp_head *resp = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     memset(resp, 0xFF, sizeof(*resp));
     req->head.msg_type = VIRTIO_RTC_REQ_SET_ALARM_ENABLED;
     req->clock_id = 0;

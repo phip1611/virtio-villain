@@ -32,7 +32,6 @@ static test_result_t test_zone_reset_during_append(struct virtio_dev *dev,
     uint8_t *st0 = vv_alloc_pages(1);
 
     hdr0->type = VIRTIO_BLK_T_ZONE_APPEND;
-    hdr0->ioprio = 0;
     hdr0->sector = 0; /* first zone */
     memset(data0, 0x42, 512);
     *st0 = 0xFF;
@@ -50,7 +49,6 @@ static test_result_t test_zone_reset_during_append(struct virtio_dev *dev,
     uint8_t *st1 = vv_alloc_pages(1);
 
     hdr1->type = VIRTIO_BLK_T_ZONE_RESET;
-    hdr1->ioprio = 0;
     hdr1->sector = 0; /* same zone */
     *st1 = 0xFF;
 

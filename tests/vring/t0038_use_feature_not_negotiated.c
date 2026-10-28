@@ -16,12 +16,10 @@ static test_result_t test_use_feature_not_negotiated(struct virtio_dev *dev,
 
     /* Discard request header */
     hdr->type = VIRTIO_BLK_T_DISCARD;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xFF;
 
     /* Discard segment: sector=0, num_sectors=1, flags=0 */
-    memset(data, 0, 512);
     uint64_t *seg_sector = (uint64_t *)data;
     uint32_t *seg_num = (uint32_t *)(data + 8);
     *seg_sector = 0;

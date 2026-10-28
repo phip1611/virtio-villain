@@ -16,7 +16,6 @@ static test_result_t test_iommu_attach_bypass_no_feature(struct virtio_dev *dev,
                                                         struct vring *vr)
 {
     struct virtio_iommu_req_attach *req = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
 
     req->head.type = VIRTIO_IOMMU_T_ATTACH;
     req->domain    = 0;

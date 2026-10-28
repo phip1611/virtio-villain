@@ -33,7 +33,6 @@ static test_result_t test_interleaved_multi_kick(struct virtio_dev *dev,
         uint8_t *st = vv_alloc_pages(1);
 
         hdr->type = VIRTIO_BLK_T_IN;
-        hdr->ioprio = 0;
         hdr->sector = q;
         *st = 0xFF;
 

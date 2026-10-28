@@ -19,10 +19,6 @@ static test_result_t test_iommu_map_dma_unmap(struct virtio_dev *dev,
     struct virtio_iommu_req_map    *m = vv_alloc_pages(1);
     struct virtio_iommu_req_unmap  *u = vv_alloc_pages(1);
     struct virtio_iommu_req_detach *d = vv_alloc_pages(1);
-    memset(a, 0, sizeof(*a));
-    memset(m, 0, sizeof(*m));
-    memset(u, 0, sizeof(*u));
-    memset(d, 0, sizeof(*d));
 
     a->head.type = VIRTIO_IOMMU_T_ATTACH;
     a->domain = 7;

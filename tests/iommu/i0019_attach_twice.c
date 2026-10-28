@@ -18,8 +18,6 @@ static test_result_t test_iommu_attach_twice(struct virtio_dev *dev,
 {
     struct virtio_iommu_req_attach *r1 = vv_alloc_pages(1);
     struct virtio_iommu_req_attach *r2 = vv_alloc_pages(1);
-    memset(r1, 0, sizeof(*r1));
-    memset(r2, 0, sizeof(*r2));
 
     r1->head.type = VIRTIO_IOMMU_T_ATTACH;
     r1->domain    = 1;

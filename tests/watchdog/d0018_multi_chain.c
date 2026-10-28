@@ -12,7 +12,6 @@ static test_result_t test_watchdog_multi_chain(struct virtio_dev *dev,
                                                struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 4096);
 
     uint64_t phys = vv_virt_to_phys(buf);
 

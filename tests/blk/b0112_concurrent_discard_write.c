@@ -55,7 +55,6 @@ static test_result_t test_blk_concurrent_discard_write(struct virtio_dev *dev,
     uint8_t *dstatus = vv_alloc_pages(1);
 
     dhdr->type = VIRTIO_BLK_T_DISCARD;
-    dhdr->ioprio = 0;
     dhdr->sector = 0;
 
     seg->sector = 0;
@@ -78,7 +77,6 @@ static test_result_t test_blk_concurrent_discard_write(struct virtio_dev *dev,
     uint8_t *wstatus = vv_alloc_pages(1);
 
     whdr->type = VIRTIO_BLK_T_OUT;
-    whdr->ioprio = 0;
     whdr->sector = 0;
     memset(wdata, 0xBB, 512);
     *wstatus = 0xFF;

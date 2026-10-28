@@ -34,7 +34,6 @@ static test_result_t test_blk_secure_erase_discard(struct virtio_dev *dev,
     uint8_t *st0 = vv_alloc_pages(1);
 
     hdr0->type = VIRTIO_BLK_T_SECURE_ERASE;
-    hdr0->ioprio = 0;
     hdr0->sector = 0;
     seg0->sector = 0;
     seg0->num_sectors = 8;
@@ -55,7 +54,6 @@ static test_result_t test_blk_secure_erase_discard(struct virtio_dev *dev,
     uint8_t *st1 = vv_alloc_pages(1);
 
     hdr1->type = VIRTIO_BLK_T_DISCARD;
-    hdr1->ioprio = 0;
     hdr1->sector = 0;
     seg1->sector = 0;
     seg1->num_sectors = 8;

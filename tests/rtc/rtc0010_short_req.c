@@ -13,7 +13,6 @@ static test_result_t test_rtc_short_req(struct virtio_dev *dev,
                                         struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 256);
     uint64_t base = vv_virt_to_phys(buf);
 
     vring_raw_set_desc(vr, 0, base, 1, VRING_DESC_F_NEXT, 1);

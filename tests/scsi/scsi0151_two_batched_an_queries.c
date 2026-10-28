@@ -16,7 +16,6 @@ static test_result_t test_scsi_two_an(struct virtio_dev *dev,
     struct virtio_scsi_ctrl_an_resp *resp0 = vv_alloc_pages(1);
     struct virtio_scsi_ctrl_an_resp *resp1 = vv_alloc_pages(1);
 
-    memset(req0, 0, sizeof(*req0));
     req0->type = VIRTIO_SCSI_T_AN_QUERY;
     scsi_set_lun(req0->lun, 0, 0);
     memcpy(req1, req0, sizeof(*req0));

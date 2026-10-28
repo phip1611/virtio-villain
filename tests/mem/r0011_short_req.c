@@ -13,7 +13,6 @@ static test_result_t test_mem_short_req(struct virtio_dev *dev,
                                         struct vring *vr)
 {
     void *buf = vv_alloc_pages(1);
-    memset(buf, 0, 64);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 2,
                        VRING_DESC_F_NEXT, 1);

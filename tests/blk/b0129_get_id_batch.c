@@ -18,12 +18,10 @@ static test_result_t test_blk_get_id_batch(struct virtio_dev *dev,
     uint8_t *status1 = vv_alloc_pages(1);
 
     hdr0->type = VIRTIO_BLK_T_GET_ID;
-    hdr0->ioprio = 0;
     hdr0->sector = 0;
     *status0 = 0xFF;
 
     hdr1->type = VIRTIO_BLK_T_GET_ID;
-    hdr1->ioprio = 0;
     hdr1->sector = 0;
     *status1 = 0xFF;
 

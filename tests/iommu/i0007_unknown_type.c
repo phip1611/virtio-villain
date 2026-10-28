@@ -15,7 +15,6 @@ static test_result_t test_iommu_unknown_type(struct virtio_dev *dev,
 {
     /* A buffer large enough for any defined request, plus the tail. */
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 256);
 
     struct virtio_iommu_req_head *head = (struct virtio_iommu_req_head *)buf;
     head->type = 0xAA;

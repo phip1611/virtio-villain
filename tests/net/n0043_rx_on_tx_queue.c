@@ -13,7 +13,6 @@ static test_result_t test_net_rx_on_tx_queue(struct virtio_dev *dev,
 {
     /* vr is the TX queue (queue 1). Post a writable buffer on it. */
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 4096);
 
     /* Mark as device-writable (like an RX buffer) on the TX queue */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 4096,

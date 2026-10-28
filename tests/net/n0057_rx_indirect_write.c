@@ -25,7 +25,6 @@ static test_result_t test_net_rx_indirect_write(struct virtio_dev *dev,
 
     /* RX on queue 0 */
     uint8_t *rxbuf = vv_alloc_pages(1);
-    memset(rxbuf, 0, PAGE_SIZE);
 
     /* Build indirect descriptor table: one writable entry */
     struct {

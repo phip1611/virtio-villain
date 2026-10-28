@@ -14,8 +14,6 @@ static test_result_t test_fs_hiprio_multi(struct virtio_dev *dev,
 {
     uint8_t *buf1 = vv_alloc_pages(1);
     uint8_t *buf2 = vv_alloc_pages(1);
-    memset(buf1, 0, 4096);
-    memset(buf2, 0, 4096);
 
     uint64_t phys1 = vv_virt_to_phys(buf1);
     uint64_t phys2 = vv_virt_to_phys(buf2);

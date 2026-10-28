@@ -46,7 +46,6 @@ static test_result_t test_vsock_concurrent_tx_event(struct virtio_dev *dev,
 
     /* Set up event buffer */
     struct virtio_vsock_event *evt = vv_alloc_pages(1);
-    memset(evt, 0, sizeof(*evt));
 
     vring_raw_set_desc(&evvr, 0, vv_virt_to_phys(evt), sizeof(*evt),
                        VRING_DESC_F_WRITE, 0);

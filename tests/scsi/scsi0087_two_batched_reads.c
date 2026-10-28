@@ -19,7 +19,6 @@ static test_result_t test_scsi_two_reads(struct virtio_dev *dev,
 
     uint16_t seq = scsi_clear_ua(dev, vr, 0);
 
-    memset(req0, 0, sizeof(*req0));
     scsi_set_lun(req0->lun, 0, 0);
     req0->cdb[0] = 0x28;
     req0->cdb[8] = 1;

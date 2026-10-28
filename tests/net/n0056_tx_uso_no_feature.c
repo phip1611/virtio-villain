@@ -22,7 +22,6 @@ static test_result_t test_net_tx_uso_no_feature(struct virtio_dev *dev,
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
     uint8_t *payload = vv_alloc_pages(1);
 
-    memset(hdr, 0, sizeof(*hdr));
     hdr->flags = VIRTIO_NET_HDR_F_NEEDS_CSUM;
     hdr->gso_type = VIRTIO_NET_HDR_GSO_UDP;
     hdr->hdr_len = 42;

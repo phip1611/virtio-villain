@@ -31,7 +31,6 @@ static test_result_t test_net_tx_gso_tcp4(struct virtio_dev *dev,
     hdr->csum_offset = 16; /* TCP checksum offset */
 
     /* Build a minimal frame: eth + ip + tcp + 100 bytes payload */
-    memset(frame, 0, 200);
     memset(frame, 0xFF, 6);         /* dst */
     memset(frame + 6, 0x02, 6);     /* src */
     frame[12] = 0x08; frame[13] = 0x00; /* IPv4 */

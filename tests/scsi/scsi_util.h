@@ -173,7 +173,6 @@ static inline uint16_t scsi_clear_ua(struct virtio_dev *dev, struct vring *vr,
     struct virtio_scsi_cmd_req *req = vv_alloc_pages(1);
     struct virtio_scsi_cmd_resp *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x00;      /* TEST UNIT READY */
     scsi_do_cmd(dev, vr, req, resp, NULL, 0, SCSI_DATA_NONE, seq);
@@ -210,7 +209,6 @@ static inline test_result_t scsi_tmf_when_pending(
 {
     struct virtio_scsi_ctrl_tmf_req *query = vv_alloc_pages(1);
     struct virtio_scsi_ctrl_tmf_resp *response = vv_alloc_pages(1);
-    memset(query, 0, sizeof(*query));
     query->type = VIRTIO_SCSI_T_TMF;
     query->subtype = VIRTIO_SCSI_T_TMF_QUERY_TASK;
     memcpy(query->lun, request->lun, sizeof(query->lun));

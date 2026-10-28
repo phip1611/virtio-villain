@@ -12,8 +12,6 @@ static test_result_t test_rng_batch(struct virtio_dev *dev, struct vring *vr)
 {
     uint8_t *buf1 = vv_alloc_pages(1);
     uint8_t *buf2 = vv_alloc_pages(1);
-    memset(buf1, 0, 16);
-    memset(buf2, 0, 16);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf1), 16,
                        VRING_DESC_F_WRITE, 0);

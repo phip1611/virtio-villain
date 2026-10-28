@@ -15,9 +15,7 @@ static test_result_t test_mem_plug_unplug_batch(struct virtio_dev *dev,
     struct virtio_mem_resp *resp1 = vv_alloc_pages(1);
     struct virtio_mem_req *req2 = vv_alloc_pages(1);
     struct virtio_mem_resp *resp2 = vv_alloc_pages(1);
-    memset(req1, 0, sizeof(*req1));
     memset(resp1, 0xFF, sizeof(*resp1));
-    memset(req2, 0, sizeof(*req2));
     memset(resp2, 0xFF, sizeof(*resp2));
 
     volatile uint8_t *cfg = (volatile uint8_t *)dev->device_cfg;

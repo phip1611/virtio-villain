@@ -14,7 +14,6 @@ static test_result_t test_fs_mismatched_len(struct virtio_dev *dev,
 {
     /* Phase 1: FUSE_INIT */
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     struct fuse_in_header *hdr = (struct fuse_in_header *)page;
     struct fuse_init_in *init = (struct fuse_init_in *)(page + sizeof(*hdr));
@@ -36,7 +35,6 @@ static test_result_t test_fs_mismatched_len(struct virtio_dev *dev,
 
     /* Phase 2: LOOKUP with len claiming 4096 but desc only 64 bytes */
     uint8_t *page2 = vv_alloc_pages(1);
-    memset(page2, 0, 4096);
 
     struct fuse_in_header *lhdr = (struct fuse_in_header *)page2;
     char *name = (char *)(page2 + sizeof(*lhdr));

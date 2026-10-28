@@ -14,7 +14,6 @@ static test_result_t test_scsi_bad_lun_format(struct virtio_dev *dev,
     struct virtio_scsi_cmd_req *req = vv_alloc_pages(1);
     struct virtio_scsi_cmd_resp *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     /* Addressing method byte must be 1; use 0 to make the LUN invalid. */
     req->lun[0] = 0;
     req->cdb[0] = 0x00;      /* TEST UNIT READY */

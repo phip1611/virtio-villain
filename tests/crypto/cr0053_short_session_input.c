@@ -32,7 +32,6 @@ static test_result_t test_crypto_short_session_input(struct virtio_dev *dev,
     struct virtio_crypto_op_ctrl_req *req = vv_alloc_pages(1);
     uint8_t *key = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->header.opcode = VIRTIO_CRYPTO_CIPHER_CREATE_SESSION;
     req->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     req->u.sym_create.para.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
@@ -40,7 +39,6 @@ static test_result_t test_crypto_short_session_input(struct virtio_dev *dev,
     req->u.sym_create.para.op = VIRTIO_CRYPTO_OP_ENCRYPT;
     req->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
     memset(key, 0x2b, 16);
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     /* Reply descriptor deliberately shorter than session_input. */

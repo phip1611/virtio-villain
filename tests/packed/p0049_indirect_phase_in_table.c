@@ -16,10 +16,8 @@ static test_result_t test_packed_indirect_phase_in_table(
         struct virtio_dev *dev, struct vring_packed *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 512);
 
     struct vring_packed_desc *itab = vv_alloc_pages(1);
-    memset(itab, 0, sizeof(*itab));
     itab[0].addr  = vv_virt_to_phys(buf);
     itab[0].len   = 512;
     itab[0].id    = 0;

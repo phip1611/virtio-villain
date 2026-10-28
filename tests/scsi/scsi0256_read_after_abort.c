@@ -30,7 +30,6 @@ static test_result_t test_scsi_read_after_abort(struct virtio_dev *dev,
     struct virtio_scsi_cmd_req *wa = vv_alloc_pages(1);
     struct virtio_scsi_cmd_resp *wr = vv_alloc_pages(1);
     uint8_t *wd = vv_alloc_pages(1);
-    memset(wa, 0, sizeof(*wa));
     scsi_set_lun(wa->lun, 0, 0);
     wa->cdb[0] = 0x28;
     wa->cdb[8] = 1;
@@ -40,7 +39,6 @@ static test_result_t test_scsi_read_after_abort(struct virtio_dev *dev,
     struct virtio_scsi_cmd_req *rb = vv_alloc_pages(1);
     struct virtio_scsi_cmd_resp *rb_resp = vv_alloc_pages(1);
     uint8_t *db = vv_alloc_pages(1);
-    memset(rb, 0, sizeof(*rb));
     scsi_set_lun(rb->lun, 0, 0);
     rb->tag = ABORT_TAG;
     rb->cdb[0] = 0x28;
@@ -51,7 +49,6 @@ static test_result_t test_scsi_read_after_abort(struct virtio_dev *dev,
 
     struct virtio_scsi_ctrl_tmf_req *tmf = vv_alloc_pages(1);
     struct virtio_scsi_ctrl_tmf_resp *tmf_resp = vv_alloc_pages(1);
-    memset(tmf, 0, sizeof(*tmf));
     tmf->type = VIRTIO_SCSI_T_TMF;
     tmf->subtype = VIRTIO_SCSI_T_TMF_ABORT_TASK;
     scsi_set_lun(tmf->lun, 0, 0);
@@ -72,7 +69,6 @@ static test_result_t test_scsi_read_after_abort(struct virtio_dev *dev,
     struct virtio_scsi_cmd_req *rc = vv_alloc_pages(1);
     struct virtio_scsi_cmd_resp *rc_resp = vv_alloc_pages(1);
     uint8_t *dc = vv_alloc_pages(1);
-    memset(rc, 0, sizeof(*rc));
     scsi_set_lun(rc->lun, 0, 0);
     rc->cdb[0] = 0x28;
     rc->cdb[8] = 1;

@@ -14,7 +14,6 @@ static test_result_t test_blk_desc_chain_loop(struct virtio_dev *dev,
     uint8_t *data = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
 
     /* desc 0 -> desc 1 -> desc 0 (loop) */

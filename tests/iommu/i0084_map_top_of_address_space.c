@@ -16,7 +16,6 @@ static test_result_t test_iommu_map_top_of_address_space(struct virtio_dev *dev,
                                                          struct vring *vr)
 {
     struct virtio_iommu_req_attach *att = vv_alloc_pages(1);
-    memset(att, 0, sizeof(*att));
     att->head.type = VIRTIO_IOMMU_T_ATTACH;
     att->domain    = 1;
     att->endpoint  = 0;
@@ -25,7 +24,6 @@ static test_result_t test_iommu_map_top_of_address_space(struct virtio_dev *dev,
     size_t att_in = (size_t)((uint8_t *)&att->tail - (uint8_t *)att);
 
     struct virtio_iommu_req_map *m = vv_alloc_pages(1);
-    memset(m, 0, sizeof(*m));
     m->head.type   = VIRTIO_IOMMU_T_MAP;
     m->domain      = 1;
     m->virt_start  = 0xFFFFFFFFFFFFE000ULL;

@@ -23,7 +23,6 @@ static test_result_t test_net_tx_broadcast(struct virtio_dev *dev,
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
     uint8_t *frame = vv_alloc_pages(1);
 
-    memset(hdr, 0, sizeof(*hdr));
     hdr->gso_type = VIRTIO_NET_HDR_GSO_NONE;
 
     /* Minimal Ethernet frame: dst(6) + src(6) + type(2) + payload(46) = 60 */

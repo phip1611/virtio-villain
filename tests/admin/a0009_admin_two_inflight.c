@@ -16,12 +16,10 @@ static test_result_t test_admin_two_inflight(struct virtio_dev *dev,
     struct virtio_admin_cmd_hdr *cmd2 = vv_alloc_pages(1);
     uint8_t *result2 = vv_alloc_pages(1);
 
-    memset(cmd1, 0, sizeof(*cmd1));
     cmd1->opcode = VIRTIO_ADMIN_CMD_LIST_USE;
     cmd1->group_type = 0;
     cmd1->group_member_id = 0;
 
-    memset(cmd2, 0, sizeof(*cmd2));
     cmd2->opcode = VIRTIO_ADMIN_CMD_LIST_USE;
     cmd2->group_type = 0;
     cmd2->group_member_id = 0;

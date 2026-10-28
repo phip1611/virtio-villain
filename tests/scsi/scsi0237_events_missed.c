@@ -19,7 +19,6 @@ static test_result_t test_scsi_events_missed(struct virtio_dev *dev,
         TSKIP("hot plug feature not offered");
 
     struct virtio_scsi_event *ev = vv_alloc_pages(1);
-    memset(ev, 0, sizeof(*ev));
     uint16_t before = vr->used->idx;
 
     /* Arm with no buffer posted so the hot add event is dropped. */

@@ -24,7 +24,6 @@ static test_result_t test_queue_size_change(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xFF;
 
@@ -92,7 +91,6 @@ static test_result_t test_queue_size_change(struct virtio_dev *dev,
     uint8_t *status2 = vv_alloc_pages(1);
 
     hdr2->type = VIRTIO_BLK_T_IN;
-    hdr2->ioprio = 0;
     hdr2->sector = 0;
     *status2 = 0xFF;
 

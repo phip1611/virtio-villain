@@ -55,7 +55,6 @@ static test_result_t test_blk_concurrent_mq(struct virtio_dev *dev,
     uint8_t *status0 = vv_alloc_pages(1);
 
     hdr0->type = VIRTIO_BLK_T_IN;
-    hdr0->ioprio = 0;
     hdr0->sector = 0;
     *status0 = 0xFF;
 
@@ -74,7 +73,6 @@ static test_result_t test_blk_concurrent_mq(struct virtio_dev *dev,
     uint8_t *status1 = vv_alloc_pages(1);
 
     hdr1->type = VIRTIO_BLK_T_IN;
-    hdr1->ioprio = 0;
     hdr1->sector = 1;
     *status1 = 0xFF;
 

@@ -18,7 +18,6 @@ static test_result_t test_blk_write_scattered(struct virtio_dev *dev,
     uint8_t *wst = vv_alloc_pages(1);
 
     whdr->type = VIRTIO_BLK_T_OUT;
-    whdr->ioprio = 0;
     whdr->sector = 0;
     for (int i = 0; i < 512; i++) d1[i] = (uint8_t)(i ^ 0xDE);
     for (int i = 0; i < 512; i++) d2[i] = (uint8_t)(i ^ 0xAD);
@@ -43,9 +42,7 @@ static test_result_t test_blk_write_scattered(struct virtio_dev *dev,
     uint8_t *rst = vv_alloc_pages(1);
 
     rhdr->type = VIRTIO_BLK_T_IN;
-    rhdr->ioprio = 0;
     rhdr->sector = 0;
-    memset(rdata, 0, 1024);
     *rst = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(rhdr), sizeof(*rhdr),

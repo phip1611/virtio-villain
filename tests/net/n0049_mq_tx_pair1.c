@@ -32,7 +32,6 @@ static test_result_t test_net_mq_tx_pair1(struct virtio_dev *dev,
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
     uint8_t *frame = vv_alloc_pages(1);
 
-    memset(hdr, 0, sizeof(*hdr));
     /* Simple ethernet frame */
     memset(frame, 0xFF, 6);       /* dst broadcast */
     memset(frame + 6, 0x02, 6);   /* src */
