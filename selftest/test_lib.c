@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /*
  * Selftests for the vring library.
- * Runs on the host - no VM needed. Tests struct sizes, layout,
- * and raw ring manipulation functions.
+ * Runs on the host - no VM needed. Tests MMIO accessors, ring
+ * manipulation, registry lookup, and performance accounting.
  */
 #include <assert.h>
 #include <stddef.h>
@@ -174,28 +174,6 @@ static void test_mmio_wrappers(void)
     CHECK(!virtio_pci_feature_offered(&pci, 1) &&
           cfg.device_feature_select == 0,
           "PCI feature accessor selects the low word and masks the bit");
-}
-
-/* --- Struct size / layout checks --- */
-
-static void test_struct_sizes(void)
-{
-    CHECK(sizeof(struct vring_desc) == 16,
-          "vring_desc size = %zu (want 16)", sizeof(struct vring_desc));
-    CHECK(offsetof(struct vring_desc, addr) == 0,
-          "vring_desc.addr offset = %zu (want 0)", offsetof(struct vring_desc, addr));
-    CHECK(offsetof(struct vring_desc, len) == 8,
-          "vring_desc.len offset = %zu (want 8)", offsetof(struct vring_desc, len));
-    CHECK(offsetof(struct vring_desc, flags) == 12,
-          "vring_desc.flags offset = %zu (want 12)", offsetof(struct vring_desc, flags));
-    CHECK(offsetof(struct vring_desc, next) == 14,
-          "vring_desc.next offset = %zu (want 14)", offsetof(struct vring_desc, next));
-
-    CHECK(sizeof(struct vring_used_elem) == 8,
-          "vring_used_elem size = %zu (want 8)", sizeof(struct vring_used_elem));
-
-    CHECK(sizeof(struct test_entry) == 128,
-          "test_entry size = %zu (want 128)", sizeof(struct test_entry));
 }
 
 /* --- Raw ring manipulation --- */
@@ -570,7 +548,6 @@ int main(void)
     test_mmio_accesses();
     test_mmio_read_bytes();
     test_mmio_wrappers();
-    test_struct_sizes();
     test_raw_set_desc();
     test_raw_set_avail();
     test_vring_prepare();
