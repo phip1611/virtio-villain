@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "../lib/util.h"
 #include "../lib/virtio_pci.h"
 #include "../lib/virtio_mmio.h"
 #include "../lib/vring.h"
