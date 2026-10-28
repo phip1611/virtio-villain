@@ -294,6 +294,19 @@ static inline test_result_t vv_kick_and_wait(struct virtio_dev *dev,
 }
 
 /*
+ * Make head the next available entry, then kick and wait like
+ * vv_kick_and_wait() with the default timeout. On a fresh ring this
+ * is the same as setting avail slot 0 to head and avail idx to 1.
+ */
+static inline test_result_t vv_submit_and_wait(struct virtio_dev *dev,
+                                               struct vring *vr,
+                                               uint16_t head)
+{
+    vring_submit(vr, head);
+    return vv_kick_and_wait(dev, vr, vr->queue, VV_TIMEOUT_MS);
+}
+
+/*
  * Kick and expect no response (device should reject the request).
  * Returns TEST_REJECT if the device stays silent but remains alive,
  * TEST_PASS if the device unexpectedly responds (processed it anyway),
