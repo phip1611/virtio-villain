@@ -5,6 +5,7 @@
 import importlib.machinery
 import importlib.util
 import os
+import signal
 import subprocess
 import tempfile
 import uuid
@@ -389,14 +390,16 @@ def main():
                for record in accounting_records)
     assert all(record["involuntary_context_switches"] >= 0
                for record in accounting_records)
-    process = mock.Mock(pid=123)
+    process = mock.Mock(pid=123, returncode=0)
+    process.poll.return_value = 0
     process.communicate.side_effect = [
         subprocess.TimeoutExpired(["vmm"], 1), (output.encode(), b"")]
     with mock.patch.object(module.subprocess, "Popen", return_value=process), \
             mock.patch.object(module.os, "killpg") as killpg:
         assert len(module.run_vmm(["vmm"], {}, 2)) == 2
-    killpg.assert_called_once_with(123, module.signal.SIGKILL)
-    process = mock.Mock(pid=124)
+    killpg.assert_called_once_with(123, signal.SIGKILL)
+    process = mock.Mock(pid=124, returncode=0)
+    process.poll.return_value = 0
     process.communicate.side_effect = [
         subprocess.TimeoutExpired(["vmm"], 1),
         (output.splitlines()[0].encode(), b"")]
@@ -407,6 +410,22 @@ def main():
             assert False
         except RuntimeError as error:
             assert "missing guest results" in str(error)
+    for backend_name in ("ch", "qemu", "openvmm"):
+        backend = mock.Mock()
+        backend.name = backend_name
+        backend.console_device = "ttyS0"
+        backend.build_cmd.return_value = ["vmm"]
+        args = module.parse_args(["-m", "vmm", "--rounds", "2"])
+        captured = subprocess.CompletedProcess(["vmm"], 0, output.encode(), b"VMM diagnostic\n")
+        with mock.patch.object(module.process, "capture", return_value=captured) as capture:
+            actual_backend, actual_samples, kernel = module.run_guest(args, mock.Mock(
+                detect_vmm=mock.Mock(return_value=backend),
+                fetch_kernel=mock.Mock(return_value="kernel")))
+        assert actual_backend is backend
+        assert len(actual_samples) == 2
+        assert kernel == "kernel"
+        capture.assert_called_once_with(
+            ["vmm"], timeout=args.timeout, terminal=backend_name == "openvmm")
     failed_version = subprocess.CompletedProcess(
         ["openvmm", "--version"], 2, "",
         "error: unexpected argument '--version' found")
