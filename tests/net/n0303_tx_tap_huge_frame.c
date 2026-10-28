@@ -16,11 +16,42 @@
  */
 #include "tests/test.h"
 
+static uint16_t tx_aidx;
+
+/* Publish head, kick and wait for one used entry. */
+static test_result_t tx_post(struct virtio_dev *dev, struct vring *vr,
+                             uint16_t head)
+{
+    vring_raw_set_avail(vr, tx_aidx % vr->size, head);
+    tx_aidx++;
+    vring_raw_set_avail_idx(vr, tx_aidx);
+    return vv_kick_and_wait(dev, vr, 1, VV_TIMEOUT_MS);
+}
+
+/* Guest RAM from 2 MiB on. TX only reads it, the content is irrelevant. */
+#define BIG_ADDR 0x200000ull
+
 static test_result_t test_net_tx_tap_huge_frame(struct virtio_dev *dev,
                                                  struct vring *vr)
 {
-    (void)dev;
-    (void)vr;
+    static const uint32_t lens[] = {
+        1u << 20,  /* 1 MiB */
+        4u << 20,  /* 4 MiB */
+        16u << 20, /* 16 MiB */
+        64u << 20, /* 64 MiB */
+    };
+    struct virtio_net_hdr_mrg *hdr = vv_alloc_pages(1);
+    /* A hint only. The device must not trust it. */
+    hdr->hdr_len = 0xffff;
+
+    for (unsigned i = 0; i < sizeof(lens) / sizeof(lens[0]); i++) {
+        /* Each frame uses two descriptors: header and data. */
+        uint16_t h = 2 * i;
+        vv_desc(vr, h, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, h + 1);
+        vring_raw_set_desc(vr, h + 1, BIG_ADDR, lens[i], 0, 0);
+
+        VV_TRY(tx_post(dev, vr, h));
+    }
     TSKIP("not implemented");
 }
 
