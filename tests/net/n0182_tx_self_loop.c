@@ -17,10 +17,7 @@ static test_result_t test_net_tx_self_loop(struct virtio_dev *dev,
     /* next points at descriptor 0, so the chain never terminates. */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q(N0182, VIRTIO_PCI_DEVICE_NET, test_net_tx_self_loop,

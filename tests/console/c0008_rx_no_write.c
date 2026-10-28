@@ -19,10 +19,7 @@ static test_result_t test_console_rx_no_write(struct virtio_dev *dev,
 
     /* RX queue, but descriptor not marked writable */
     vring_raw_set_desc(vr, 0, buf_phys, 64, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(C0008, VIRTIO_PCI_DEVICE_CONSOLE, test_console_rx_no_write,

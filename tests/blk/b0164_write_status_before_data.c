@@ -31,10 +31,7 @@ static test_result_t test_blk_write_status_before_data(struct virtio_dev *dev,
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
     vring_raw_set_desc(vr, 2, vv_virt_to_phys(data), 512, 0, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(B0164, VIRTIO_PCI_DEVICE_BLK,

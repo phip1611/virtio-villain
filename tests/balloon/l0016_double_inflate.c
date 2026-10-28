@@ -19,9 +19,7 @@ static test_result_t test_balloon_double_inflate(struct virtio_dev *dev,
     uint64_t p = vv_virt_to_phys(pfns);
 
     vring_raw_set_desc(vr, 0, p, 4, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
         return r;
 

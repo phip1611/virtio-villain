@@ -21,10 +21,7 @@ static test_result_t test_console_tx_huge_len(struct virtio_dev *dev,
     memset(buf, 'x', 4096);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 1u << 30, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("r == TEST_FAIL");
     if (r == TEST_PASS || r == TEST_WEDGED)

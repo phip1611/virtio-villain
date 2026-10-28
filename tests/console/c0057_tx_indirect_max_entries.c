@@ -31,10 +31,7 @@ static test_result_t test_console_tx_indirect_max_entries(struct virtio_dev *dev
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(itab),
                        ENTRIES * sizeof(struct vring_desc),
                        VRING_DESC_F_INDIRECT, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q_REQUIRES(C0057, VIRTIO_PCI_DEVICE_CONSOLE,

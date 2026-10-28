@@ -30,8 +30,7 @@ static test_result_t test_net_tx_invalid_queue_idx(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, frame_phys, 64, 0, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /*
      * Kick queue index 99 - far beyond what any net device with

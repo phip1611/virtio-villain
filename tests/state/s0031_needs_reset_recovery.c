@@ -21,8 +21,7 @@ static test_result_t test_needs_reset_recovery(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 0, 0, 0, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, 0, 0, VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     __sync_synchronize();
     virtio_pci_kick(dev, vr->queue);

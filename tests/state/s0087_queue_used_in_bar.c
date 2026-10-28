@@ -28,8 +28,7 @@ static test_result_t test_state_queue_device_in_bar(struct virtio_dev *dev,
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(vv_alloc_pages(1)), 8,
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     virtio_pci_kick(dev, vr->queue);
     usleep(VV_TIMEOUT_MS * 1000);

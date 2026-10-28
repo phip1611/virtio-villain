@@ -32,10 +32,7 @@ static test_result_t test_fs_init_bad_version(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 1, phys + 256, 256,
                        VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_Q(F0013, VIRTIO_PCI_DEVICE_FS, test_fs_init_bad_version,

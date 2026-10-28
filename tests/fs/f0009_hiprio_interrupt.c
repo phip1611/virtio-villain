@@ -27,10 +27,7 @@ static test_result_t test_fs_hiprio_interrupt(struct virtio_dev *dev,
     uint64_t hdr_phys = vv_virt_to_phys(page);
 
     vring_raw_set_desc(vr, 0, hdr_phys, hdr->len, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(F0009, VIRTIO_PCI_DEVICE_FS, test_fs_hiprio_interrupt,
