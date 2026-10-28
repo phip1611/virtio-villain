@@ -192,20 +192,18 @@ selftest: selftest-c
 	@echo "selftest/perf:"
 	@python3 selftest/test_perf.py
 
-$(SELFTEST_DIR)/test_lib: selftest/test_lib.c \
-		   lib/mmio.h lib/virtio_mmio.h lib/virtio_pci.h lib/virtio_spec.h \
-		   lib/perf_engine.c lib/perf_engine.h \
-		   lib/vring.c lib/vring.h \
-		   lib/vring_packed.c lib/vring_packed.h \
-		   tests/test.h lib/test.h
-	@mkdir -p $(dir $@)
-	$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) -I. -o $@ selftest/test_lib.c \
-	  lib/perf_engine.c lib/vring.c lib/vring_packed.c $(LDFLAGS)
+# Any header change rebuilds the selftests. They build in under a second,
+# so this is simpler than exact header lists, which can go stale.
+SELFTEST_HDRS = $(wildcard lib/*.h tests/*.h)
 
-$(SELFTEST_DIR)/test_irq: selftest/test_irq.c lib/irq.c lib/irq.h lib/vfio.h
+$(SELFTEST_DIR)/test_lib: selftest/test_lib.c lib/perf_engine.c lib/vring.c \
+                          lib/vring_packed.c $(SELFTEST_HDRS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) -I. -o $@ \
-	  selftest/test_irq.c lib/irq.c $(LDFLAGS)
+	$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) -I. -o $@ $(filter %.c,$^) $(LDFLAGS)
+
+$(SELFTEST_DIR)/test_irq: selftest/test_irq.c lib/irq.c $(SELFTEST_HDRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) -I. -o $@ $(filter %.c,$^) $(LDFLAGS)
 
 PY_SRCS = run run-fuzz run-perf build-kernel $(shell find selftest tests lib -name '*.py' 2>/dev/null)
 
