@@ -20,12 +20,10 @@ static test_result_t test_pmem_status_variations(struct virtio_dev *dev,
         req->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
         resp->ret = sentinels[i];
 
-        vring_raw_set_desc(vr, (uint16_t)(i * 2),
-                           vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, (uint16_t)(i * 2 + 1));
-        vring_raw_set_desc(vr, (uint16_t)(i * 2 + 1),
-                           vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, (uint16_t)(i * 2), req, sizeof(*req), VRING_DESC_F_NEXT,
+                (uint16_t)(i * 2 + 1));
+        vv_desc(vr, (uint16_t)(i * 2 + 1), resp, sizeof(*resp),
+                VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, (uint16_t)i, (uint16_t)(i * 2));
         vring_raw_set_avail_idx(vr, (uint16_t)(i + 1));
 

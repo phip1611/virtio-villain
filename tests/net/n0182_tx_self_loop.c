@@ -14,8 +14,7 @@ static test_result_t test_net_tx_self_loop(struct virtio_dev *dev,
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
 
     /* next points at descriptor 0, so the chain never terminates. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

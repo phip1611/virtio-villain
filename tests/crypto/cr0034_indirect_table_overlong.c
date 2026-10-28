@@ -50,9 +50,8 @@ static test_result_t test_crypto_indirect_overlong(struct virtio_dev *dev,
         table[i].next = (uint16_t)(i + 1);
     }
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(table),
-                       INDIRECT_OVERLONG_ENTRIES * (uint32_t)sizeof(*table),
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, table, INDIRECT_OVERLONG_ENTRIES * (uint32_t)sizeof(*table),
+            VRING_DESC_F_INDIRECT, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("device reported failure on an oversized indirect table");

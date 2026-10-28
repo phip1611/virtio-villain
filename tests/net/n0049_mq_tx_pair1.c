@@ -38,9 +38,8 @@ static test_result_t test_net_mq_tx_pair1(struct virtio_dev *dev,
     frame[12] = 0x08; frame[13] = 0x00;
     memset(frame + 14, 0x55, 46); /* minimum payload */
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&txvr, 1, vv_virt_to_phys(frame), 60, 0, 0);
+    vv_desc(&txvr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&txvr, 1, frame, 60, 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 

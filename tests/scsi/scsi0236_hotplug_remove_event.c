@@ -24,8 +24,7 @@ static test_result_t test_scsi_unplug_event(struct virtio_dev *dev,
     for (int i = 0; i < NBUF; i++) {
         ev[i] = vv_alloc_pages(1);
         memset(ev[i], 0, sizeof(*ev[i]));
-        vring_raw_set_desc(vr, i, vv_virt_to_phys(ev[i]), sizeof(*ev[i]),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, i, ev[i], sizeof(*ev[i]), VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, i, (uint16_t)i);
     }
     vring_raw_set_avail_idx(vr, NBUF);

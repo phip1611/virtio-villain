@@ -28,10 +28,9 @@ static test_result_t test_net_tx_triple(struct virtio_dev *dev,
 
     for (int i = 0; i < 3; i++) {
         int base = i * 2;
-        vring_raw_set_desc(vr, base, vv_virt_to_phys(hdrs[i]),
-                           sizeof(*hdrs[i]), VRING_DESC_F_NEXT, base + 1);
-        vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(frames[i]),
-                           60, 0, 0);
+        vv_desc(vr, base, hdrs[i], sizeof(*hdrs[i]), VRING_DESC_F_NEXT,
+                base + 1);
+        vv_desc(vr, base + 1, frames[i], 60, 0, 0);
         vring_raw_set_avail(vr, i, base);
     }
     vring_raw_set_avail_idx(vr, 3);

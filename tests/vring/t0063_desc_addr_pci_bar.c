@@ -23,13 +23,11 @@ static test_result_t test_desc_addr_pci_bar(struct virtio_dev *dev,
      */
     uint64_t bar_addr = 0xFE000000ULL; /* typical PCI BAR region */
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     /* Data descriptor points into PCI BAR MMIO space */
     vring_raw_set_desc(vr, 1, bar_addr, 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

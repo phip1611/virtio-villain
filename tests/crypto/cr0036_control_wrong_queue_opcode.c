@@ -35,10 +35,8 @@ static test_result_t test_crypto_wrong_queue_opcode(struct virtio_dev *dev,
     req->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     sin->status = 0xFF;
 
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(sin), sizeof(*sin),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, sin, sizeof(*sin), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);
 

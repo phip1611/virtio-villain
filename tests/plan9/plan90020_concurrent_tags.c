@@ -33,14 +33,14 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     if (head_b + 1 >= vr->size)
         TFAIL("test exhausted descriptor table");
 
-    vring_raw_set_desc(vr, head_a, vv_virt_to_phys(request_a),
-                       sizeof(*request_a), VRING_DESC_F_NEXT, head_a + 1);
-    vring_raw_set_desc(vr, head_a + 1, vv_virt_to_phys(response_a),
-                       PLAN9_RESPONSE_SIZE, VRING_DESC_F_WRITE, 0);
-    vring_raw_set_desc(vr, head_b, vv_virt_to_phys(request_b),
-                       sizeof(*request_b), VRING_DESC_F_NEXT, head_b + 1);
-    vring_raw_set_desc(vr, head_b + 1, vv_virt_to_phys(response_b),
-                       PLAN9_RESPONSE_SIZE, VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, head_a, request_a, sizeof(*request_a), VRING_DESC_F_NEXT,
+            head_a + 1);
+    vv_desc(vr, head_a + 1, response_a, PLAN9_RESPONSE_SIZE, VRING_DESC_F_WRITE,
+            0);
+    vv_desc(vr, head_b, request_b, sizeof(*request_b), VRING_DESC_F_NEXT,
+            head_b + 1);
+    vv_desc(vr, head_b + 1, response_b, PLAN9_RESPONSE_SIZE, VRING_DESC_F_WRITE,
+            0);
 
     uint16_t used_before = vr->used->idx;
     vring_raw_set_avail(vr, ctx.next_avail % vr->size, head_a);

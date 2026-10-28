@@ -12,7 +12,7 @@ static test_result_t test_console_tx_128(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
     memset(buf, 'A', 128);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 128, 0, 0);
+    vv_desc(vr, 0, buf, 128, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

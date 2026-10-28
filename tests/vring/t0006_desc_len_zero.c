@@ -28,8 +28,7 @@ static test_result_t test_desc_len_zero(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, hdr_phys, 0,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

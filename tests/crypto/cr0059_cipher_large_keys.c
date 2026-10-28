@@ -26,12 +26,9 @@ static uint64_t make_session(struct virtio_dev *dev, struct vring *cvr,
     req->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
     sin->status = 0xFF;
 
-    vring_raw_set_desc(cvr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(cvr, 1, vv_virt_to_phys(key), keylen,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(cvr, 2, vv_virt_to_phys(sin), sizeof(*sin),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(cvr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(cvr, 1, key, keylen, VRING_DESC_F_NEXT, 2);
+    vv_desc(cvr, 2, sin, sizeof(*sin), VRING_DESC_F_WRITE, 0);
     uint16_t s = *cseq;
     vring_raw_set_avail(cvr, (uint16_t)(s % 16), 0);
     vring_raw_set_avail_idx(cvr, (uint16_t)(s + 1));
@@ -70,14 +67,11 @@ static test_result_t cipher_op(struct virtio_dev *dev, struct vring *vr,
     req->u.sym_cipher.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
     inhdr->status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(iv), 16, VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(src), 16, VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(dst), 16,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, iv, 16, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, src, 16, VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, dst, 16, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
+    vv_desc(vr, 4, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     uint16_t s = *dseq;
     vring_raw_set_avail(vr, (uint16_t)(s % 16), 0);
     vring_raw_set_avail_idx(vr, (uint16_t)(s + 1));

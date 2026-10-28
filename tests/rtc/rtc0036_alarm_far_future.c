@@ -33,8 +33,7 @@ static test_result_t test_rtc_alarm_far_future(struct virtio_dev *dev,
     vring_attach(dev, &alarmq, 1);
 
     struct rtc_notif_alarm *notif = vv_alloc_pages(1);
-    vring_raw_set_desc(&alarmq, 0, vv_virt_to_phys(notif), sizeof(*notif),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&alarmq, 0, notif, sizeof(*notif), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&alarmq, 0, 0);
     vring_raw_set_avail_idx(&alarmq, 1);
     __sync_synchronize();
@@ -49,10 +48,8 @@ static test_result_t test_rtc_alarm_far_future(struct virtio_dev *dev,
     req->flags = VIRTIO_RTC_FLAG_ALARM_ENABLED;
     req->alarm_time = (uint64_t)1 << 62;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
 

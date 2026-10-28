@@ -23,18 +23,13 @@ static test_result_t test_zone_reset_all_inflight(struct virtio_dev *dev,
     *st2 = 0xFF;
 
     /* Chain 1 */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(h1), sizeof(*h1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st1), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, h1, sizeof(*h1), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, st1, 1, VRING_DESC_F_WRITE, 0);
 
     /* Chain 2 */
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(h2), sizeof(*h2),
-                       VRING_DESC_F_NEXT, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(st2), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 3, h2, sizeof(*h2), VRING_DESC_F_NEXT, 4);
+    vv_desc(vr, 4, st2, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 3);

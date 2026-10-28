@@ -24,8 +24,7 @@ static test_result_t test_watchdog_keepalive_across_timeout(
 
     for (uint16_t i = 0; i < PING_COUNT; i++) {
         *resp = 0;
-        vring_raw_set_desc(vr, i, vv_virt_to_phys(resp), 1,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, i, resp, 1, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, i, i);
         vring_raw_set_avail_idx(vr, (uint16_t)(i + 1));
 

@@ -15,7 +15,7 @@ static test_result_t test_console_tx_huge_len(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
 
     /* Length 1 GiB while only 4 KiB is mapped */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 0x40000000U, 0, 0);
+    vv_desc(vr, 0, buf, 0x40000000U, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

@@ -53,9 +53,8 @@ static test_result_t test_blk_indirect_write_verify(struct virtio_dev *dev,
     itbl[2].next = 0;
 
     /* Single direct descriptor pointing to indirect table */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(itbl),
-                       3 * sizeof(struct indirect_desc),
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, itbl, 3 * sizeof(struct indirect_desc),
+            VRING_DESC_F_INDIRECT, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
     if (*wst != VIRTIO_BLK_S_OK) TFAIL("write status %u", *wst);
@@ -67,12 +66,9 @@ static test_result_t test_blk_indirect_write_verify(struct virtio_dev *dev,
 
     *rst = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rhdr), sizeof(*rhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(rdata), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(rst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, rhdr, sizeof(*rhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, rdata, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, rst, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
 

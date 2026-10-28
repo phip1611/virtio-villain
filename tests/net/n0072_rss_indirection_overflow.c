@@ -39,12 +39,9 @@ static test_result_t test_net_rss_overflow(struct virtio_dev *dev,
     uint8_t *ack = vv_alloc_pages(1);
     *ack = 0xFF;
 
-    vring_raw_set_desc(&ctrlvr, 0, vv_virt_to_phys(ctrl), sizeof(*ctrl),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&ctrlvr, 1, vv_virt_to_phys(rss), sizeof(*rss),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&ctrlvr, 2, vv_virt_to_phys(ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&ctrlvr, 0, ctrl, sizeof(*ctrl), VRING_DESC_F_NEXT, 1);
+    vv_desc(&ctrlvr, 1, rss, sizeof(*rss), VRING_DESC_F_NEXT, 2);
+    vv_desc(&ctrlvr, 2, ack, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&ctrlvr, 0, 0);
     vring_raw_set_avail_idx(&ctrlvr, 1);
 

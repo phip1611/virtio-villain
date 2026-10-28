@@ -36,10 +36,8 @@ static test_result_t test_crypto_hash_sha256(struct virtio_dev *dev,
     creq->u.hash_create.para.hash_result_len = 32;
     sin->status = 0xFF;
 
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(creq), sizeof(*creq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(sin), sizeof(*sin),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, creq, sizeof(*creq), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, sin, sizeof(*sin), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);
 
@@ -65,14 +63,10 @@ static test_result_t test_crypto_hash_sha256(struct virtio_dev *dev,
     memset(src, 0x61, 16);
     inhdr->status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(src), 16,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(digest), 32,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, dreq, sizeof(*dreq), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, src, 16, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, digest, 32, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
+    vv_desc(vr, 3, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
 
@@ -93,10 +87,8 @@ static test_result_t test_crypto_hash_sha256(struct virtio_dev *dev,
     creq->header.opcode = VIRTIO_CRYPTO_HASH_DESTROY_SESSION;
     creq->u.destroy.session_id = session_id;
     inhdr->status = 0xFF;
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(creq), sizeof(*creq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, creq, sizeof(*creq), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 1, 0);
     vring_raw_set_avail_idx(&cvr, 2);
     (void)vv_kick_and_wait(dev, &cvr, 0, VV_TIMEOUT_MS);

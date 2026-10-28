@@ -20,13 +20,11 @@ static test_result_t test_desc_addr_lapic(struct virtio_dev *dev,
 
     uint64_t lapic_addr = 0xFEE00000ULL; /* local APIC MMIO window */
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     /* Device writable data descriptor pointing into the local APIC. */
     vring_raw_set_desc(vr, 1, lapic_addr, 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

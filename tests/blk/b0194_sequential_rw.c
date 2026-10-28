@@ -23,12 +23,9 @@ static test_result_t test_blk_seq_rw(struct virtio_dev *dev, struct vring *vr)
     for (int s = 0; s < 4; s++) {
         hdr->type = VIRTIO_BLK_T_OUT; hdr->ioprio = 0; hdr->sector = s;
         memset(data, (uint8_t)(0x10 + s), 512); *st = 0xFF;
-        vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                           VRING_DESC_F_NEXT, 1);
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                           VRING_DESC_F_NEXT, 2);
-        vring_raw_set_desc(vr, 2, vv_virt_to_phys(st), 1,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+        vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT, 2);
+        vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, avail_idx, 0);
         vring_raw_set_avail_idx(vr, avail_idx + 1);
         test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -41,8 +38,7 @@ static test_result_t test_blk_seq_rw(struct virtio_dev *dev, struct vring *vr)
     for (int s = 0; s < 4; s++) {
         hdr->type = VIRTIO_BLK_T_IN; hdr->sector = s;
         memset(data, 0, 512); *st = 0xFF;
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                           VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+        vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
         vring_raw_set_avail(vr, avail_idx, 0);
         vring_raw_set_avail_idx(vr, avail_idx + 1);
         test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

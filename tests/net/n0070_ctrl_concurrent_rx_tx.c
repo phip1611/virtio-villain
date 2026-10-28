@@ -35,8 +35,7 @@ static test_result_t test_net_ctrl_concurrent(struct virtio_dev *dev,
 
     /* Post RX buffer */
     uint8_t *rxbuf = vv_alloc_pages(1);
-    vring_raw_set_desc(&rxvr, 0, vv_virt_to_phys(rxbuf), 1526,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&rxvr, 0, rxbuf, 1526, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&rxvr, 0, 0);
     vring_raw_set_avail_idx(&rxvr, 1);
 
@@ -48,9 +47,8 @@ static test_result_t test_net_ctrl_concurrent(struct virtio_dev *dev,
     frame[12] = 0x08; frame[13] = 0x00;
     memset(frame + 14, 0xAA, 46);
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(txhdr), sizeof(*txhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&txvr, 1, vv_virt_to_phys(frame), 60, 0, 0);
+    vv_desc(&txvr, 0, txhdr, sizeof(*txhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&txvr, 1, frame, 60, 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 
@@ -64,12 +62,9 @@ static test_result_t test_net_ctrl_concurrent(struct virtio_dev *dev,
     *ctrl_data = 1; /* enable */
     *ctrl_ack = 0xFF;
 
-    vring_raw_set_desc(&ctrlvr, 0, vv_virt_to_phys(ctrl), sizeof(*ctrl),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&ctrlvr, 1, vv_virt_to_phys(ctrl_data), 1,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&ctrlvr, 2, vv_virt_to_phys(ctrl_ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&ctrlvr, 0, ctrl, sizeof(*ctrl), VRING_DESC_F_NEXT, 1);
+    vv_desc(&ctrlvr, 1, ctrl_data, 1, VRING_DESC_F_NEXT, 2);
+    vv_desc(&ctrlvr, 2, ctrl_ack, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&ctrlvr, 0, 0);
     vring_raw_set_avail_idx(&ctrlvr, 1);
 

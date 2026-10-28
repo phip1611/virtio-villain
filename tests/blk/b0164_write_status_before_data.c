@@ -22,11 +22,9 @@ static test_result_t test_blk_write_status_before_data(struct virtio_dev *dev,
     *status = 0xFF;
 
     /* Chain: header, status (writable), data (readable). Wrong order. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(data), 512, 0, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, status, 1, VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, data, 512, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

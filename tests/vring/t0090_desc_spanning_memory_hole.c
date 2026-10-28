@@ -27,8 +27,7 @@ static test_result_t test_desc_spanning_hole(struct virtio_dev *dev,
         return TEST_SKIP;
 
     /* Header descriptor (valid) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
 
     /*
      * Data descriptor starts in a valid high page and extends one page
@@ -38,8 +37,7 @@ static test_result_t test_desc_spanning_hole(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
 
     /* Status descriptor (valid) */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

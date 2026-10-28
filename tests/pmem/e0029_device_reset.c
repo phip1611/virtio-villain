@@ -39,10 +39,8 @@ static test_result_t test_pmem_reset_flush(struct virtio_dev *dev,
     req->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
     resp->ret = 0xFFFFFFFFu;
 
-    vring_raw_set_desc(&tvr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&tvr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&tvr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(&tvr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&tvr, 0, 0);
     vring_raw_set_avail_idx(&tvr, 1);
 

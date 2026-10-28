@@ -34,12 +34,9 @@ static test_result_t test_net_vq_coal_readback(struct virtio_dev *dev,
     cvq->max_packets = COAL_MAX_PACKETS;
     cvq->max_usecs = COAL_MAX_USECS;
     *status = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(ctrl), sizeof(*ctrl),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(cvq), sizeof(*cvq),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, ctrl, sizeof(*ctrl), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, cvq, sizeof(*cvq), VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, ai++, 0);
     vring_raw_set_avail_idx(vr, ai);
     test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -56,14 +53,11 @@ static test_result_t test_net_vq_coal_readback(struct virtio_dev *dev,
     req->reserved = 0;
 
     *status = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(ctrl), sizeof(*ctrl),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, ctrl, sizeof(*ctrl), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, req, sizeof(*req), VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, resp, sizeof(*resp), VRING_DESC_F_WRITE | VRING_DESC_F_NEXT,
+            3);
+    vv_desc(vr, 3, status, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, ai++, 0);
     vring_raw_set_avail_idx(vr, ai);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

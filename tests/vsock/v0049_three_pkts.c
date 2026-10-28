@@ -35,9 +35,9 @@ static test_result_t test_vsock_three_pkts(struct virtio_dev *dev,
     fill(p1, VIRTIO_VSOCK_OP_SHUTDOWN, 9001);
     fill(p2, VIRTIO_VSOCK_OP_RST, 9001);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(p0), sizeof(*p0), 0, 0);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(p1), sizeof(*p1), 0, 0);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(p2), sizeof(*p2), 0, 0);
+    vv_desc(vr, 0, p0, sizeof(*p0), 0, 0);
+    vv_desc(vr, 1, p1, sizeof(*p1), 0, 0);
+    vv_desc(vr, 2, p2, sizeof(*p2), 0, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 1);
     vring_raw_set_avail(vr, 2, 2);

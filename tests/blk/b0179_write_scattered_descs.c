@@ -22,14 +22,10 @@ static test_result_t test_blk_write_scattered(struct virtio_dev *dev,
     *wst = 0xFF;
 
     /* hdr -> data1(512) -> data2(512) -> status */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(whdr), sizeof(*whdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(d1), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(d2), 512,
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(wst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, whdr, sizeof(*whdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, d1, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, d2, 512, VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, wst, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
     if (*wst != VIRTIO_BLK_S_OK) TFAIL("write status %u", *wst);
@@ -41,12 +37,9 @@ static test_result_t test_blk_write_scattered(struct virtio_dev *dev,
 
     *rst = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rhdr), sizeof(*rhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(rdata), 1024,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(rst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, rhdr, sizeof(*rhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, rdata, 1024, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, rst, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
 

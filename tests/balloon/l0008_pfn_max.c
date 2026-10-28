@@ -16,7 +16,7 @@ static test_result_t test_balloon_pfn_max(struct virtio_dev *dev,
     uint32_t *pfns = vv_alloc_pages(1);
     pfns[0] = 0xFFFFFFFFu;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pfns), sizeof(uint32_t), 0, 0);
+    vv_desc(vr, 0, pfns, sizeof(uint32_t), 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

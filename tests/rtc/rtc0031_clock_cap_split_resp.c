@@ -26,15 +26,10 @@ static test_result_t test_rtc_clock_cap_split(struct virtio_dev *dev,
     const size_t rest = sizeof(struct rtc_resp_clock_cap_legacy) - half;
     resp[half + rest] = 0xAB;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req),
-                       (uint32_t)sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp),
-                       (uint32_t)half,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(resp + half),
-                       (uint32_t)rest,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, (uint32_t)sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, (uint32_t)half, VRING_DESC_F_WRITE | VRING_DESC_F_NEXT,
+            2);
+    vv_desc(vr, 2, resp + half, (uint32_t)rest, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
         return r;

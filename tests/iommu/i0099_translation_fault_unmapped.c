@@ -24,12 +24,11 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     p->endpoint = 0;
     p->tail.status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(p),
-                       (uint32_t)((uint8_t *)&p->properties - (uint8_t *)p),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(&p->properties),
-                       (uint32_t)(sizeof(p->properties) + sizeof(p->tail)),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, p, (uint32_t)((uint8_t *)&p->properties - (uint8_t *)p),
+            VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, &p->properties,
+            (uint32_t)(sizeof(p->properties) + sizeof(p->tail)),
+            VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

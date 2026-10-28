@@ -23,10 +23,9 @@ static test_result_t destroy_session(struct virtio_dev *dev, struct vring *cvr,
     inhdr->status = 0xFF;
 
     uint16_t b = (uint16_t)(slot * 2);
-    vring_raw_set_desc(cvr, b, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, (uint16_t)(b + 1));
-    vring_raw_set_desc(cvr, (uint16_t)(b + 1), vv_virt_to_phys(inhdr),
-                       sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
+    vv_desc(cvr, b, req, sizeof(*req), VRING_DESC_F_NEXT, (uint16_t)(b + 1));
+    vv_desc(cvr, (uint16_t)(b + 1), inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE,
+            0);
     vring_raw_set_avail(cvr, slot, b);
     vring_raw_set_avail_idx(cvr, (uint16_t)(slot + 1));
 
@@ -64,12 +63,9 @@ static test_result_t test_crypto_double_destroy(struct virtio_dev *dev,
     memset(key, 0x2b, 16);
     sin->status = 0xFF;
 
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(creq), sizeof(*creq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(key), 16,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&cvr, 2, vv_virt_to_phys(sin), sizeof(*sin),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, creq, sizeof(*creq), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, key, 16, VRING_DESC_F_NEXT, 2);
+    vv_desc(&cvr, 2, sin, sizeof(*sin), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);
 

@@ -20,7 +20,7 @@ static test_result_t test_vsock_shutdown_no_conn(struct virtio_dev *dev,
     shut->flags = VIRTIO_VSOCK_SHUTDOWN_BOTH;
     shut->buf_alloc = 0; shut->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(shut), sizeof(*shut), 0, 0);
+    vv_desc(vr, 0, shut, sizeof(*shut), 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

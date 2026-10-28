@@ -31,12 +31,10 @@ static test_result_t test_admin_data_in_bar(struct virtio_dev *dev,
     /* Aim the data buffer at the device's own common config region. */
     uint64_t mmio_phys = dev->common_phys;
 
-    vring_raw_set_desc(&avr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(&avr, 0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(&avr, 1, mmio_phys, 64,
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&avr, 2, vv_virt_to_phys(result), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&avr, 2, result, 64, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&avr, 0, 0);
     vring_raw_set_avail_idx(&avr, 1);
 

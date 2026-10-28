@@ -24,8 +24,7 @@ static test_result_t test_avail_idx_decrement_by_one(struct virtio_dev *dev,
     uint64_t status_phys = vv_virt_to_phys(status);
 
     vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vring_raw_set_desc(vr, 2, status_phys, 1, VRING_DESC_F_WRITE, 0);
 
     /* Submit 2 entries so VMM records avail_idx=2 */

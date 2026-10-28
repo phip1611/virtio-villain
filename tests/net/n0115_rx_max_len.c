@@ -13,8 +13,7 @@ static test_result_t test_net_rx_max_len(struct virtio_dev *dev,
 {
     uint8_t *buf = vv_alloc_pages(1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 0xFFFFFFFFU,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, 0xFFFFFFFFU, VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

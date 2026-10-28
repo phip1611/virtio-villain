@@ -18,12 +18,9 @@ static int build_read(struct vring *vr, uint64_t sector, uint8_t **st_out)
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *st = vv_alloc_pages(1);
     *st = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     *st_out = st;

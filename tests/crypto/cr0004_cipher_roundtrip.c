@@ -26,12 +26,12 @@ static uint64_t make_cipher_session(struct virtio_dev *dev, struct vring *cvr,
     req->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
     sin->status = 0xFF;
 
-    vring_raw_set_desc(cvr, (uint16_t)(slot * 3), vv_virt_to_phys(req),
-                       sizeof(*req), VRING_DESC_F_NEXT, (uint16_t)(slot * 3 + 1));
-    vring_raw_set_desc(cvr, (uint16_t)(slot * 3 + 1), vv_virt_to_phys(key), 16,
-                       VRING_DESC_F_NEXT, (uint16_t)(slot * 3 + 2));
-    vring_raw_set_desc(cvr, (uint16_t)(slot * 3 + 2), vv_virt_to_phys(sin),
-                       sizeof(*sin), VRING_DESC_F_WRITE, 0);
+    vv_desc(cvr, (uint16_t)(slot * 3), req, sizeof(*req), VRING_DESC_F_NEXT,
+            (uint16_t)(slot * 3 + 1));
+    vv_desc(cvr, (uint16_t)(slot * 3 + 1), key, 16, VRING_DESC_F_NEXT,
+            (uint16_t)(slot * 3 + 2));
+    vv_desc(cvr, (uint16_t)(slot * 3 + 2), sin, sizeof(*sin),
+            VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(cvr, slot, (uint16_t)(slot * 3));
     vring_raw_set_avail_idx(cvr, (uint16_t)(slot + 1));
 
@@ -68,16 +68,15 @@ static test_result_t cipher_op(struct virtio_dev *dev, struct vring *vr,
     inhdr->status = 0xFF;
 
     uint16_t b = (uint16_t)(slot * 5);
-    vring_raw_set_desc(vr, b, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, (uint16_t)(b + 1));
-    vring_raw_set_desc(vr, (uint16_t)(b + 1), vv_virt_to_phys(iv), 16,
-                       VRING_DESC_F_NEXT, (uint16_t)(b + 2));
-    vring_raw_set_desc(vr, (uint16_t)(b + 2), vv_virt_to_phys(src), 16,
-                       VRING_DESC_F_NEXT, (uint16_t)(b + 3));
-    vring_raw_set_desc(vr, (uint16_t)(b + 3), vv_virt_to_phys(dst), 16,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, (uint16_t)(b + 4));
-    vring_raw_set_desc(vr, (uint16_t)(b + 4), vv_virt_to_phys(inhdr),
-                       sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, b, req, sizeof(*req), VRING_DESC_F_NEXT, (uint16_t)(b + 1));
+    vv_desc(vr, (uint16_t)(b + 1), iv, 16, VRING_DESC_F_NEXT,
+            (uint16_t)(b + 2));
+    vv_desc(vr, (uint16_t)(b + 2), src, 16, VRING_DESC_F_NEXT,
+            (uint16_t)(b + 3));
+    vv_desc(vr, (uint16_t)(b + 3), dst, 16,
+            VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, (uint16_t)(b + 4));
+    vv_desc(vr, (uint16_t)(b + 4), inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE,
+            0);
     vring_raw_set_avail(vr, slot, b);
     vring_raw_set_avail_idx(vr, (uint16_t)(slot + 1));
 

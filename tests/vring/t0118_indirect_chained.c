@@ -47,9 +47,7 @@ static test_result_t test_indirect_single(struct virtio_dev *dev,
     itbl[2].flags = VRING_DESC_F_WRITE;
     itbl[2].next = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(itbl),
-                       3 * sizeof(struct idesc),
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, itbl, 3 * sizeof(struct idesc), VRING_DESC_F_INDIRECT, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
     if (*st != VIRTIO_BLK_S_OK) TFAIL("status %u", *st);

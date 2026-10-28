@@ -20,13 +20,11 @@ static test_result_t test_desc_addr_own_used_ring(struct virtio_dev *dev,
 
     *status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     /* Data descriptor overlaps the queue's own used ring. */
     vring_raw_set_desc(vr, 1, vr->used_phys, 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("device reported failure writing into its own used ring");

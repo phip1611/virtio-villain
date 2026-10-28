@@ -18,8 +18,7 @@ static test_result_t test_rng_cross_page(struct virtio_dev *dev,
     uint8_t *buf = pages + 4096 - 32;
     memset(buf, 0, 64);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, 64, VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

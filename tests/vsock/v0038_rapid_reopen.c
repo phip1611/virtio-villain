@@ -59,9 +59,9 @@ static test_result_t test_vsock_rapid_reopen(struct virtio_dev *dev,
     recon->buf_alloc = 4096;
     recon->fwd_cnt = 0;
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(conn), sizeof(*conn), 0, 0);
-    vring_raw_set_desc(&txvr, 1, vv_virt_to_phys(shut), sizeof(*shut), 0, 0);
-    vring_raw_set_desc(&txvr, 2, vv_virt_to_phys(recon), sizeof(*recon), 0, 0);
+    vv_desc(&txvr, 0, conn, sizeof(*conn), 0, 0);
+    vv_desc(&txvr, 1, shut, sizeof(*shut), 0, 0);
+    vv_desc(&txvr, 2, recon, sizeof(*recon), 0, 0);
 
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail(&txvr, 1, 1);

@@ -42,7 +42,7 @@ static test_result_t test_balloon_free_page_hint_stop(struct virtio_dev *dev,
     uint32_t *cmd_id = vv_alloc_pages(1);
     *cmd_id = VIRTIO_BALLOON_CMD_ID_STOP;
 
-    vring_raw_set_desc(&fpq, 0, vv_virt_to_phys(cmd_id), 4, 0, 0);
+    vv_desc(&fpq, 0, cmd_id, 4, 0, 0);
     vring_raw_set_avail(&fpq, 0, 0);
     vring_raw_set_avail_idx(&fpq, 1);
 

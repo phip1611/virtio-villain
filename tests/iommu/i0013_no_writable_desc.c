@@ -20,8 +20,7 @@ static test_result_t test_iommu_no_writable_desc(struct virtio_dev *dev,
     req->head.type = VIRTIO_IOMMU_T_ATTACH;
 
     /* Single read-only descriptor covering the entire request body. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       0, 0);
+    vv_desc(vr, 0, req, sizeof(*req), 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

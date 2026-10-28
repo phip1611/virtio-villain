@@ -30,7 +30,7 @@ static test_result_t test_vsock_data_over_credit(struct virtio_dev *dev,
     memset(buf + sizeof(*pkt), 0xBB, 65536);
 
     /* Single descriptor: header + 64K payload */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), sizeof(*pkt) + 65536, 0, 0);
+    vv_desc(vr, 0, buf, sizeof(*pkt) + 65536, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

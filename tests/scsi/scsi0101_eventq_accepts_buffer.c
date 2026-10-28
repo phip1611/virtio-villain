@@ -13,8 +13,7 @@ static test_result_t test_scsi_eventq_buffer(struct virtio_dev *dev,
 {
     uint8_t *buf = vv_alloc_pages(1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 16,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf, 16, VRING_DESC_F_WRITE, 0);
     vring_submit(vr, 0);
     virtio_pci_kick(dev, vr->queue);
     usleep(50000);

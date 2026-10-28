@@ -41,16 +41,12 @@ static test_result_t test_admin_concurrent(struct virtio_dev *dev,
     cmd2->command_specific_data_len = 0;
 
     /* Set up chain 1: descs 0-1 */
-    vring_raw_set_desc(&avr, 0, vv_virt_to_phys(cmd1), sizeof(*cmd1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&avr, 1, vv_virt_to_phys(result1), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&avr, 0, cmd1, sizeof(*cmd1), VRING_DESC_F_NEXT, 1);
+    vv_desc(&avr, 1, result1, 64, VRING_DESC_F_WRITE, 0);
 
     /* Set up chain 2: descs 2-3 */
-    vring_raw_set_desc(&avr, 2, vv_virt_to_phys(cmd2), sizeof(*cmd2),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(&avr, 3, vv_virt_to_phys(result2), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&avr, 2, cmd2, sizeof(*cmd2), VRING_DESC_F_NEXT, 3);
+    vv_desc(&avr, 3, result2, 64, VRING_DESC_F_WRITE, 0);
 
     /* Make both available simultaneously */
     vring_raw_set_avail(&avr, 0, 0);

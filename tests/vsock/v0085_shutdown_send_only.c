@@ -17,7 +17,7 @@ static test_result_t test_vsock_shutdown_send(struct virtio_dev *dev,
     conn->op = VIRTIO_VSOCK_OP_REQUEST;
     conn->flags = 0; conn->buf_alloc = 65536; conn->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(conn), sizeof(*conn), 0, 0);
+    vv_desc(vr, 0, conn, sizeof(*conn), 0, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 
@@ -29,7 +29,7 @@ static test_result_t test_vsock_shutdown_send(struct virtio_dev *dev,
     shut->flags = VIRTIO_VSOCK_SHUTDOWN_SEND;
     shut->buf_alloc = 65536; shut->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(shut), sizeof(*shut), 0, 0);
+    vv_desc(vr, 0, shut, sizeof(*shut), 0, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
 

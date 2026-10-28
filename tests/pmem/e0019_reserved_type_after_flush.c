@@ -19,10 +19,8 @@ static test_result_t test_pmem_reserved_then_flush(struct virtio_dev *dev,
     req->type = 0xCAFE;
     resp->ret = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
 
     /* Second request: legitimate flush */
     struct virtio_pmem_req *req2 = vv_alloc_pages(1);
@@ -30,10 +28,8 @@ static test_result_t test_pmem_reserved_then_flush(struct virtio_dev *dev,
     req2->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
     resp2->ret = 0xFF;
 
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(req2), sizeof(*req2),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(resp2), sizeof(*resp2),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, req2, sizeof(*req2), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, resp2, sizeof(*resp2), VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 2);

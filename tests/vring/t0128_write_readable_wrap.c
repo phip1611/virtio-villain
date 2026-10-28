@@ -30,12 +30,10 @@ static test_result_t test_blk_write_readable_wrap(struct virtio_dev *dev,
      * Data descriptor is device readable and wraps: base 2^64 - 4096,
      * len 0x2000 -> end wraps to 0x1000.
      */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, 0xFFFFFFFFFFFFF000ULL, 0x2000,
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

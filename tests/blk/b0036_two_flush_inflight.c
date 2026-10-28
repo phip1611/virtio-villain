@@ -21,16 +21,12 @@ static test_result_t test_blk_two_flush(struct virtio_dev *dev,
     *status1 = 0xFF;
 
     /* Request 0: desc 0 (hdr) -> desc 1 (status) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr0), sizeof(*hdr0),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status0), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr0, sizeof(*hdr0), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, status0, 1, VRING_DESC_F_WRITE, 0);
 
     /* Request 1: desc 2 (hdr) -> desc 3 (status) */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(hdr1), sizeof(*hdr1),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(status1), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, hdr1, sizeof(*hdr1), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, status1, 1, VRING_DESC_F_WRITE, 0);
 
     /* Both in avail ring, single kick */
     vring_raw_set_avail(vr, 0, 0);

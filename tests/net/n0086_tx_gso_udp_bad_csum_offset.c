@@ -26,8 +26,7 @@ static test_result_t test_net_tx_gso_udp_bad_csum(struct virtio_dev *dev,
     /* Fill the rest with a plausible 60 byte ethernet frame */
     memset(pkt + sizeof(*h), 0x55, 60);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt),
-                       sizeof(*h) + 60, 0, 0);
+    vv_desc(vr, 0, pkt, sizeof(*h) + 60, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

@@ -21,12 +21,9 @@ static test_result_t test_blk_status_write_indirect(struct virtio_dev *dev,
 
     /* Readable header, then writable data, then a status slot that sets
      * VRING_DESC_F_INDIRECT on top of VRING_DESC_F_WRITE. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 1024,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 1024, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE | VRING_DESC_F_INDIRECT, 0);
 
     vring_submit(vr, 0);
 

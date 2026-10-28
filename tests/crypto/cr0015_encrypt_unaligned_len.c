@@ -42,12 +42,9 @@ static test_result_t test_crypto_encrypt_unaligned(struct virtio_dev *dev,
     memset(key, 0x2b, 16);
     sin->status = 0xFF;
 
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(creq), sizeof(*creq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(key), 16,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&cvr, 2, vv_virt_to_phys(sin), sizeof(*sin),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, creq, sizeof(*creq), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, key, 16, VRING_DESC_F_NEXT, 2);
+    vv_desc(&cvr, 2, sin, sizeof(*sin), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);
 
@@ -79,16 +76,11 @@ static test_result_t test_crypto_encrypt_unaligned(struct virtio_dev *dev,
     memset(src, 0x41, 15);
     inhdr->status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(iv), 16,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(src), 15,
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(dst), 15,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, dreq, sizeof(*dreq), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, iv, 16, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, src, 15, VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, dst, 15, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
+    vv_desc(vr, 4, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
 
@@ -101,10 +93,8 @@ static test_result_t test_crypto_encrypt_unaligned(struct virtio_dev *dev,
     creq->header.opcode = VIRTIO_CRYPTO_CIPHER_DESTROY_SESSION;
     creq->u.destroy.session_id = session_id;
     inhdr->status = 0xFF;
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(creq), sizeof(*creq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, creq, sizeof(*creq), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 1, 0);
     vring_raw_set_avail_idx(&cvr, 2);
     (void)vv_kick_and_wait(dev, &cvr, 0, VV_TIMEOUT_MS);

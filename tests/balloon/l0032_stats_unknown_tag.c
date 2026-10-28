@@ -33,8 +33,7 @@ static test_result_t test_balloon_stats_unknown_tag(struct virtio_dev *dev,
         stats[i].val = (uint64_t)i;
     }
 
-    vring_raw_set_desc(&svr, 0, vv_virt_to_phys(stats),
-                       (uint32_t)(sizeof(*stats) * 8), 0, 0);
+    vv_desc(&svr, 0, stats, (uint32_t)(sizeof(*stats) * 8), 0, 0);
     vring_raw_set_avail(&svr, 0, 0);
     vring_raw_set_avail_idx(&svr, 1);
 

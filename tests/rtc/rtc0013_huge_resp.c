@@ -17,8 +17,7 @@ static test_result_t test_rtc_huge_resp(struct virtio_dev *dev,
     uint64_t resp_phys;
     vv_alloc_page_high(&resp_phys);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, buf, sizeof(*req), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, resp_phys, 1u << 30,
                        VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);

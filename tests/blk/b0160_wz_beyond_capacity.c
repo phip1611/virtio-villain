@@ -29,11 +29,8 @@ static test_result_t test_blk_wz_beyond(struct virtio_dev *dev,
     wz_data->num_sectors = 8;
     wz_data->flags = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr),
-                       sizeof(*hdr) + 16,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr) + 16, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

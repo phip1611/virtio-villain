@@ -39,16 +39,14 @@ static test_result_t test_vsock_concurrent_tx_event(struct virtio_dev *dev,
     pkt->buf_alloc = 4096;
     pkt->fwd_cnt = 0;
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(pkt),
-                       sizeof(*pkt), 0, 0);
+    vv_desc(&txvr, 0, pkt, sizeof(*pkt), 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 
     /* Set up event buffer */
     struct virtio_vsock_event *evt = vv_alloc_pages(1);
 
-    vring_raw_set_desc(&evvr, 0, vv_virt_to_phys(evt), sizeof(*evt),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&evvr, 0, evt, sizeof(*evt), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&evvr, 0, 0);
     vring_raw_set_avail_idx(&evvr, 1);
 

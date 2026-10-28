@@ -29,12 +29,9 @@ static test_result_t test_admin_member_id_max(struct virtio_dev *dev,
     cmd->group_type      = 1;
     cmd->group_member_id = 0xFFFFFFFFFFFFFFFFULL;
 
-    vring_raw_set_desc(&avr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&avr, 1, vv_virt_to_phys(data), 64,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&avr, 2, vv_virt_to_phys(result), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&avr, 0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, 1);
+    vv_desc(&avr, 1, data, 64, VRING_DESC_F_NEXT, 2);
+    vv_desc(&avr, 2, result, 64, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&avr, 0, 0);
     vring_raw_set_avail_idx(&avr, 1);
 

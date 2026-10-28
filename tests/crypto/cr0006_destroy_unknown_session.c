@@ -32,10 +32,8 @@ static test_result_t test_crypto_destroy_unknown(struct virtio_dev *dev,
     req->u.destroy.session_id = 0xdeadbeefcafef00dULL;
     inhdr->status = 0xFF;
 
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);
 

@@ -30,10 +30,9 @@ static test_result_t test_vsock_tx_len_mismatch(struct virtio_dev *dev,
     memset(data, 0xAA, 64);
 
     /* Header descriptor */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt), sizeof(*pkt),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, pkt, sizeof(*pkt), VRING_DESC_F_NEXT, 1);
     /* Data: only 64 bytes, not 4096 as claimed */
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 64, 0, 0);
+    vv_desc(vr, 1, data, 64, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

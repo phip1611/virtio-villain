@@ -21,7 +21,7 @@ static test_result_t test_balloon_deflate_unbacked(struct virtio_dev *dev,
     uint64_t base = vv_virt_to_phys(vv_alloc_pages(1));
     pfns[0] = (uint32_t)(base >> VIRTIO_BALLOON_PFN_SHIFT);
 
-    vring_raw_set_desc(&deflate_vr, 0, vv_virt_to_phys(pfns), 4, 0, 0);
+    vv_desc(&deflate_vr, 0, pfns, 4, 0, 0);
     vring_raw_set_avail(&deflate_vr, 0, 0);
     vring_raw_set_avail_idx(&deflate_vr, 1);
 

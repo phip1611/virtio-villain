@@ -49,30 +49,20 @@ static test_result_t test_net_ctrl_three_inflight(struct virtio_dev *dev,
     *a2 = 0xFF;
 
     /* Chain 1: idx 0->1->2 */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(h0), sizeof(*h0),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(promisc), 1,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(a0), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, h0, sizeof(*h0), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, promisc, 1, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, a0, 1, VRING_DESC_F_WRITE, 0);
 
     /* Chain 2 head 3, MAC ADDR SET with mac payload */
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(h1), sizeof(*h1),
-                       VRING_DESC_F_NEXT, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(mac), 6,
-                       VRING_DESC_F_NEXT, 5);
-    vring_raw_set_desc(vr, 5, vv_virt_to_phys(a1), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 3, h1, sizeof(*h1), VRING_DESC_F_NEXT, 4);
+    vv_desc(vr, 4, mac, 6, VRING_DESC_F_NEXT, 5);
+    vv_desc(vr, 5, a1, 1, VRING_DESC_F_WRITE, 0);
 
     /* Chain 3 head 6, MAC TABLE SET with two zero count tables */
-    vring_raw_set_desc(vr, 6, vv_virt_to_phys(h2), sizeof(*h2),
-                       VRING_DESC_F_NEXT, 7);
-    vring_raw_set_desc(vr, 7, vv_virt_to_phys(uni), sizeof(*uni),
-                       VRING_DESC_F_NEXT, 8);
-    vring_raw_set_desc(vr, 8, vv_virt_to_phys(multi), sizeof(*multi),
-                       VRING_DESC_F_NEXT, 9);
-    vring_raw_set_desc(vr, 9, vv_virt_to_phys(a2), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 6, h2, sizeof(*h2), VRING_DESC_F_NEXT, 7);
+    vv_desc(vr, 7, uni, sizeof(*uni), VRING_DESC_F_NEXT, 8);
+    vv_desc(vr, 8, multi, sizeof(*multi), VRING_DESC_F_NEXT, 9);
+    vv_desc(vr, 9, a2, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 3);

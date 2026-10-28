@@ -30,18 +30,12 @@ static test_result_t test_iommu_map_rw(struct virtio_dev *dev,
     m->tail.status = 0xFF;
 
     /* Submit ATTACH */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(a),
-                       sizeof(*a) - sizeof(a->tail),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(&a->tail),
-                       sizeof(a->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, a, sizeof(*a) - sizeof(a->tail), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, &a->tail, sizeof(a->tail), VRING_DESC_F_WRITE, 0);
 
     /* Submit MAP */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(m),
-                       sizeof(*m) - sizeof(m->tail),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(&m->tail),
-                       sizeof(m->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, m, sizeof(*m) - sizeof(m->tail), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, &m->tail, sizeof(m->tail), VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 2);

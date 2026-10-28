@@ -39,10 +39,8 @@ static test_result_t test_blk_zone_open_resource_status(struct virtio_dev *dev,
         *status[i] = 0xFF;
 
         uint16_t base = (uint16_t)(i * 2);
-        vring_raw_set_desc(vr, base, vv_virt_to_phys(hdr),
-                           sizeof(*hdr), VRING_DESC_F_NEXT, base + 1);
-        vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(status[i]), 1,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, base, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, base + 1);
+        vv_desc(vr, base + 1, status[i], 1, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, i, base);
     }
     vring_raw_set_avail_idx(vr, NUM_OPENS);

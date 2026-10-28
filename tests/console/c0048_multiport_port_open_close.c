@@ -31,13 +31,13 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     open_msg->id  = 0; open_msg->event  = VIRTIO_CONSOLE_PORT_OPEN; open_msg->value  = 1;
     close_msg->id = 0; close_msg->event = VIRTIO_CONSOLE_PORT_OPEN; close_msg->value = 0;
 
-    vring_raw_set_desc(&cq, 0, vv_virt_to_phys(open_msg), sizeof(*open_msg), 0, 0);
+    vv_desc(&cq, 0, open_msg, sizeof(*open_msg), 0, 0);
     vring_raw_set_avail(&cq, 0, 0);
     vring_raw_set_avail_idx(&cq, 1);
     test_result_t r = vv_kick_and_wait(dev, &cq, 2, VV_TIMEOUT_MS);
     if (r != TEST_PASS) return r;
 
-    vring_raw_set_desc(&cq, 1, vv_virt_to_phys(close_msg), sizeof(*close_msg), 0, 0);
+    vv_desc(&cq, 1, close_msg, sizeof(*close_msg), 0, 0);
     vring_raw_set_avail(&cq, 1, 1);
     vring_raw_set_avail_idx(&cq, 2);
     return vv_kick_and_wait(dev, &cq, 2, VV_TIMEOUT_MS);

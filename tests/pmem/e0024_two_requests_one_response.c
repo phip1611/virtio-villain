@@ -23,12 +23,9 @@ static test_result_t test_pmem_two_requests_one_response(struct virtio_dev *dev,
     r2->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
     memset(resp, 0xFF, 4);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(r1), sizeof(*r1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(r2), sizeof(*r2),
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(resp), 4,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, r1, sizeof(*r1), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, r2, sizeof(*r2), VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, resp, 4, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

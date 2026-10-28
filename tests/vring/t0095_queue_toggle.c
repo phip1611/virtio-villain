@@ -19,12 +19,10 @@ static test_result_t do_one_read(struct virtio_dev *dev, struct vring *vr,
     uint8_t *st = vv_alloc_pages(1);
     *st = 0xFF;
 
-    vring_raw_set_desc(vr, base_slot, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, base_slot + 1);
-    vring_raw_set_desc(vr, base_slot + 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, base_slot + 2);
-    vring_raw_set_desc(vr, base_slot + 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, base_slot, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, base_slot + 1);
+    vv_desc(vr, base_slot + 1, data, 512,
+            VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, base_slot + 2);
+    vv_desc(vr, base_slot + 2, st, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, avail_slot, base_slot);
     vring_raw_set_avail_idx(vr, avail_slot + 1);
 

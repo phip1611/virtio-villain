@@ -30,14 +30,12 @@ static test_result_t test_admin_full_queue_chain(struct virtio_dev *dev,
     cmd->group_member_id = 0;
 
     /* Slot 0: header. Slots 1..14: 16 byte readable padding. Slot 15: writable status. */
-    vring_raw_set_desc(&avr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(&avr, 0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, 1);
     for (uint16_t i = 1; i < 15; i++) {
         vring_raw_set_desc(&avr, i, vv_virt_to_phys(pad) + i * 16, 16,
                            VRING_DESC_F_NEXT, (uint16_t)(i + 1));
     }
-    vring_raw_set_desc(&avr, 15, vv_virt_to_phys(result), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&avr, 15, result, 64, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&avr, 0, 0);
     vring_raw_set_avail_idx(&avr, 1);

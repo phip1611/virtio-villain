@@ -35,10 +35,8 @@ static test_result_t test_rx_over_buffer(struct virtio_dev *dev,
     uint16_t used_idx = rx_vr->used->idx;
     xfer->stream_id = stream_id;
     memset(response, 0xff, 2056);
-    vring_raw_set_desc(rx_vr, 0, vv_virt_to_phys(xfer), sizeof(*xfer),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(rx_vr, 1, vv_virt_to_phys(response), 2056,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(rx_vr, 0, xfer, sizeof(*xfer), VRING_DESC_F_NEXT, 1);
+    vv_desc(rx_vr, 1, response, 2056, VRING_DESC_F_WRITE, 0);
     vring_submit(rx_vr, 0);
 
     result = vv_kick_and_wait(dev, rx_vr, 0, VV_TIMEOUT_MS);

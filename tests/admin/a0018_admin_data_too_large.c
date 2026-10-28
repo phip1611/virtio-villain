@@ -33,10 +33,8 @@ static test_result_t test_admin_data_too_large(struct virtio_dev *dev,
      * Command descriptor only provides sizeof(hdr) = 8 bytes,
      * but header claims 4096 bytes of command-specific data follow.
      */
-    vring_raw_set_desc(&avr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&avr, 1, vv_virt_to_phys(result), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&avr, 0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, 1);
+    vv_desc(&avr, 1, result, 64, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&avr, 0, 0);
     vring_raw_set_avail_idx(&avr, 1);

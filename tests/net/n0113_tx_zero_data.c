@@ -15,10 +15,9 @@ static test_result_t test_net_tx_zero_data(struct virtio_dev *dev,
     uint8_t *data = vv_alloc_pages(1);
 
     /* Header descriptor (readable) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     /* Data descriptor with zero length */
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 0, 0, 0);
+    vv_desc(vr, 1, data, 0, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

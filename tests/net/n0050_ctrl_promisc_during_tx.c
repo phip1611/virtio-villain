@@ -45,9 +45,8 @@ static test_result_t test_net_ctrl_promisc_during_tx(struct virtio_dev *dev,
     frame[12] = 0x08; frame[13] = 0x00;
     memset(frame + 14, 0xCC, 46);
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(txhdr), sizeof(*txhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&txvr, 1, vv_virt_to_phys(frame), 60, 0, 0);
+    vv_desc(&txvr, 0, txhdr, sizeof(*txhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&txvr, 1, frame, 60, 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 
@@ -61,12 +60,9 @@ static test_result_t test_net_ctrl_promisc_during_tx(struct virtio_dev *dev,
     *on_off = 1; /* enable promisc */
     *ack = 0xFF;
 
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(chdr), sizeof(*chdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(on_off), 1,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&cvr, 2, vv_virt_to_phys(ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, chdr, sizeof(*chdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, on_off, 1, VRING_DESC_F_NEXT, 2);
+    vv_desc(&cvr, 2, ack, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);
 

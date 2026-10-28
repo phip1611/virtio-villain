@@ -18,9 +18,8 @@ static test_result_t test_vsock_bidirectional(struct virtio_dev *dev,
 
     /* Post RX buffers on queue 0 (already vr) */
     uint8_t *rxbuf = vv_alloc_pages(1);
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rxbuf),
-                       sizeof(struct virtio_vsock_hdr) + 128,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, rxbuf, sizeof(struct virtio_vsock_hdr) + 128,
+            VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     __sync_synchronize();
@@ -46,8 +45,7 @@ static test_result_t test_vsock_bidirectional(struct virtio_dev *dev,
     txpkt->fwd_cnt = 0;
     memset(payload, 0xAB, 64);
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(txpkt),
-                       sizeof(*txpkt) + 64, 0, 0);
+    vv_desc(&txvr, 0, txpkt, sizeof(*txpkt) + 64, 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 

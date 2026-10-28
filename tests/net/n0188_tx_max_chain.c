@@ -17,13 +17,11 @@ static test_result_t test_net_tx_max_chain(struct virtio_dev *dev,
     uint8_t *frag = vv_alloc_pages(1);
     memset(frag, 0x5a, 64);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     for (int i = 1; i < CHAIN; i++) {
         uint16_t last = i == CHAIN - 1;
-        vring_raw_set_desc(vr, i, vv_virt_to_phys(frag + (i * 64 % 4096)), 64,
-                           last ? 0 : VRING_DESC_F_NEXT,
-                           last ? 0 : i + 1);
+        vv_desc(vr, i, frag + (i * 64 % 4096), 64, last ? 0 : VRING_DESC_F_NEXT,
+                last ? 0 : i + 1);
     }
     return vv_submit_and_wait(dev, vr, 0);
 }

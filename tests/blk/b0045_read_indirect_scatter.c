@@ -62,8 +62,7 @@ static test_result_t test_blk_read_indirect_scatter(struct virtio_dev *dev,
     indirect[5].next = 0;
 
     /* Main ring: single indirect descriptor */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect), 6 * 16,
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, indirect, 6 * 16, VRING_DESC_F_INDIRECT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

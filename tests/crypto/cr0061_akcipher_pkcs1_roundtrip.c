@@ -30,14 +30,10 @@ static test_result_t rsa_pkcs1_op(struct virtio_dev *dev, struct vring *vr,
     dreq->u.akcipher.para.src_data_len = src_len;
     dreq->u.akcipher.para.dst_data_len = dst_len;
     inhdr->status = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(src), src_len,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(dst), dst_len,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, dreq, sizeof(*dreq), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, src, src_len, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, dst, dst_len, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
+    vv_desc(vr, 3, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, slot, 0);
     vring_raw_set_avail_idx(vr, (uint16_t)(slot + 1));
 

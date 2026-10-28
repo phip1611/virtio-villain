@@ -28,9 +28,8 @@ static test_result_t test_vsock_reserved_cid(struct virtio_dev *dev,
     pkt->buf_alloc = 4096;
     pkt->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt), sizeof(*pkt),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(payload), 16, 0, 0);
+    vv_desc(vr, 0, pkt, sizeof(*pkt), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, payload, 16, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

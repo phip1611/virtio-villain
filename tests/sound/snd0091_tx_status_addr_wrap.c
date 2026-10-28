@@ -19,10 +19,8 @@ static test_result_t test_tx_status_addr_wrap(struct virtio_dev *dev,
     uint8_t *data = vv_alloc_pages(1);
     uint16_t used_idx = tx_vr->used->idx;
     xfer->stream_id = stream_id;
-    vring_raw_set_desc(tx_vr, 0, vv_virt_to_phys(xfer), sizeof(*xfer),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(tx_vr, 1, vv_virt_to_phys(data), 1024,
-                       VRING_DESC_F_NEXT, 2);
+    vv_desc(tx_vr, 0, xfer, sizeof(*xfer), VRING_DESC_F_NEXT, 1);
+    vv_desc(tx_vr, 1, data, 1024, VRING_DESC_F_NEXT, 2);
     vring_raw_set_desc(tx_vr, 2, UINT64_MAX - 3, 8,
                        VRING_DESC_F_WRITE, 0);
     vring_submit(tx_vr, 0);

@@ -21,7 +21,7 @@ static test_result_t test_vsock_stream_rw(struct virtio_dev *dev,
     conn->flags = 0;
     conn->buf_alloc = 65536; conn->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(conn), sizeof(*conn), 0, 0);
+    vv_desc(vr, 0, conn, sizeof(*conn), 0, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 
@@ -39,9 +39,8 @@ static test_result_t test_vsock_stream_rw(struct virtio_dev *dev,
 
     memset(payload, 0x61, 32);  /* 'a' repeated */
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(rw), sizeof(*rw),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(payload), 32, 0, 0);
+    vv_desc(vr, 0, rw, sizeof(*rw), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, payload, 32, 0, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
 

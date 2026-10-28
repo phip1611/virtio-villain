@@ -14,11 +14,10 @@ static test_result_t one(struct virtio_dev *dev, struct vring *vr,
                          uint16_t slot, struct virtio_mem_req *req,
                          struct virtio_mem_resp *resp)
 {
-    vring_raw_set_desc(vr, (uint16_t)(slot * 2), vv_virt_to_phys(req),
-                       sizeof(*req), VRING_DESC_F_NEXT,
-                       (uint16_t)(slot * 2 + 1));
-    vring_raw_set_desc(vr, (uint16_t)(slot * 2 + 1), vv_virt_to_phys(resp),
-                       sizeof(*resp), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, (uint16_t)(slot * 2), req, sizeof(*req), VRING_DESC_F_NEXT,
+            (uint16_t)(slot * 2 + 1));
+    vv_desc(vr, (uint16_t)(slot * 2 + 1), resp, sizeof(*resp),
+            VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, slot, (uint16_t)(slot * 2));
     vring_raw_set_avail_idx(vr, (uint16_t)(slot + 1));
     return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

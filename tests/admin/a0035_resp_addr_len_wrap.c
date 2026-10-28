@@ -28,8 +28,7 @@ static test_result_t test_admin_resp_addr_len_wrap(struct virtio_dev *dev,
     cmd->group_type = 0;
     cmd->group_member_id = 0;
 
-    vring_raw_set_desc(&avr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(&avr, 0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(&avr, 1, 0xFFFFFFFFFFFFF000ULL, 0x2000,
                        VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&avr, 0, 0);

@@ -32,10 +32,8 @@ static test_result_t test_pci_admin_queue_notify(struct virtio_dev *dev,
     cmd->group_type = 1;
     cmd->group_member_id = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(result), 64,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, result, 64, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

@@ -22,8 +22,7 @@ static test_result_t test_rng_indirect_self_loop(struct virtio_dev *dev,
     itab[0].flags = VRING_DESC_F_WRITE | VRING_DESC_F_NEXT;
     itab[0].next = 0;      /* points at itself */
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(itab),
-                       sizeof(struct vring_desc), VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, itab, sizeof(struct vring_desc), VRING_DESC_F_INDIRECT, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

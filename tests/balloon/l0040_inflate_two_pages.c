@@ -18,7 +18,7 @@ static test_result_t test_balloon_inflate_two(struct virtio_dev *dev,
     pfns[0] = (uint32_t)(vv_virt_to_phys(p1) >> VIRTIO_BALLOON_PFN_SHIFT);
     pfns[1] = (uint32_t)(vv_virt_to_phys(p2) >> VIRTIO_BALLOON_PFN_SHIFT);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pfns), 8, 0, 0);
+    vv_desc(vr, 0, pfns, 8, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

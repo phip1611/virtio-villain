@@ -56,12 +56,9 @@ static test_result_t test_blk_concurrent_mq(struct virtio_dev *dev,
 
     *status0 = 0xFF;
 
-    vring_raw_set_desc(&q0, 0, vv_virt_to_phys(hdr0), sizeof(*hdr0),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&q0, 1, vv_virt_to_phys(data0), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&q0, 2, vv_virt_to_phys(status0), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&q0, 0, hdr0, sizeof(*hdr0), VRING_DESC_F_NEXT, 1);
+    vv_desc(&q0, 1, data0, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&q0, 2, status0, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&q0, 0, 0);
     vring_raw_set_avail_idx(&q0, 1);
 
@@ -72,12 +69,9 @@ static test_result_t test_blk_concurrent_mq(struct virtio_dev *dev,
 
     *status1 = 0xFF;
 
-    vring_raw_set_desc(&q1, 0, vv_virt_to_phys(hdr1), sizeof(*hdr1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&q1, 1, vv_virt_to_phys(data1), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&q1, 2, vv_virt_to_phys(status1), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&q1, 0, hdr1, sizeof(*hdr1), VRING_DESC_F_NEXT, 1);
+    vv_desc(&q1, 1, data1, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&q1, 2, status1, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&q1, 0, 0);
     vring_raw_set_avail_idx(&q1, 1);
 

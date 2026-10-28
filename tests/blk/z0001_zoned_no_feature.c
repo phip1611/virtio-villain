@@ -24,14 +24,11 @@ static test_result_t test_blk_zoned_no_feature(struct virtio_dev *dev,
     hdr->sector = 0;
 
     /* header (device-readable) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     /* data buffer (device-writable) for zone report */
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 4096,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 1, data, 4096, VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
     /* status (device-writable) */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

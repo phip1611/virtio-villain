@@ -16,9 +16,9 @@ static test_result_t test_net_rx_max_chain(struct virtio_dev *dev,
 
     for (int i = 0; i < CHAIN; i++) {
         uint16_t last = i == CHAIN - 1;
-        vring_raw_set_desc(vr, i, vv_virt_to_phys(buf + (i * 128 % 4096)), 128,
-                           VRING_DESC_F_WRITE | (last ? 0 : VRING_DESC_F_NEXT),
-                           last ? 0 : i + 1);
+        vv_desc(vr, i, buf + (i * 128 % 4096), 128,
+                VRING_DESC_F_WRITE | (last ? 0 : VRING_DESC_F_NEXT),
+                last ? 0 : i + 1);
     }
     return vv_submit_and_wait(dev, vr, 0);
 }

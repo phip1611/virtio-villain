@@ -16,7 +16,7 @@ static test_result_t test_rtc_no_resp(struct virtio_dev *dev,
     struct rtc_req_read *req = (void *)buf;
     req->msg_type = VIRTIO_RTC_REQ_READ;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), sizeof(*req), 0, 0);
+    vv_desc(vr, 0, buf, sizeof(*req), 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

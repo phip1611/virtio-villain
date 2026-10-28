@@ -19,10 +19,9 @@ static test_result_t test_scsi_cyclic_chain(struct virtio_dev *dev,
     req->cdb[0] = 0x00;      /* TEST UNIT READY */
 
     /* desc0 -> desc1 -> desc0, a cycle. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+            0);
 
     vring_submit(vr, 0);
 

@@ -18,8 +18,7 @@ static test_result_t test_watchdog_rapid_ping(struct virtio_dev *dev,
     for (int i = 0; i < BURST_COUNT; i++) {
         bufs[i] = vv_alloc_pages(1);
         *bufs[i] = 0;
-        vring_raw_set_desc(vr, i, vv_virt_to_phys(bufs[i]), 1,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, i, bufs[i], 1, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, i, i);
     }
     vring_raw_set_avail_idx(vr, BURST_COUNT);

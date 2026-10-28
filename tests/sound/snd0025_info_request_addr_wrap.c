@@ -9,9 +9,7 @@ static test_result_t test_info_request_addr_wrap(struct virtio_dev *dev,
 
     vring_raw_set_desc(vr, 0, 0xfffffffffffff000ULL, 0x2000,
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp),
-                       sizeof(struct virtio_snd_hdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 1, resp, sizeof(struct virtio_snd_hdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, vr->avail->idx % vr->size, 0);
     vring_raw_set_avail_idx(vr, vr->avail->idx + 1);
 

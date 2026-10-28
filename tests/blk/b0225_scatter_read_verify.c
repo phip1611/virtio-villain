@@ -20,12 +20,9 @@ static test_result_t test_blk_scatter_read(struct virtio_dev *dev,
     hdr->type = VIRTIO_BLK_T_OUT; hdr->ioprio = 0; hdr->sector = 0;
     for (int i = 0; i < 512; i++) wdata[i] = (uint8_t)(i ^ 0x93);
     *st = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(wdata), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, wdata, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, st, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
     if (*st != VIRTIO_BLK_S_OK) TFAIL("write status %u", *st);
@@ -38,16 +35,11 @@ static test_result_t test_blk_scatter_read(struct virtio_dev *dev,
     *st = 0xFF;
 
     hdr->type = VIRTIO_BLK_T_IN;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(r0), 128,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(r1), 256,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(r2), 128,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(st), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, r0, 128, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, r1, 256, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
+    vv_desc(vr, 3, r2, 128, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
+    vv_desc(vr, 4, st, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);

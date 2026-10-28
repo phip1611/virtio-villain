@@ -48,29 +48,17 @@ static test_result_t test_iommu_map_ro(struct virtio_dev *dev,
     d->tail.status = 0xFF;
 
     /* Submit all four in sequence */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(a),
-                       sizeof(*a) - sizeof(a->tail),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(&a->tail),
-                       sizeof(a->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, a, sizeof(*a) - sizeof(a->tail), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, &a->tail, sizeof(a->tail), VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(m),
-                       sizeof(*m) - sizeof(m->tail),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(&m->tail),
-                       sizeof(m->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, m, sizeof(*m) - sizeof(m->tail), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, &m->tail, sizeof(m->tail), VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(u),
-                       sizeof(*u) - sizeof(u->tail),
-                       VRING_DESC_F_NEXT, 5);
-    vring_raw_set_desc(vr, 5, vv_virt_to_phys(&u->tail),
-                       sizeof(u->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 4, u, sizeof(*u) - sizeof(u->tail), VRING_DESC_F_NEXT, 5);
+    vv_desc(vr, 5, &u->tail, sizeof(u->tail), VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_desc(vr, 6, vv_virt_to_phys(d),
-                       sizeof(*d) - sizeof(d->tail),
-                       VRING_DESC_F_NEXT, 7);
-    vring_raw_set_desc(vr, 7, vv_virt_to_phys(&d->tail),
-                       sizeof(d->tail), VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 6, d, sizeof(*d) - sizeof(d->tail), VRING_DESC_F_NEXT, 7);
+    vv_desc(vr, 7, &d->tail, sizeof(d->tail), VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 2);

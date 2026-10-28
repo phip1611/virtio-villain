@@ -21,8 +21,7 @@ static test_result_t test_scsi_hotplug_event(struct virtio_dev *dev,
     struct virtio_scsi_event *ev = vv_alloc_pages(1);
 
     uint16_t before = vr->used->idx;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(ev), sizeof(*ev),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, ev, sizeof(*ev), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     scsi_kick(dev, vr->queue);

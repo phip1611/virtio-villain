@@ -30,8 +30,7 @@ static test_result_t test_mem_huge_len_past_ram(struct virtio_dev *dev,
         overshoot = 0xFFFFFFFFULL;
     uint32_t len = (uint32_t)overshoot;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, resp_phys, len,
                        VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);

@@ -23,15 +23,11 @@ static test_result_t test_interleave_rw_descs(struct virtio_dev *dev,
      *        [2] extra readable -> [3] status (writable)
      * The readable desc [2] after writable [1] violates ordering.
      */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(buf1), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, buf1, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     /* Readable desc after writable - violation */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(buf2), 16,
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(buf3), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, buf2, 16, VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, buf3, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

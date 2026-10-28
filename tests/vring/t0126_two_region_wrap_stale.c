@@ -42,14 +42,12 @@ static test_result_t test_two_region_wrap_stale(struct virtio_dev *dev,
      * 0x1000. The running boundary carried into desc[2] is the wrapped
      * value, so the second region is folded onto a bogus base.
      */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, 0xFFFFFFFFFFFFF000ULL, 0x2000,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vring_raw_set_desc(vr, 2, good_phys, 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 3, status, 1, VRING_DESC_F_WRITE, 0);
 
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)

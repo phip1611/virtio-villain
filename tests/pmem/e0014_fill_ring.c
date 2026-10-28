@@ -23,12 +23,10 @@ static test_result_t test_pmem_fill_ring(struct virtio_dev *dev,
 
     for (uint16_t i = 0; i < pairs; i++) {
         reqs[i].type = 0;
-        vring_raw_set_desc(vr, i * 2,
-                           vv_virt_to_phys(&reqs[i]), sizeof(reqs[i]),
-                           VRING_DESC_F_NEXT, i * 2 + 1);
-        vring_raw_set_desc(vr, i * 2 + 1,
-                           vv_virt_to_phys(&resps[i]), sizeof(resps[i]),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, i * 2, &reqs[i], sizeof(reqs[i]), VRING_DESC_F_NEXT,
+                i * 2 + 1);
+        vv_desc(vr, i * 2 + 1, &resps[i], sizeof(resps[i]), VRING_DESC_F_WRITE,
+                0);
         vring_raw_set_avail(vr, i, i * 2);
     }
     vring_raw_set_avail_idx(vr, pairs);

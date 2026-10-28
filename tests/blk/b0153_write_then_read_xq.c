@@ -65,12 +65,9 @@ static test_result_t test_blk_write_then_read_xq(struct virtio_dev *dev,
     uint8_t *wst = vv_alloc_pages(1);
     memset(wdata, 0xC3, 512);
     *wst = 0xFF;
-    vring_raw_set_desc(&q0, 0, vv_virt_to_phys(whdr), sizeof(*whdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&q0, 1, vv_virt_to_phys(wdata), 512,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&q0, 2, vv_virt_to_phys(wst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&q0, 0, whdr, sizeof(*whdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&q0, 1, wdata, 512, VRING_DESC_F_NEXT, 2);
+    vv_desc(&q0, 2, wst, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&q0, 0, 0);
     vring_raw_set_avail_idx(&q0, 1);
     virtio_pci_kick(dev, 0);
@@ -84,12 +81,9 @@ static test_result_t test_blk_write_then_read_xq(struct virtio_dev *dev,
     uint8_t *rdata = vv_alloc_pages(1);
     uint8_t *rst = vv_alloc_pages(1);
     *rst = 0xFF;
-    vring_raw_set_desc(&q1, 0, vv_virt_to_phys(rhdr), sizeof(*rhdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&q1, 1, vv_virt_to_phys(rdata), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&q1, 2, vv_virt_to_phys(rst), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&q1, 0, rhdr, sizeof(*rhdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&q1, 1, rdata, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&q1, 2, rst, 1, VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&q1, 0, 0);
     vring_raw_set_avail_idx(&q1, 1);
     virtio_pci_kick(dev, 1);

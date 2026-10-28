@@ -29,12 +29,9 @@ static test_result_t test_blk_get_id_nonzero_queue(struct virtio_dev *dev,
 
     *status = 0xFF;
 
-    vring_raw_set_desc(&vr1, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&vr1, 1, vv_virt_to_phys(id_buf), 20,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&vr1, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&vr1, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&vr1, 1, id_buf, 20, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&vr1, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&vr1, 0, 0);
     vring_raw_set_avail_idx(&vr1, 1);

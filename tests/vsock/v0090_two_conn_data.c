@@ -23,14 +23,14 @@ static test_result_t test_vsock_two_conn_data(struct virtio_dev *dev,
     /* CONNECT port 5100 */
     struct virtio_vsock_hdr *c1 = vv_alloc_pages(1);
     mkconn(c1, 5100, VIRTIO_VSOCK_OP_REQUEST);
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(c1), sizeof(*c1), 0, 0);
+    vv_desc(vr, 0, c1, sizeof(*c1), 0, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
 
     /* CONNECT port 5101 */
     struct virtio_vsock_hdr *c2 = vv_alloc_pages(1);
     mkconn(c2, 5101, VIRTIO_VSOCK_OP_REQUEST);
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(c2), sizeof(*c2), 0, 0);
+    vv_desc(vr, 0, c2, sizeof(*c2), 0, 0);
     vring_raw_set_avail(vr, 1, 0);
     vring_raw_set_avail_idx(vr, 2);
     r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
@@ -47,12 +47,10 @@ static test_result_t test_vsock_two_conn_data(struct virtio_dev *dev,
     memset(p1, 0xA1, 16);
     memset(p2, 0xB2, 16);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(d1), sizeof(*d1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(p1), 16, 0, 0);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(d2), sizeof(*d2),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(p2), 16, 0, 0);
+    vv_desc(vr, 0, d1, sizeof(*d1), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, p1, 16, 0, 0);
+    vv_desc(vr, 2, d2, sizeof(*d2), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, p2, 16, 0, 0);
     vring_raw_set_avail(vr, 2, 0);
     vring_raw_set_avail(vr, 3, 2);
     vring_raw_set_avail_idx(vr, 4);

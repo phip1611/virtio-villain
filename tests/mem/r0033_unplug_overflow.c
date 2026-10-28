@@ -23,10 +23,8 @@ static test_result_t test_mem_unplug_overflow(struct virtio_dev *dev,
     req->addr      = 0xFFFFFFFFFFFFF000ULL;
     req->nb_blocks = 0xFFFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

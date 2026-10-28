@@ -26,9 +26,8 @@ static test_result_t test_net_tx_one_byte(struct virtio_dev *dev,
 
     payload[0] = 0x42; /* 1 byte of frame data */
 
-    vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&txvr, 1, vv_virt_to_phys(payload), 1, 0, 0);
+    vv_desc(&txvr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&txvr, 1, payload, 1, 0, 0);
     vring_raw_set_avail(&txvr, 0, 0);
     vring_raw_set_avail_idx(&txvr, 1);
 

@@ -14,10 +14,8 @@ static test_result_t test_watchdog_concurrent_pings(struct virtio_dev *dev,
     uint8_t *buf1 = vv_alloc_pages(1);
     uint8_t *buf2 = vv_alloc_pages(1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf1), 1,
-                       VRING_DESC_F_WRITE, 0);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(buf2), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, buf1, 1, VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 1, buf2, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 1);

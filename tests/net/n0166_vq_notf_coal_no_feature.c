@@ -42,8 +42,7 @@ static test_result_t test_net_vq_notf_coal_no_feature(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, ctrl_phys + sizeof(*ctrl), sizeof(*cvq),
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, ack, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
         return r;

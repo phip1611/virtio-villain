@@ -44,9 +44,8 @@ static test_result_t test_cross_format_indirect(struct virtio_dev *dev,
     table[2].flags = VRING_PACKED_DESC_F_WRITE;
 
     /* Split indirect descriptor pointing at the packed formatted table. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(table),
-                       3 * sizeof(struct vring_packed_desc),
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, table, 3 * sizeof(struct vring_packed_desc),
+            VRING_DESC_F_INDIRECT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

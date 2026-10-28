@@ -38,8 +38,7 @@ static test_result_t test_balloon_stats_vq(struct virtio_dev *dev,
         stats[i].val = 0;
     }
 
-    vring_raw_set_desc(&stats_vr, 0, vv_virt_to_phys(stats),
-                       sizeof(*stats) * 8, 0, 0);
+    vv_desc(&stats_vr, 0, stats, sizeof(*stats) * 8, 0, 0);
     vring_raw_set_avail(&stats_vr, 0, 0);
     vring_raw_set_avail_idx(&stats_vr, 1);
 

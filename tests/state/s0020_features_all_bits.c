@@ -58,9 +58,8 @@ static test_result_t test_features_all_bits(struct virtio_dev *dev,
     uint64_t hdr_phys = vv_virt_to_phys(hdr);
 
     vring_raw_set_desc(&tvr, 0, hdr_phys, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&tvr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&tvr, 2, vv_virt_to_phys(st), 1, VRING_DESC_F_WRITE, 0);
+    vv_desc(&tvr, 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(&tvr, 2, st, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&tvr, 0, 0);
     vring_raw_set_avail_idx(&tvr, 1);

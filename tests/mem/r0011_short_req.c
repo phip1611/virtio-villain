@@ -14,8 +14,7 @@ static test_result_t test_mem_short_req(struct virtio_dev *dev,
 {
     void *buf = vv_alloc_pages(1);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 2,
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, buf, 2, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, vv_virt_to_phys(buf) + 64,
                        sizeof(struct virtio_mem_resp),
                        VRING_DESC_F_WRITE, 0);

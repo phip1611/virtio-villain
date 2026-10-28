@@ -30,7 +30,7 @@ static test_result_t test_vsock_starve_rx(struct virtio_dev *dev,
     pkt->fwd_cnt = 0;
 
     /* Only TX queue - no RX buffers provided */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt), sizeof(*pkt), 0, 0);
+    vv_desc(vr, 0, pkt, sizeof(*pkt), 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

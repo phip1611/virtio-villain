@@ -136,26 +136,19 @@ static inline test_result_t scsi_do_cmd(struct virtio_dev *dev,
 
     if (dir == SCSI_DATA_OUT && data) {
         /* req readable, data-out readable, resp writable. */
-        vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, 1);
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), datalen,
-                           VRING_DESC_F_NEXT, 2);
-        vring_raw_set_desc(vr, 2, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+        vv_desc(vr, 1, data, datalen, VRING_DESC_F_NEXT, 2);
+        vv_desc(vr, 2, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     } else if (dir == SCSI_DATA_IN && data) {
         /* req readable, resp writable, data-in writable. */
-        vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, 1);
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-        vring_raw_set_desc(vr, 2, vv_virt_to_phys(data), datalen,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+        vv_desc(vr, 1, resp, sizeof(*resp),
+                VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+        vv_desc(vr, 2, data, datalen, VRING_DESC_F_WRITE, 0);
     } else {
         /* req readable, resp writable. */
-        vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, 1);
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+        vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     }
 
     vring_raw_set_avail(vr, seq, 0);
@@ -190,10 +183,8 @@ static inline test_result_t scsi_do_tmf(struct virtio_dev *dev,
                                         uint16_t seq)
 {
     resp->response = 0xAA;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, seq, 0);
     vring_raw_set_avail_idx(vr, seq + 1);
     return scsi_kick_and_wait(dev, vr);
@@ -274,24 +265,17 @@ static inline uint16_t scsi_submit_async(struct virtio_dev *dev,
     resp->status = 0xFF;
 
     if (dir == SCSI_DATA_OUT && data) {
-        vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, 1);
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), datalen,
-                           VRING_DESC_F_NEXT, 2);
-        vring_raw_set_desc(vr, 2, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+        vv_desc(vr, 1, data, datalen, VRING_DESC_F_NEXT, 2);
+        vv_desc(vr, 2, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     } else if (dir == SCSI_DATA_IN && data) {
-        vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, 1);
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-        vring_raw_set_desc(vr, 2, vv_virt_to_phys(data), datalen,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+        vv_desc(vr, 1, resp, sizeof(*resp),
+                VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+        vv_desc(vr, 2, data, datalen, VRING_DESC_F_WRITE, 0);
     } else {
-        vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, 1);
-        vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+        vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     }
 
     vring_raw_set_avail(vr, seq, 0);
@@ -341,31 +325,26 @@ static inline test_result_t scsi_do_cmd_paged(struct virtio_dev *dev,
     uint32_t pages = (len + 4095) / 4096;
     uint16_t d = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
     d = 1;
 
     if (dir == SCSI_DATA_OUT) {
         for (uint32_t i = 0; i < pages; i++) {
             uint32_t chunk = len - i * 4096 < 4096 ? len - i * 4096 : 4096;
-            vring_raw_set_desc(vr, d, vv_virt_to_phys(data + i * 4096),
-                               chunk, VRING_DESC_F_NEXT, d + 1);
+            vv_desc(vr, d, data + i * 4096, chunk, VRING_DESC_F_NEXT, d + 1);
             d++;
         }
-        vring_raw_set_desc(vr, d, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, d, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     } else {
-        vring_raw_set_desc(vr, d, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, d + 1);
+        vv_desc(vr, d, resp, sizeof(*resp),
+                VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, d + 1);
         d++;
         for (uint32_t i = 0; i < pages; i++) {
             uint32_t chunk = len - i * 4096 < 4096 ? len - i * 4096 : 4096;
             uint16_t last = i == pages - 1;
-            vring_raw_set_desc(vr, d, vv_virt_to_phys(data + i * 4096),
-                               chunk,
-                               VRING_DESC_F_WRITE |
-                                   (last ? 0 : VRING_DESC_F_NEXT),
-                               last ? 0 : d + 1);
+            vv_desc(vr, d, data + i * 4096, chunk,
+                    VRING_DESC_F_WRITE | (last ? 0 : VRING_DESC_F_NEXT),
+                    last ? 0 : d + 1);
             d++;
         }
     }

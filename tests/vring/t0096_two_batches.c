@@ -22,12 +22,10 @@ static int submit_batch(struct virtio_dev *dev, struct vring *vr,
         *st = 0xFF;
 
         uint16_t s = base_slot + i * 3;
-        vring_raw_set_desc(vr, s, vv_virt_to_phys(hdr), sizeof(*hdr),
-                           VRING_DESC_F_NEXT, s + 1);
-        vring_raw_set_desc(vr, s + 1, vv_virt_to_phys(data), 512,
-                           VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, s + 2);
-        vring_raw_set_desc(vr, s + 2, vv_virt_to_phys(st), 1,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, s, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, s + 1);
+        vv_desc(vr, s + 1, data, 512, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+                s + 2);
+        vv_desc(vr, s + 2, st, 1, VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, (avail_base + i) % vr->size, s);
     }
     vring_raw_set_avail_idx(vr, avail_base + count);

@@ -67,9 +67,8 @@ static test_result_t test_crypto_indirect_next_flag(struct virtio_dev *dev,
 
     /* Indirect descriptor that also sets the next flag, which the spec
      * forbids. The stale next index points into the main ring. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(table),
-                       5 * (uint32_t)sizeof(*table),
-                       VRING_DESC_F_INDIRECT | VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, table, 5 * (uint32_t)sizeof(*table),
+            VRING_DESC_F_INDIRECT | VRING_DESC_F_NEXT, 1);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("device reported failure on an indirect descriptor with next");

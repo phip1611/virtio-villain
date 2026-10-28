@@ -33,8 +33,7 @@ static test_result_t test_vsock_event_flood(struct virtio_dev *dev,
     /* Post many event buffers */
     for (int i = 0; i < NUM_EVENT_BUFS; i++) {
         struct virtio_vsock_event *evt = vv_alloc_pages(1);
-        vring_raw_set_desc(&evvr, i, vv_virt_to_phys(evt),
-                           sizeof(*evt), VRING_DESC_F_WRITE, 0);
+        vv_desc(&evvr, i, evt, sizeof(*evt), VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(&evvr, i, (uint16_t)i);
     }
     vring_raw_set_avail_idx(&evvr, NUM_EVENT_BUFS);
@@ -58,8 +57,7 @@ static test_result_t test_vsock_event_flood(struct virtio_dev *dev,
         pkt->buf_alloc = 4096;
         pkt->fwd_cnt = 0;
 
-        vring_raw_set_desc(&txvr, i, vv_virt_to_phys(pkt),
-                           sizeof(*pkt), 0, 0);
+        vv_desc(&txvr, i, pkt, sizeof(*pkt), 0, 0);
         vring_raw_set_avail(&txvr, i, (uint16_t)i);
     }
     vring_raw_set_avail_idx(&txvr, NUM_TX_PKTS);

@@ -28,12 +28,9 @@ static test_result_t test_net_ctrl_rx_nobcast(struct virtio_dev *dev,
     *on_off = 1;  /* enable no-broadcast filter */
     *ack = 0xFF;
 
-    vring_raw_set_desc(&ctrl_vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&ctrl_vr, 1, vv_virt_to_phys(on_off), 1,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&ctrl_vr, 2, vv_virt_to_phys(ack), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&ctrl_vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
+    vv_desc(&ctrl_vr, 1, on_off, 1, VRING_DESC_F_NEXT, 2);
+    vv_desc(&ctrl_vr, 2, ack, 1, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&ctrl_vr, 0, 0);
     vring_raw_set_avail_idx(&ctrl_vr, 1);

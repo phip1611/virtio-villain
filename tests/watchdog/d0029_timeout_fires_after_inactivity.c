@@ -20,8 +20,7 @@ static test_result_t test_watchdog_timeout_fires(struct virtio_dev *dev,
     uint8_t *resp = vv_alloc_pages(1);
 
     *resp = 0;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(resp), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, resp, 1, VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS)
         return r;

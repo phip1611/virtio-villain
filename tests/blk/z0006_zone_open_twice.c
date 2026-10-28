@@ -27,16 +27,12 @@ static test_result_t test_blk_zone_open_twice(struct virtio_dev *dev,
     *status2 = 0xFF;
 
     /* First OPEN: descs 0-1 */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr1), sizeof(*hdr1),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status1), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr1, sizeof(*hdr1), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, status1, 1, VRING_DESC_F_WRITE, 0);
 
     /* Second OPEN: descs 2-3 */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(hdr2), sizeof(*hdr2),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(status2), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, hdr2, sizeof(*hdr2), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, status2, 1, VRING_DESC_F_WRITE, 0);
 
     /* Both in avail ring */
     vring_raw_set_avail(vr, 0, 0);

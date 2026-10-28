@@ -27,8 +27,7 @@ static test_result_t test_vsock_event_queue(struct virtio_dev *dev,
     struct virtio_vsock_event *evt = vv_alloc_pages(1);
     memset(evt, 0xFF, sizeof(*evt));
 
-    vring_raw_set_desc(&evvr, 0, vv_virt_to_phys(evt), sizeof(*evt),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&evvr, 0, evt, sizeof(*evt), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&evvr, 0, 0);
     vring_raw_set_avail_idx(&evvr, 1);
 

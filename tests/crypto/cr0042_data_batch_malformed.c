@@ -43,10 +43,8 @@ static test_result_t test_crypto_batch_malformed(struct virtio_dev *dev,
     for (int i = 0; i < CRYPTO_BATCH; i++) {
         uint16_t d0 = (uint16_t)(i * 2);
         uint16_t d1 = (uint16_t)(i * 2 + 1);
-        vring_raw_set_desc(vr, d0, vv_virt_to_phys(dreq), sizeof(*dreq),
-                           VRING_DESC_F_NEXT, d1);
-        vring_raw_set_desc(vr, d1, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, d0, dreq, sizeof(*dreq), VRING_DESC_F_NEXT, d1);
+        vv_desc(vr, d1, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(vr, (uint16_t)i, d0);
     }
     vring_raw_set_avail_idx(vr, CRYPTO_BATCH);

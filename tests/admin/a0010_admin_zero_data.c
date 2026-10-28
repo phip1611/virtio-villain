@@ -21,10 +21,8 @@ static test_result_t test_admin_zero_data(struct virtio_dev *dev,
     *status = 0xFF;
 
     /* Header (readable) + status (writable, 1 byte only - no data buf) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

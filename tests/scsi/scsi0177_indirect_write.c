@@ -42,9 +42,8 @@ static test_result_t test_scsi_indirect_write(struct virtio_dev *dev,
     tbl[2].flags = VRING_DESC_F_WRITE;
     tbl[2].next = 0;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(tbl),
-                       3 * sizeof(struct vring_desc),
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, tbl, 3 * sizeof(struct vring_desc), VRING_DESC_F_INDIRECT,
+            0);
     vring_raw_set_avail(vr, seq, 0);
     vring_raw_set_avail_idx(vr, seq + 1);
 

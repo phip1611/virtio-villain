@@ -35,8 +35,7 @@ static test_result_t test_net_ctrl_mac_table_empty(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 2);
     vring_raw_set_desc(vr, 2, base + sizeof(*hdr) + 4, 4,
                        VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 3, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

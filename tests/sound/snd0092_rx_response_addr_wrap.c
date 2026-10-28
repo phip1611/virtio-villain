@@ -18,8 +18,7 @@ static test_result_t test_rx_response_addr_wrap(struct virtio_dev *dev,
     struct virtio_snd_pcm_xfer *xfer = vv_alloc_pages(1);
     uint16_t used_idx = rx_vr->used->idx;
     xfer->stream_id = stream_id;
-    vring_raw_set_desc(rx_vr, 0, vv_virt_to_phys(xfer), sizeof(*xfer),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(rx_vr, 0, xfer, sizeof(*xfer), VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(rx_vr, 1, UINT64_MAX - 511, 1032,
                        VRING_DESC_F_WRITE, 0);
     vring_submit(rx_vr, 0);

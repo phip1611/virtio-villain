@@ -22,7 +22,7 @@ static test_result_t test_net_tx_hdr_in_ring(struct virtio_dev *dev,
 
     vring_raw_set_desc(vr, 0, avail_phys, 12,
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(payload), 64, 0, 0);
+    vv_desc(vr, 1, payload, 64, 0, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
 

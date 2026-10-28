@@ -18,7 +18,7 @@ static test_result_t test_balloon_inflate_alias(struct virtio_dev *dev,
     pfns[0] = (uint32_t)(vr->desc_phys >> VIRTIO_BALLOON_PFN_SHIFT);
     pfns[1] = (uint32_t)(vr->avail_phys >> VIRTIO_BALLOON_PFN_SHIFT);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pfns), 2 * sizeof(uint32_t), 0, 0);
+    vv_desc(vr, 0, pfns, 2 * sizeof(uint32_t), 0, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
 

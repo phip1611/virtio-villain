@@ -38,12 +38,9 @@ static test_result_t test_crypto_akcipher_sign_fuzz(struct virtio_dev *dev,
     inhdr->status = 0xFF;
 
     /* Request descriptor far shorter than the data request header. */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), 4,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(dst), 16,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, dreq, 4, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, dst, 16, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("device reported failure on a malformed akcipher sign");

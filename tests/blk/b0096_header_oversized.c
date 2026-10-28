@@ -23,12 +23,9 @@ static test_result_t test_blk_header_oversized(struct virtio_dev *dev,
     *status = 0xFF;
 
     /* Header descriptor is 32 bytes instead of 16 */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr_buf), 32,
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, hdr_buf, 32, VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, data, 512, VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

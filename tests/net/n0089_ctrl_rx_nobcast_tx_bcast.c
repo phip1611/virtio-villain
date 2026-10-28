@@ -30,8 +30,7 @@ static test_result_t test_net_nobcast_then_bcast(struct virtio_dev *dev,
     frame[13] = 0x00;
     memset(frame + 14, 0xCC, 46);
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt),
-                       sizeof(*h) + 60, 0, 0);
+    vv_desc(vr, 0, pkt, sizeof(*h) + 60, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

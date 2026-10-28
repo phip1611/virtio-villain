@@ -27,13 +27,10 @@ static test_result_t test_blk_read_partial_oob(struct virtio_dev *dev,
     hdr->sector = capacity - 1; /* last valid sector */
     *status = 0xFF;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, hdr, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
     /* Request 1024 bytes = 2 sectors, but only 1 sector remains */
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 1024,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 1, data, 1024, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 2, status, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

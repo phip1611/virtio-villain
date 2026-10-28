@@ -34,11 +34,8 @@ static test_result_t test_admin_max_data(struct virtio_dev *dev,
     uint8_t *status_buf = vv_alloc_pages(1);
     memset(status_buf, 0xFF, 8);
 
-    vring_raw_set_desc(&aq_vr, 0, vv_virt_to_phys(cmd),
-                       (uint32_t)sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&aq_vr, 1, vv_virt_to_phys(status_buf), 8,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&aq_vr, 0, cmd, (uint32_t)sizeof(*cmd), VRING_DESC_F_NEXT, 1);
+    vv_desc(&aq_vr, 1, status_buf, 8, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&aq_vr, 0, 0);
     vring_raw_set_avail_idx(&aq_vr, 1);

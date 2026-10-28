@@ -36,8 +36,7 @@ static test_result_t test_indirect_len_not_multiple(struct virtio_dev *dev,
      * Main descriptor: len = 47 (not a multiple of 16).
      * A valid 3-entry table would be 48 bytes.
      */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect), 47,
-                       VRING_DESC_F_INDIRECT, 0);
+    vv_desc(vr, 0, indirect, 47, VRING_DESC_F_INDIRECT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

@@ -29,8 +29,7 @@ static test_result_t test_fs_resp_in_bar(struct virtio_dev *dev,
 
     uint64_t mmio_phys = dev->common_phys;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(p), h->len,
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, p, h->len, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, mmio_phys, 256, VRING_DESC_F_WRITE, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }

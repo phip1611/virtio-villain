@@ -20,11 +20,9 @@ static test_result_t test_admin_status_tiny(struct virtio_dev *dev,
     cmd->group_member_id = 0;
 
     /* Full command header (readable) */
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),
-                       VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 0, cmd, sizeof(*cmd), VRING_DESC_F_NEXT, 1);
     /* Tiny result buffer - only 1 byte (device needs more) */
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(result), 1,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 1, result, 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

@@ -30,7 +30,7 @@ static test_result_t test_balloon_stats_misaligned(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
 
     /* sizeof(virtio_balloon_stat) is 10 bytes; 17 is misaligned */
-    vring_raw_set_desc(&stats_vr, 0, vv_virt_to_phys(buf), 17, 0, 0);
+    vv_desc(&stats_vr, 0, buf, 17, 0, 0);
     vring_raw_set_avail(&stats_vr, 0, 0);
     vring_raw_set_avail_idx(&stats_vr, 1);
 

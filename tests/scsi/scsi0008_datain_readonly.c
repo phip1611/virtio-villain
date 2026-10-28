@@ -21,12 +21,11 @@ static test_result_t test_scsi_datain_readonly(struct virtio_dev *dev,
     req->cdb[0] = 0x28;      /* READ(10) */
     req->cdb[8] = 0x01;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_NEXT | VRING_DESC_F_WRITE,
+            2);
     /* Data-in buffer left read only despite the READ direction. */
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(data), 512, 0, 0);
+    vv_desc(vr, 2, data, 512, 0, 0);
 
     vring_submit(vr, 0);
 

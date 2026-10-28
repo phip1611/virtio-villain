@@ -35,13 +35,11 @@ static void setup_slots(struct vring *vr, struct read_slot *slots)
         slots[j].hdr->sector = (uint64_t)j;
 
         uint16_t base = (uint16_t)(j * 3);
-        vring_raw_set_desc(vr, base, vv_virt_to_phys(slots[j].hdr),
-                           sizeof(*slots[j].hdr),
-                           VRING_DESC_F_NEXT, base + 1);
-        vring_raw_set_desc(vr, base + 1, vv_virt_to_phys(slots[j].data), 512,
-                           VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, base + 2);
-        vring_raw_set_desc(vr, base + 2, vv_virt_to_phys(slots[j].st), 1,
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, base, slots[j].hdr, sizeof(*slots[j].hdr),
+                VRING_DESC_F_NEXT, base + 1);
+        vv_desc(vr, base + 1, slots[j].data, 512,
+                VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, base + 2);
+        vv_desc(vr, base + 2, slots[j].st, 1, VRING_DESC_F_WRITE, 0);
     }
 }
 

@@ -62,12 +62,9 @@ static test_result_t test_crypto_multiblock_known_answer(struct virtio_dev *dev,
     creq->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
     memcpy(key, kat_key, 16);
     sin->status = 0xFF;
-    vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(creq), sizeof(*creq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&cvr, 1, vv_virt_to_phys(key), 16,
-                       VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&cvr, 2, vv_virt_to_phys(sin), sizeof(*sin),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&cvr, 0, creq, sizeof(*creq), VRING_DESC_F_NEXT, 1);
+    vv_desc(&cvr, 1, key, 16, VRING_DESC_F_NEXT, 2);
+    vv_desc(&cvr, 2, sin, sizeof(*sin), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&cvr, 0, 0);
     vring_raw_set_avail_idx(&cvr, 1);
     if (vv_kick_and_wait(dev, &cvr, 0, VV_TIMEOUT_MS) != TEST_PASS)
@@ -94,14 +91,11 @@ static test_result_t test_crypto_multiblock_known_answer(struct virtio_dev *dev,
     memcpy(src, kat_pt, KAT_LEN);
     memset(dst, 0, KAT_LEN);
     inhdr->status = 0xFF;
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(iv), 16, VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(src), KAT_LEN, VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(dst), KAT_LEN,
-                       VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
-    vring_raw_set_desc(vr, 4, vv_virt_to_phys(inhdr), sizeof(*inhdr),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, dreq, sizeof(*dreq), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, iv, 16, VRING_DESC_F_NEXT, 2);
+    vv_desc(vr, 2, src, KAT_LEN, VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, dst, KAT_LEN, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
+    vv_desc(vr, 4, inhdr, sizeof(*inhdr), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail_idx(vr, 1);
     if (vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS) != TEST_PASS)

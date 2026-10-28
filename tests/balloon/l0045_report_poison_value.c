@@ -54,7 +54,7 @@ static test_result_t test_balloon_report_poison(struct virtio_dev *dev,
     for (unsigned i = 0; i < 4096 / sizeof(uint32_t); i++)
         page[i] = FILL_PATTERN;
 
-    vring_raw_set_desc(&rq, 0, vv_virt_to_phys(page), 4096, 0, 0);
+    vv_desc(&rq, 0, page, 4096, 0, 0);
     vring_raw_set_avail(&rq, 0, 0);
     vring_raw_set_avail_idx(&rq, 1);
 

@@ -32,12 +32,10 @@ static test_result_t test_net_rx_mixed_rw(struct virtio_dev *dev,
      * Chain: [0] writable 512B -> [1] READABLE 512B -> [2] writable 512B
      * Descriptor 1 is wrong direction for an RX queue.
      */
-    vring_raw_set_desc(&rxvr, 0, vv_virt_to_phys(buf0), 512,
-                       VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 1);
+    vv_desc(&rxvr, 0, buf0, 512, VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(&rxvr, 1, vv_virt_to_phys(buf1), 512,
                        VRING_DESC_F_NEXT, 2); /* READABLE - wrong! */
-    vring_raw_set_desc(&rxvr, 2, vv_virt_to_phys(buf2), 512,
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(&rxvr, 2, buf2, 512, VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&rxvr, 0, 0);
     vring_raw_set_avail_idx(&rxvr, 1);

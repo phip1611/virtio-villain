@@ -26,10 +26,8 @@ static test_result_t test_mem_plug_after_unplug_all(struct virtio_dev *dev,
     memset(resp, 0xFF, sizeof(*resp));
     req->type = VIRTIO_MEM_REQ_UNPLUG_ALL;
 
-    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 0, req, sizeof(*req), VRING_DESC_F_NEXT, 1);
+    vv_desc(vr, 1, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     rc = vv_submit_and_wait(dev, vr, 0);
     if (rc != TEST_PASS)
         return rc;
@@ -41,10 +39,8 @@ static test_result_t test_mem_plug_after_unplug_all(struct virtio_dev *dev,
     req->addr = region_addr;
     req->nb_blocks = 1;
 
-    vring_raw_set_desc(vr, 2, vv_virt_to_phys(req), sizeof(*req),
-                       VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, vv_virt_to_phys(resp), sizeof(*resp),
-                       VRING_DESC_F_WRITE, 0);
+    vv_desc(vr, 2, req, sizeof(*req), VRING_DESC_F_NEXT, 3);
+    vv_desc(vr, 3, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(vr, 1, 2);
     vring_raw_set_avail_idx(vr, 2);
 

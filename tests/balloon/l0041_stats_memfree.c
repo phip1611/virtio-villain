@@ -38,8 +38,7 @@ static test_result_t test_balloon_stat_memfree(struct virtio_dev *dev,
     entry->tag = VIRTIO_BALLOON_S_MEMFREE;
     entry->val = 1024 * 1024;  /* 1MB free, arbitrary */
 
-    vring_raw_set_desc(&sq, 0, vv_virt_to_phys(entry),
-                       sizeof(*entry), 0, 0);
+    vv_desc(&sq, 0, entry, sizeof(*entry), 0, 0);
     vring_raw_set_avail(&sq, 0, 0);
     vring_raw_set_avail_idx(&sq, 1);
 

@@ -51,9 +51,8 @@ static test_result_t test_fill_ring_completely(struct virtio_dev *dev,
         tbl[2].next = 0;
 
         /* Ring descriptor points at indirect table */
-        vring_raw_set_desc(vr, i, vv_virt_to_phys(tbl),
-                           3 * sizeof(struct vring_desc),
-                           VRING_DESC_F_INDIRECT, 0);
+        vv_desc(vr, i, tbl, 3 * sizeof(struct vring_desc),
+                VRING_DESC_F_INDIRECT, 0);
 
         vring_raw_set_avail(vr, i, i);
     }

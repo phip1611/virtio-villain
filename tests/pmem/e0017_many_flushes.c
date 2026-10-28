@@ -26,10 +26,8 @@ static test_result_t test_pmem_many_flushes(struct virtio_dev *dev,
         uint16_t slot = (uint16_t)((i * 2) % vr->size);
         uint16_t slot2 = (uint16_t)((slot + 1) % vr->size);
 
-        vring_raw_set_desc(vr, slot, vv_virt_to_phys(req), sizeof(*req),
-                           VRING_DESC_F_NEXT, slot2);
-        vring_raw_set_desc(vr, slot2, vv_virt_to_phys(resp), sizeof(*resp),
-                           VRING_DESC_F_WRITE, 0);
+        vv_desc(vr, slot, req, sizeof(*req), VRING_DESC_F_NEXT, slot2);
+        vv_desc(vr, slot2, resp, sizeof(*resp), VRING_DESC_F_WRITE, 0);
 
         vring_raw_set_avail(vr, (uint16_t)i, slot);
         vring_raw_set_avail_idx(vr, (uint16_t)(i + 1));
