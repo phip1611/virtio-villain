@@ -16,12 +16,9 @@
 #define BALLOON_CFG_POISON_VAL_OFFSET 12
 #define FILL_PATTERN 0xA5A5A5A5u
 
-static test_result_t test_balloon_report_poison(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_balloon_report_poison(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     cfg->device_feature_select = 0;
     __sync_synchronize();
@@ -69,9 +66,9 @@ static test_result_t test_balloon_report_poison(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(L0045, VIRTIO_PCI_DEVICE_BALLOON,
-              test_balloon_report_poison,
-              "reported page keeps the pattern or the poison value",
-              VIRTIO_SPEC_V1_2, "5.5.6.4",
-              (1ULL << VIRTIO_BALLOON_F_REPORTING) |
-              (1ULL << VIRTIO_BALLOON_F_PAGE_POISON), 0);
+REGISTER_TEST_DEV_REQUIRES(L0045, VIRTIO_PCI_DEVICE_BALLOON,
+                  test_balloon_report_poison,
+                  "reported page keeps the pattern or the poison value",
+                  VIRTIO_SPEC_V1_2, "5.5.6.4",
+                  (1ULL << VIRTIO_BALLOON_F_REPORTING) |
+                  (1ULL << VIRTIO_BALLOON_F_PAGE_POISON), 0);

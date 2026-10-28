@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_net_rx_chain_multi(struct virtio_dev *dev,
-                                             struct vring *vr)
+static test_result_t test_net_rx_chain_multi(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* RX is queue 0 */
@@ -81,6 +79,6 @@ static test_result_t test_net_rx_chain_multi(struct virtio_dev *dev,
     TREJECT("no device response within timeout");
 }
 
-REGISTER_TEST(N0069, VIRTIO_PCI_DEVICE_NET, test_net_rx_chain_multi,
-              "RX buffers as multi-descriptor chains",
-              VIRTIO_SPEC_V1_2, "5.1.6.4");
+REGISTER_TEST_DEV(N0069, VIRTIO_PCI_DEVICE_NET, test_net_rx_chain_multi,
+                  "RX buffers as multi-descriptor chains",
+                  VIRTIO_SPEC_V1_2, "5.1.6.4");

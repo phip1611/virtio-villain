@@ -11,10 +11,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_byte_access(struct virtio_dev *dev,
-                                          struct vring *vr)
+static test_result_t test_pci_byte_access(struct virtio_dev *dev)
 {
-    (void)vr;
     dev->common->device_feature_select = 0;
     __sync_synchronize();
 
@@ -35,6 +33,6 @@ static test_result_t test_pci_byte_access(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0065, 0, test_pci_byte_access,
-              "byte-wise read of 32-bit register",
-              VIRTIO_SPEC_V1_2, "4.1.3.1");
+REGISTER_TEST_DEV(PCI0065, 0, test_pci_byte_access,
+                  "byte-wise read of 32-bit register",
+                  VIRTIO_SPEC_V1_2, "4.1.3.1");

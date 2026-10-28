@@ -13,11 +13,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_back_to_back_resets(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_back_to_back_resets(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    (void)vr;
 
     /* Reset #1 - don't wait for completion */
     cfg->device_status = 0;
@@ -81,6 +79,6 @@ static test_result_t test_back_to_back_resets(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &vr2, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(S0012, VIRTIO_PCI_DEVICE_BLK, test_back_to_back_resets,
-              "Multiple device resets without waiting for completion",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(S0012, VIRTIO_PCI_DEVICE_BLK, test_back_to_back_resets,
+                  "Multiple device resets without waiting for completion",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

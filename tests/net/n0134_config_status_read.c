@@ -10,11 +10,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_net_config_status(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_net_config_status(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_STATUS))
         return TEST_SKIP;
 
@@ -33,7 +30,7 @@ static test_result_t test_net_config_status(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(N0134, VIRTIO_PCI_DEVICE_NET, test_net_config_status,
-              "Read net status field and verify defined bits only",
-              VIRTIO_SPEC_V1_2, "5.1.4",
-              (1ULL << VIRTIO_NET_F_STATUS), 0);
+REGISTER_TEST_DEV_REQUIRES(N0134, VIRTIO_PCI_DEVICE_NET, test_net_config_status,
+                  "Read net status field and verify defined bits only",
+                  VIRTIO_SPEC_V1_2, "5.1.4",
+                  (1ULL << VIRTIO_NET_F_STATUS), 0);

@@ -11,12 +11,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_config_generation_hammer(struct virtio_dev *dev,
-                                                   struct vring *vr)
+static test_result_t test_config_generation_hammer(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     uint8_t first = cfg->config_generation;
     __sync_synchronize();
@@ -33,6 +30,6 @@ static test_result_t test_config_generation_hammer(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0042, VIRTIO_PCI_DEVICE_BLK, test_config_generation_hammer,
-              "10000 config_generation reads stay stable when idle",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(S0042, VIRTIO_PCI_DEVICE_BLK, test_config_generation_hammer,
+                  "10000 config_generation reads stay stable when idle",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

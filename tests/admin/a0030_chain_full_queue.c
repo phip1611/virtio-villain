@@ -11,11 +11,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_admin_full_queue_chain(struct virtio_dev *dev,
-                                                 struct vring *vr)
+static test_result_t test_admin_full_queue_chain(struct virtio_dev *dev)
 {
-    (void)vr;
-
     struct vring avr;
     vring_alloc(&avr, 16);
     vring_attach(dev, &avr, 0);
@@ -43,6 +40,6 @@ static test_result_t test_admin_full_queue_chain(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &avr, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(A0030, VIRTIO_PCI_DEVICE_BLK, test_admin_full_queue_chain,
-              "Admin LIST_USE chain occupying all queue descriptors",
-              VIRTIO_SPEC_V1_3, "2.7.5.2");
+REGISTER_TEST_DEV(A0030, VIRTIO_PCI_DEVICE_BLK, test_admin_full_queue_chain,
+                  "Admin LIST_USE chain occupying all queue descriptors",
+                  VIRTIO_SPEC_V1_3, "2.7.5.2");

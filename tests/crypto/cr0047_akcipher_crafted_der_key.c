@@ -18,10 +18,8 @@
 
 #define DER_KEY_LEN 128
 
-static test_result_t test_crypto_akcipher_crafted_der(struct virtio_dev *dev,
-                                                     struct vring *vr)
+static test_result_t test_crypto_akcipher_crafted_der(struct virtio_dev *dev)
 {
-    (void)vr;
     if (!dev->device_cfg)
         return TEST_SKIP;
     volatile struct virtio_crypto_config *cfg =
@@ -69,7 +67,7 @@ static test_result_t test_crypto_akcipher_crafted_der(struct virtio_dev *dev,
     TREJECT("no device response within timeout");
 }
 
-REGISTER_TEST(CR0047, VIRTIO_PCI_DEVICE_CRYPTO,
-              test_crypto_akcipher_crafted_der,
-              "A crafted DER akcipher key keeps the host alive",
-              VIRTIO_SPEC_V1_2, "5.9.10");
+REGISTER_TEST_DEV(CR0047, VIRTIO_PCI_DEVICE_CRYPTO,
+                  test_crypto_akcipher_crafted_der,
+                  "A crafted DER akcipher key keeps the host alive",
+                  VIRTIO_SPEC_V1_2, "5.9.10");

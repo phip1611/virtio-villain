@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_queue_size(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_pci_queue_size(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     cfg->queue_select = 0;
@@ -28,6 +26,6 @@ static test_result_t test_pci_queue_size(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0099, VIRTIO_PCI_DEVICE_BLK, test_pci_queue_size,
-              "Common config queue_size is non zero and power of two",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(PCI0099, VIRTIO_PCI_DEVICE_BLK, test_pci_queue_size,
+                  "Common config queue_size is non zero and power of two",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

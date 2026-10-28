@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_blk_flush_after_reset(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_blk_flush_after_reset(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Reset device */
@@ -56,6 +54,6 @@ static test_result_t test_blk_flush_after_reset(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &tvr, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(B0050, VIRTIO_PCI_DEVICE_BLK, test_blk_flush_after_reset,
-              "FLUSH immediately after device reset and reinit",
-              VIRTIO_SPEC_V1_2, "5.2.6.1");
+REGISTER_TEST_DEV(B0050, VIRTIO_PCI_DEVICE_BLK, test_blk_flush_after_reset,
+                  "FLUSH immediately after device reset and reinit",
+                  VIRTIO_SPEC_V1_2, "5.2.6.1");

@@ -13,11 +13,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_kick_before_driver_ok(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_kick_before_driver_ok(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /*
      * The harness already set DRIVER_OK. Reset the device and bring it
      * only to ACKNOWLEDGE + DRIVER (no queue setup, no DRIVER_OK).
@@ -59,6 +56,6 @@ static test_result_t test_kick_before_driver_ok(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(T0030, VIRTIO_PCI_DEVICE_BLK, test_kick_before_driver_ok,
-              "Queue kick before DRIVER_OK",
-              VIRTIO_SPEC_V1_2, "3.1");
+REGISTER_TEST_DEV(T0030, VIRTIO_PCI_DEVICE_BLK, test_kick_before_driver_ok,
+                  "Queue kick before DRIVER_OK",
+                  VIRTIO_SPEC_V1_2, "3.1");

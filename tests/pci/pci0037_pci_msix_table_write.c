@@ -10,11 +10,8 @@
 #include "lib/pci.h"
 
 /* MSI-X table entry layout */
-static test_result_t test_pci_msix_table_write(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_pci_msix_table_write(struct virtio_dev *dev)
 {
-    (void)vr;
-
     int fd = pci_cfg_open(dev->slot);
     if (fd < 0)
         return TEST_SKIP;
@@ -95,6 +92,6 @@ static test_result_t test_pci_msix_table_write(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0037, VIRTIO_PCI_DEVICE_BLK, test_pci_msix_table_write,
-              "MSI-X table entry write and per-vector mask",
-              VIRTIO_SPEC_V1_2, "4.1.4.5");
+REGISTER_TEST_DEV(PCI0037, VIRTIO_PCI_DEVICE_BLK, test_pci_msix_table_write,
+                  "MSI-X table entry write and per-vector mask",
+                  VIRTIO_SPEC_V1_2, "4.1.4.5");

@@ -8,12 +8,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_console_emerg_no_feat(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_console_emerg_no_feat(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (dev->device_cfg == NULL)
         return TEST_SKIP;
@@ -35,7 +32,7 @@ static test_result_t test_console_emerg_no_feat(struct virtio_dev *dev,
     TREJECT("no device response within timeout");
 }
 
-REGISTER_TEST(C0031, VIRTIO_PCI_DEVICE_CONSOLE,
-              test_console_emerg_no_feat,
-              "Emergency write without feature negotiated",
-              VIRTIO_SPEC_V1_3, "5.3.4");
+REGISTER_TEST_DEV(C0031, VIRTIO_PCI_DEVICE_CONSOLE,
+                  test_console_emerg_no_feat,
+                  "Emergency write without feature negotiated",
+                  VIRTIO_SPEC_V1_3, "5.3.4");

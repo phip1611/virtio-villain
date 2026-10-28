@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_net_tx_broadcast(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_net_tx_broadcast(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     if (cfg->num_queues < 2)
         return TEST_SKIP;
@@ -39,7 +37,7 @@ static test_result_t test_net_tx_broadcast(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &txvr, 1, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST_REQUIRES(N0059, VIRTIO_PCI_DEVICE_NET, test_net_tx_broadcast,
-              "TX frame with broadcast destination MAC",
-              VIRTIO_SPEC_V1_2, "5.1.6.2",
-              0, 2);
+REGISTER_TEST_DEV_REQUIRES(N0059, VIRTIO_PCI_DEVICE_NET, test_net_tx_broadcast,
+                  "TX frame with broadcast destination MAC",
+                  VIRTIO_SPEC_V1_2, "5.1.6.2",
+                  0, 2);

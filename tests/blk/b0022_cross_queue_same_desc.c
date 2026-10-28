@@ -8,8 +8,7 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_blk_cross_queue(struct virtio_dev *dev,
-                                          struct vring *vr)
+static test_result_t test_blk_cross_queue(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
@@ -63,8 +62,6 @@ static test_result_t test_blk_cross_queue(struct virtio_dev *dev,
     cfg->device_status |= VIRTIO_STATUS_DRIVER_OK;
     __sync_synchronize();
 
-    (void)vr;
-
     /* Now submit a request on queue 0 */
     struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data = vv_alloc_pages(1);
@@ -84,7 +81,7 @@ static test_result_t test_blk_cross_queue(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &q0, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST_REQUIRES(B0022, VIRTIO_PCI_DEVICE_BLK, test_blk_cross_queue,
-              "Two queues sharing same descriptor memory",
-              VIRTIO_SPEC_V1_2, "5.2.6",
-              0, 2);
+REGISTER_TEST_DEV_REQUIRES(B0022, VIRTIO_PCI_DEVICE_BLK, test_blk_cross_queue,
+                  "Two queues sharing same descriptor memory",
+                  VIRTIO_SPEC_V1_2, "5.2.6",
+                  0, 2);

@@ -17,15 +17,12 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_rtc_alarm_fire(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_rtc_alarm_fire(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     if (cfg->num_queues < 2)
         return TEST_SKIP;
-
-    (void)vr;
 
     virtio_pci_reset(dev);
     cfg->device_status = VIRTIO_STATUS_ACKNOWLEDGE;
@@ -117,7 +114,7 @@ static test_result_t test_rtc_alarm_fire(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(RTC0018, VIRTIO_PCI_DEVICE_RTC, test_rtc_alarm_fire,
-              "alarm SET then NOTIF_ALARM delivered on alarmq",
-              VIRTIO_SPEC_V1_4, "5.23.6",
-              0, 2);
+REGISTER_TEST_DEV_REQUIRES(RTC0018, VIRTIO_PCI_DEVICE_RTC, test_rtc_alarm_fire,
+                  "alarm SET then NOTIF_ALARM delivered on alarmq",
+                  VIRTIO_SPEC_V1_4, "5.23.6",
+                  0, 2);

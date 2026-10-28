@@ -11,10 +11,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_remove_during_kick(struct virtio_dev *dev,
-                                                 struct vring *vr)
+static test_result_t test_pci_remove_during_kick(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     if (!(cfg->device_status & VIRTIO_STATUS_DRIVER_OK))
         return TEST_SKIP;
@@ -34,7 +32,7 @@ static test_result_t test_pci_remove_during_kick(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0200, VIRTIO_PCI_DEVICE_BLK,
-              test_pci_remove_during_kick,
-              "boot blk survives PCI hot remove of a sibling function",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(PCI0200, VIRTIO_PCI_DEVICE_BLK,
+                  test_pci_remove_during_kick,
+                  "boot blk survives PCI hot remove of a sibling function",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

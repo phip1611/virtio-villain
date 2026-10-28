@@ -11,11 +11,8 @@
 #define ADMIN_OPCODE_LIST_USE 0x0000
 #define ADMIN_OPCODE_LIST_QUERY 0x0001
 
-static test_result_t test_admin_concurrent(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_admin_concurrent(struct virtio_dev *dev)
 {
-    (void)vr;
-
     struct vring avr;
     vring_alloc(&avr, 16);
     vring_attach(dev, &avr, 0);
@@ -74,6 +71,6 @@ static test_result_t test_admin_concurrent(struct virtio_dev *dev,
     TREJECT("no device response within timeout");
 }
 
-REGISTER_TEST(A0019, VIRTIO_PCI_DEVICE_BLK, test_admin_concurrent,
-              "Concurrent LIST_USE and admin command on same queue",
-              VIRTIO_SPEC_V1_3, "2.13");
+REGISTER_TEST_DEV(A0019, VIRTIO_PCI_DEVICE_BLK, test_admin_concurrent,
+                  "Concurrent LIST_USE and admin command on same queue",
+                  VIRTIO_SPEC_V1_3, "2.13");

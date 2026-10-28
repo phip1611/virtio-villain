@@ -9,10 +9,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_qavail_oob(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_pci_qavail_oob(struct virtio_dev *dev)
 {
-    (void)vr;
     uint64_t saved = virtio_load64(&dev->common->queue_avail);
     dev->common->queue_select = 0;
     __sync_synchronize();
@@ -23,6 +21,6 @@ static test_result_t test_pci_qavail_oob(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0056, 0, test_pci_qavail_oob,
-              "queue_avail outside guest RAM",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(PCI0056, 0, test_pci_qavail_oob,
+                  "queue_avail outside guest RAM",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

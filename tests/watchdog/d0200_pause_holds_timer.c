@@ -9,10 +9,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_watchdog_survives_pause(struct virtio_dev *dev,
-                                                  struct vring *vr)
+static test_result_t test_watchdog_survives_pause(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     if (!(cfg->device_status & VIRTIO_STATUS_DRIVER_OK))
         return TEST_SKIP;
@@ -32,7 +30,7 @@ static test_result_t test_watchdog_survives_pause(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(D0200, VIRTIO_PCI_DEVICE_WATCHDOG,
-              test_watchdog_survives_pause,
-              "virtio-watchdog survives a pause and resume cycle",
-              VIRTIO_SPEC_V1_2, "2.6");
+REGISTER_TEST_DEV(D0200, VIRTIO_PCI_DEVICE_WATCHDOG,
+                  test_watchdog_survives_pause,
+                  "virtio-watchdog survives a pause and resume cycle",
+                  VIRTIO_SPEC_V1_2, "2.6");

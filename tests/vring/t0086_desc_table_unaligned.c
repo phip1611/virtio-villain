@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_desc_table_unaligned(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_desc_table_unaligned(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Reset */
@@ -73,6 +71,6 @@ static test_result_t test_desc_table_unaligned(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &misaligned_vr, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(T0086, VIRTIO_PCI_DEVICE_BLK, test_desc_table_unaligned,
-              "Descriptor table at non-16-byte aligned address",
-              VIRTIO_SPEC_V1_2, "2.7.5.1");
+REGISTER_TEST_DEV(T0086, VIRTIO_PCI_DEVICE_BLK, test_desc_table_unaligned,
+                  "Descriptor table at non-16-byte aligned address",
+                  VIRTIO_SPEC_V1_2, "2.7.5.1");

@@ -7,11 +7,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_set_failed_then_kick(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_set_failed_then_kick(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /* Set FAILED bit */
     dev->common->device_status |= VIRTIO_STATUS_FAILED;
     __sync_synchronize();
@@ -36,6 +33,6 @@ static test_result_t test_set_failed_then_kick(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(T0035, VIRTIO_PCI_DEVICE_BLK, test_set_failed_then_kick,
-              "Queue kick after setting FAILED status",
-              VIRTIO_SPEC_V1_2, "3.1");
+REGISTER_TEST_DEV(T0035, VIRTIO_PCI_DEVICE_BLK, test_set_failed_then_kick,
+                  "Queue kick after setting FAILED status",
+                  VIRTIO_SPEC_V1_2, "3.1");

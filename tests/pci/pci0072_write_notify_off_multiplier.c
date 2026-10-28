@@ -10,11 +10,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_write_notify_mult(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_pci_write_notify_mult(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (dev->notify_off_multiplier == 0)
         return TEST_SKIP;
 
@@ -38,6 +35,6 @@ static test_result_t test_pci_write_notify_mult(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0072, VIRTIO_PCI_DEVICE_BLK, test_pci_write_notify_mult,
-              "notify_off_multiplier is stable as a read only field",
-              VIRTIO_SPEC_V1_2, "4.1.4.4");
+REGISTER_TEST_DEV(PCI0072, VIRTIO_PCI_DEVICE_BLK, test_pci_write_notify_mult,
+                  "notify_off_multiplier is stable as a read only field",
+                  VIRTIO_SPEC_V1_2, "4.1.4.4");

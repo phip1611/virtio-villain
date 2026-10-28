@@ -8,11 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_reinit_without_reset(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_reinit_without_reset(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /*
      * Device is currently in DRIVER_OK state.
      * Write ACKNOWLEDGE without resetting first (skip the status=0 step).
@@ -49,6 +46,6 @@ static test_result_t test_reinit_without_reset(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(T0036, VIRTIO_PCI_DEVICE_BLK, test_reinit_without_reset,
-              "Re-init without resetting device first",
-              VIRTIO_SPEC_V1_2, "3.1");
+REGISTER_TEST_DEV(T0036, VIRTIO_PCI_DEVICE_BLK, test_reinit_without_reset,
+                  "Re-init without resetting device first",
+                  VIRTIO_SPEC_V1_2, "3.1");

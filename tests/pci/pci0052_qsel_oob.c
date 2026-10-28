@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_qsel_oob(struct virtio_dev *dev,
-                                       struct vring *vr)
+static test_result_t test_pci_qsel_oob(struct virtio_dev *dev)
 {
-    (void)vr;
     uint16_t nq = dev->common->num_queues;
     dev->common->queue_select = (uint16_t)(nq + 1024);
     __sync_synchronize();
@@ -20,6 +18,6 @@ static test_result_t test_pci_qsel_oob(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0052, 0, test_pci_qsel_oob,
-              "queue_select beyond num_queues",
-              VIRTIO_SPEC_V1_2, "4.1.4.3");
+REGISTER_TEST_DEV(PCI0052, 0, test_pci_qsel_oob,
+                  "queue_select beyond num_queues",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3");

@@ -7,10 +7,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_num_queues_ro(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_pci_num_queues_ro(struct virtio_dev *dev)
 {
-    (void)vr;
     uint16_t before = dev->common->num_queues;
     dev->common->num_queues = (uint16_t)(before + 1);
     __sync_synchronize();
@@ -20,6 +18,6 @@ static test_result_t test_pci_num_queues_ro(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0062, 0, test_pci_num_queues_ro,
-              "num_queues is read-only",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(PCI0062, 0, test_pci_num_queues_ro,
+                  "num_queues is read-only",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

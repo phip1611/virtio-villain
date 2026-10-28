@@ -16,11 +16,8 @@
 #define PCIE_EXT_CAP_START     0x100
 #define PCIE_EXT_CAP_ID_SRIOV  0x0010
 
-static test_result_t test_pci_sriov_cap_present(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_pci_sriov_cap_present(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!virtio_pci_feature_offered(dev, VIRTIO_F_SR_IOV))
         return TEST_SKIP;
 
@@ -57,6 +54,6 @@ static test_result_t test_pci_sriov_cap_present(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0118, VIRTIO_PCI_DEVICE_BLK, test_pci_sriov_cap_present,
-              "SR_IOV offered implies an SR-IOV PCIe capability",
-              VIRTIO_SPEC_V1_2, "6");
+REGISTER_TEST_DEV(PCI0118, VIRTIO_PCI_DEVICE_BLK, test_pci_sriov_cap_present,
+                  "SR_IOV offered implies an SR-IOV PCIe capability",
+                  VIRTIO_SPEC_V1_2, "6");

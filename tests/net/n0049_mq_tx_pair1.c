@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_net_mq_tx_pair1(struct virtio_dev *dev,
-                                          struct vring *vr)
+static test_result_t test_net_mq_tx_pair1(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Need at least 4 queues for pair 1 (queues 0,1,2,3) + ctrl */
@@ -43,7 +41,7 @@ static test_result_t test_net_mq_tx_pair1(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &txvr, 3, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST_REQUIRES(N0049, VIRTIO_PCI_DEVICE_NET, test_net_mq_tx_pair1,
-              "Multiqueue TX on queue pair 1 (non-default pair)",
-              VIRTIO_SPEC_V1_2, "5.1.6.5",
-              (1ULL << VIRTIO_NET_F_MQ), 0);
+REGISTER_TEST_DEV_REQUIRES(N0049, VIRTIO_PCI_DEVICE_NET, test_net_mq_tx_pair1,
+                  "Multiqueue TX on queue pair 1 (non-default pair)",
+                  VIRTIO_SPEC_V1_2, "5.1.6.5",
+                  (1ULL << VIRTIO_NET_F_MQ), 0);

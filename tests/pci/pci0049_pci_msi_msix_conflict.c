@@ -11,11 +11,8 @@
 
 #define MSIX_CTRL_ENABLE  0x8000  /* Bit 15 of MSI-X Message Control */
 
-static test_result_t test_pci_msi_msix_conflict(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_pci_msi_msix_conflict(struct virtio_dev *dev)
 {
-    (void)vr;
-
     int fd = pci_cfg_open(dev->slot);
     if (fd < 0)
         return TEST_SKIP;
@@ -83,6 +80,6 @@ static test_result_t test_pci_msi_msix_conflict(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0049, VIRTIO_PCI_DEVICE_BLK, test_pci_msi_msix_conflict,
-              "MSI and MSI-X simultaneous enable conflict",
-              VIRTIO_SPEC_V1_2, "4.1.4");
+REGISTER_TEST_DEV(PCI0049, VIRTIO_PCI_DEVICE_BLK, test_pci_msi_msix_conflict,
+                  "MSI and MSI-X simultaneous enable conflict",
+                  VIRTIO_SPEC_V1_2, "4.1.4");

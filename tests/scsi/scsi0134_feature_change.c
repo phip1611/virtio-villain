@@ -7,15 +7,13 @@
  */
 #include "tests/scsi/scsi_util.h"
 
-static test_result_t test_scsi_feat_change(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_scsi_feat_change(struct virtio_dev *dev)
 {
-    (void)vr;
     if (!virtio_pci_feature_offered(dev, VIRTIO_SCSI_F_CHANGE))
         TFAIL("reported change feature not offered");
     return TEST_PASS;
 }
 
-REGISTER_TEST(SCSI0134, VIRTIO_PCI_DEVICE_SCSI, test_scsi_feat_change,
-              "Device offers the reported change feature",
-              VIRTIO_SPEC_V1_4, "5.6.3");
+REGISTER_TEST_DEV(SCSI0134, VIRTIO_PCI_DEVICE_SCSI, test_scsi_feat_change,
+                  "Device offers the reported change feature",
+                  VIRTIO_SPEC_V1_4, "5.6.3");

@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_config_change_reset_race(struct virtio_dev *dev,
-                                                   struct vring *vr)
+static test_result_t test_config_change_reset_race(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     for (int i = 0; i < 20; i++) {
@@ -71,6 +69,6 @@ static test_result_t test_config_change_reset_race(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0026, VIRTIO_PCI_DEVICE_BLK, test_config_change_reset_race,
-              "Config space reads racing with device resets",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(S0026, VIRTIO_PCI_DEVICE_BLK, test_config_change_reset_race,
+                  "Config space reads racing with device resets",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

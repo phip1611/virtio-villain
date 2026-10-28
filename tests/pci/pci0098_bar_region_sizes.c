@@ -9,11 +9,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_bar_sizes(struct virtio_dev *dev,
-                                        struct vring *vr)
+static test_result_t test_pci_bar_sizes(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (dev->notify_length == 0)
         TFAIL("notify_length is 0");
 
@@ -26,6 +23,6 @@ static test_result_t test_pci_bar_sizes(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0098, VIRTIO_PCI_DEVICE_BLK, test_pci_bar_sizes,
-              "PCI BAR notify and device config regions are sized",
-              VIRTIO_SPEC_V1_2, "4.1.4");
+REGISTER_TEST_DEV(PCI0098, VIRTIO_PCI_DEVICE_BLK, test_pci_bar_sizes,
+                  "PCI BAR notify and device config regions are sized",
+                  VIRTIO_SPEC_V1_2, "4.1.4");

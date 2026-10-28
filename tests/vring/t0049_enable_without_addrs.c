@@ -7,11 +7,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_enable_without_addrs(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_enable_without_addrs(struct virtio_dev *dev)
 {
-    (void)vr;
-
     virtio_pci_reset(dev);
 
     dev->common->device_status = VIRTIO_STATUS_ACKNOWLEDGE;
@@ -51,6 +48,6 @@ static test_result_t test_enable_without_addrs(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(T0049, VIRTIO_PCI_DEVICE_BLK, test_enable_without_addrs,
-              "queue_enable without setting addresses",
-              VIRTIO_SPEC_V1_2, "2.7");
+REGISTER_TEST_DEV(T0049, VIRTIO_PCI_DEVICE_BLK, test_enable_without_addrs,
+                  "queue_enable without setting addresses",
+                  VIRTIO_SPEC_V1_2, "2.7");

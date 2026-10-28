@@ -12,11 +12,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_crypto_device_config(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_crypto_device_config(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!dev->device_cfg)
         return TEST_SKIP;
 
@@ -43,6 +40,6 @@ static test_result_t test_crypto_device_config(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(CR0001, VIRTIO_PCI_DEVICE_CRYPTO, test_crypto_device_config,
-              "Crypto config is ready with a data queue and a service",
-              VIRTIO_SPEC_V1_2, "5.9.4");
+REGISTER_TEST_DEV(CR0001, VIRTIO_PCI_DEVICE_CRYPTO, test_crypto_device_config,
+                  "Crypto config is ready with a data queue and a service",
+                  VIRTIO_SPEC_V1_2, "5.9.4");

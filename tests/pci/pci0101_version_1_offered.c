@@ -7,10 +7,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_version_1(struct virtio_dev *dev,
-                                        struct vring *vr)
+static test_result_t test_pci_version_1(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     cfg->device_feature_select = 1;
@@ -23,6 +21,6 @@ static test_result_t test_pci_version_1(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0101, VIRTIO_PCI_DEVICE_BLK, test_pci_version_1,
-              "Device offers VIRTIO_F_VERSION_1",
-              VIRTIO_SPEC_V1_2, "6");
+REGISTER_TEST_DEV(PCI0101, VIRTIO_PCI_DEVICE_BLK, test_pci_version_1,
+                  "Device offers VIRTIO_F_VERSION_1",
+                  VIRTIO_SPEC_V1_2, "6");

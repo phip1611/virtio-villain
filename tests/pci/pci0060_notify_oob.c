@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_notify_oob(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_pci_notify_oob(struct virtio_dev *dev)
 {
-    (void)vr;
     uint16_t nq = dev->common->num_queues;
     uint32_t off = (uint32_t)nq * dev->notify_off_multiplier;
     if (!dev->notify_base)
@@ -22,6 +20,6 @@ static test_result_t test_pci_notify_oob(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0060, 0, test_pci_notify_oob,
-              "Notify with queue index beyond num_queues",
-              VIRTIO_SPEC_V1_2, "4.1.4.4");
+REGISTER_TEST_DEV(PCI0060, 0, test_pci_notify_oob,
+                  "Notify with queue index beyond num_queues",
+                  VIRTIO_SPEC_V1_2, "4.1.4.4");

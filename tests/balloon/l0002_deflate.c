@@ -10,8 +10,7 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_balloon_deflate(struct virtio_dev *dev,
-                                          struct vring *vr)
+static test_result_t test_balloon_deflate(struct virtio_dev *dev)
 {
     /* Use deflate queue (queue 1) */
     struct vring deflate_vr;
@@ -29,10 +28,9 @@ static test_result_t test_balloon_deflate(struct virtio_dev *dev,
     vring_raw_set_avail(&deflate_vr, 0, 0);
     vring_raw_set_avail_idx(&deflate_vr, 1);
 
-    (void)vr;
     return vv_kick_and_wait(dev, &deflate_vr, 1, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(L0002, VIRTIO_PCI_DEVICE_BALLOON, test_balloon_deflate,
-              "Deflate with valid page frame numbers",
-              VIRTIO_SPEC_V1_2, "5.5.6.1");
+REGISTER_TEST_DEV(L0002, VIRTIO_PCI_DEVICE_BALLOON, test_balloon_deflate,
+                  "Deflate with valid page frame numbers",
+                  VIRTIO_SPEC_V1_2, "5.5.6.1");

@@ -11,11 +11,9 @@
 #include "tests/hotplug.h"
 #include "lib/pci.h"
 
-static test_result_t test_vsock_hotplug_add(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_vsock_hotplug_add(struct virtio_dev *dev)
 {
     (void)dev;
-    (void)vr;
 
     char new_slot[512] = {0};
     int waited = 0;
@@ -53,6 +51,6 @@ static test_result_t test_vsock_hotplug_add(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(V0200, 0, test_vsock_hotplug_add,
-              "virtio-vsock hot add presents a fresh device_status",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(V0200, 0, test_vsock_hotplug_add,
+                  "virtio-vsock hot add presents a fresh device_status",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

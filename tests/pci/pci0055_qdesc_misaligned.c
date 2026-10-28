@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_qdesc_misaligned(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_pci_qdesc_misaligned(struct virtio_dev *dev)
 {
-    (void)vr;
     uint64_t saved = virtio_load64(&dev->common->queue_desc);
     dev->common->queue_select = 0;
     __sync_synchronize();
@@ -22,6 +20,6 @@ static test_result_t test_pci_qdesc_misaligned(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0055, 0, test_pci_qdesc_misaligned,
-              "queue_desc misaligned",
-              VIRTIO_SPEC_V1_2, "2.7.4");
+REGISTER_TEST_DEV(PCI0055, 0, test_pci_qdesc_misaligned,
+                  "queue_desc misaligned",
+                  VIRTIO_SPEC_V1_2, "2.7.4");

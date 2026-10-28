@@ -9,12 +9,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_write_needs_reset(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_write_needs_reset(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     uint8_t old = cfg->device_status;
     if (!(old & VIRTIO_STATUS_DRIVER_OK))
@@ -36,6 +33,6 @@ static test_result_t test_write_needs_reset(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0080, VIRTIO_PCI_DEVICE_BLK, test_write_needs_reset,
-              "Driver writes NEEDS_RESET bit",
-              VIRTIO_SPEC_V1_2, "2.1.2");
+REGISTER_TEST_DEV(S0080, VIRTIO_PCI_DEVICE_BLK, test_write_needs_reset,
+                  "Driver writes NEEDS_RESET bit",
+                  VIRTIO_SPEC_V1_2, "2.1.2");

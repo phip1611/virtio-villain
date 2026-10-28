@@ -9,10 +9,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_config_gen(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_pci_config_gen(struct virtio_dev *dev)
 {
-    (void)vr;
     uint8_t g1 = dev->common->config_generation;
     usleep(2000);
     uint8_t g2 = dev->common->config_generation;
@@ -21,6 +19,6 @@ static test_result_t test_pci_config_gen(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0061, 0, test_pci_config_gen,
-              "config_generation stable when idle",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(PCI0061, 0, test_pci_config_gen,
+                  "config_generation stable when idle",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

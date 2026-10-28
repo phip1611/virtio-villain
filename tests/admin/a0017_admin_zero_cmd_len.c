@@ -8,11 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_admin_zero_cmd_len(struct virtio_dev *dev,
-                                             struct vring *vr)
+static test_result_t test_admin_zero_cmd_len(struct virtio_dev *dev)
 {
-    (void)vr;
-
     struct vring avr;
     vring_alloc(&avr, 16);
     vring_attach(dev, &avr, 0);
@@ -32,6 +29,6 @@ static test_result_t test_admin_zero_cmd_len(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &avr, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(A0017, VIRTIO_PCI_DEVICE_BLK, test_admin_zero_cmd_len,
-              "Admin command with zero-length command descriptor",
-              VIRTIO_SPEC_V1_3, "2.13");
+REGISTER_TEST_DEV(A0017, VIRTIO_PCI_DEVICE_BLK, test_admin_zero_cmd_len,
+                  "Admin command with zero-length command descriptor",
+                  VIRTIO_SPEC_V1_3, "2.13");

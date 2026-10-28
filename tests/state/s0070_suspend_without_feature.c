@@ -8,11 +8,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_suspend_no_feature(struct virtio_dev *dev,
-                                             struct vring *vr)
+static test_result_t test_suspend_no_feature(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    (void)vr;
 
     /* The harness does not negotiate SUSPEND. */
     uint8_t status = cfg->device_status;
@@ -30,6 +28,6 @@ static test_result_t test_suspend_no_feature(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0070, VIRTIO_PCI_DEVICE_BLK, test_suspend_no_feature,
-              "Set SUSPEND bit without VIRTIO_F_SUSPEND negotiated",
-              VIRTIO_SPEC_V1_3, "3.2");
+REGISTER_TEST_DEV(S0070, VIRTIO_PCI_DEVICE_BLK, test_suspend_no_feature,
+                  "Set SUSPEND bit without VIRTIO_F_SUSPEND negotiated",
+                  VIRTIO_SPEC_V1_3, "3.2");

@@ -10,12 +10,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_long_pause_after_ack(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_long_pause_after_ack(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     virtio_pci_reset(dev);
     if (cfg->device_status != 0)
@@ -73,6 +70,6 @@ static test_result_t test_long_pause_after_ack(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &nv, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(S0039, VIRTIO_PCI_DEVICE_BLK, test_long_pause_after_ack,
-              "200ms pause between ACKNOWLEDGE and DRIVER then full init",
-              VIRTIO_SPEC_V1_2, "3.1.1");
+REGISTER_TEST_DEV(S0039, VIRTIO_PCI_DEVICE_BLK, test_long_pause_after_ack,
+                  "200ms pause between ACKNOWLEDGE and DRIVER then full init",
+                  VIRTIO_SPEC_V1_2, "3.1.1");

@@ -11,12 +11,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_reinit_reduced_features(struct virtio_dev *dev,
-                                                  struct vring *vr)
+static test_result_t test_reinit_reduced_features(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Reset */
     virtio_pci_reset(dev);
@@ -81,6 +78,6 @@ static test_result_t test_reinit_reduced_features(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &nv, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(S0034, VIRTIO_PCI_DEVICE_BLK, test_reinit_reduced_features,
-              "Reinit accepts strictly reduced feature subset",
-              VIRTIO_SPEC_V1_2, "3.1.1");
+REGISTER_TEST_DEV(S0034, VIRTIO_PCI_DEVICE_BLK, test_reinit_reduced_features,
+                  "Reinit accepts strictly reduced feature subset",
+                  VIRTIO_SPEC_V1_2, "3.1.1");

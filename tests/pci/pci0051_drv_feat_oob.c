@@ -10,10 +10,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_drv_feat_oob(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_pci_drv_feat_oob(struct virtio_dev *dev)
 {
-    (void)vr;
     dev->common->driver_feature_select = 5;
     __sync_synchronize();
     dev->common->driver_feature = 0xDEADBEEF;
@@ -22,6 +20,6 @@ static test_result_t test_pci_drv_feat_oob(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0051, 0, test_pci_drv_feat_oob,
-              "driver_feature write to undefined slice",
-              VIRTIO_SPEC_V1_2, "4.1.4.3");
+REGISTER_TEST_DEV(PCI0051, 0, test_pci_drv_feat_oob,
+                  "driver_feature write to undefined slice",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3");

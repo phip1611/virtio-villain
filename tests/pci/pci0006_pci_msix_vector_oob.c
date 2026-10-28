@@ -8,11 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_msix_vector_oob(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_pci_msix_vector_oob(struct virtio_dev *dev)
 {
-    (void)vr;
-
     virtio_pci_reset(dev);
 
     dev->common->device_status = VIRTIO_STATUS_ACKNOWLEDGE;
@@ -62,6 +59,6 @@ static test_result_t test_pci_msix_vector_oob(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0006, VIRTIO_PCI_DEVICE_BLK, test_pci_msix_vector_oob,
-              "MSI-X vector outside table bounds",
-              VIRTIO_SPEC_V1_2, "4.1.5.1.2.2");
+REGISTER_TEST_DEV(PCI0006, VIRTIO_PCI_DEVICE_BLK, test_pci_msix_vector_oob,
+                  "MSI-X vector outside table bounds",
+                  VIRTIO_SPEC_V1_2, "4.1.5.1.2.2");

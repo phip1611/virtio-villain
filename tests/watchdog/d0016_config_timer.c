@@ -8,11 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_watchdog_config_timer(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_watchdog_config_timer(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (dev->device_cfg_length < 4)
         return TEST_SKIP;
 
@@ -27,6 +24,6 @@ static test_result_t test_watchdog_config_timer(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(D0016, VIRTIO_PCI_DEVICE_WATCHDOG, test_watchdog_config_timer,
-              "Read config space timer value",
-              VIRTIO_SPEC_V1_2, "-");
+REGISTER_TEST_DEV(D0016, VIRTIO_PCI_DEVICE_WATCHDOG, test_watchdog_config_timer,
+                  "Read config space timer value",
+                  VIRTIO_SPEC_V1_2, "-");

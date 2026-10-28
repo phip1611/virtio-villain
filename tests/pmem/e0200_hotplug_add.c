@@ -12,10 +12,8 @@
 #include "tests/hotplug.h"
 #include "lib/pci.h"
 
-static test_result_t test_pmem_hotplug_add(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_pmem_hotplug_add(struct virtio_dev *dev)
 {
-    (void)vr;
     char skip[256];
     snprintf(skip, sizeof(skip), "%s", bdf_of(dev->slot));
 
@@ -55,6 +53,6 @@ static test_result_t test_pmem_hotplug_add(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(E0200, VIRTIO_PCI_DEVICE_PMEM, test_pmem_hotplug_add,
-              "virtio-pmem hot add presents a fresh device_status",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(E0200, VIRTIO_PCI_DEVICE_PMEM, test_pmem_hotplug_add,
+                  "virtio-pmem hot add presents a fresh device_status",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

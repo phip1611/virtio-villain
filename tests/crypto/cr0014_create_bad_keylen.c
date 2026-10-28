@@ -13,10 +13,8 @@
 
 #define BAD_KEYLEN 7u
 
-static test_result_t test_crypto_create_bad_keylen(struct virtio_dev *dev,
-                                                   struct vring *vr)
+static test_result_t test_crypto_create_bad_keylen(struct virtio_dev *dev)
 {
-    (void)vr;
     if (!dev->device_cfg)
         return TEST_SKIP;
     volatile struct virtio_crypto_config *cfg =
@@ -56,7 +54,7 @@ static test_result_t test_crypto_create_bad_keylen(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(CR0014, VIRTIO_PCI_DEVICE_CRYPTO,
-              test_crypto_create_bad_keylen,
-              "Create session with an invalid key length is rejected",
-              VIRTIO_SPEC_V1_2, "5.9.7");
+REGISTER_TEST_DEV(CR0014, VIRTIO_PCI_DEVICE_CRYPTO,
+                  test_crypto_create_bad_keylen,
+                  "Create session with an invalid key length is rejected",
+                  VIRTIO_SPEC_V1_2, "5.9.7");

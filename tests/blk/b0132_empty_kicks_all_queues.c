@@ -7,13 +7,10 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_blk_empty_kicks_all_queues(struct virtio_dev *dev,
-                                                     struct vring *vr)
+static test_result_t test_blk_empty_kicks_all_queues(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     uint16_t nq = cfg->num_queues;
-
-    (void)vr;
 
     if (nq < 1)
         return TEST_SKIP;
@@ -34,6 +31,6 @@ static test_result_t test_blk_empty_kicks_all_queues(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(B0132, VIRTIO_PCI_DEVICE_BLK, test_blk_empty_kicks_all_queues,
-              "Empty kicks on all queues",
-              VIRTIO_SPEC_V1_2, "5.2.6");
+REGISTER_TEST_DEV(B0132, VIRTIO_PCI_DEVICE_BLK, test_blk_empty_kicks_all_queues,
+                  "Empty kicks on all queues",
+                  VIRTIO_SPEC_V1_2, "5.2.6");

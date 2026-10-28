@@ -13,13 +13,10 @@
 
 #define REINIT_CYCLES 50
 
-static test_result_t test_many_reinit_cycles(struct virtio_dev *dev,
-                                             struct vring *vr)
+static test_result_t test_many_reinit_cycles(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     struct vring nv;
-
-    (void)vr;
 
     vring_alloc(&nv, 16);
 
@@ -72,6 +69,6 @@ static test_result_t test_many_reinit_cycles(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &nv, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(S0037, VIRTIO_PCI_DEVICE_BLK, test_many_reinit_cycles,
-              "50 reset and reinit cycles then a valid I/O",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(S0037, VIRTIO_PCI_DEVICE_BLK, test_many_reinit_cycles,
+                  "50 reset and reinit cycles then a valid I/O",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

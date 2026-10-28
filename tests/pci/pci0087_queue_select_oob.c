@@ -8,11 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_queue_select_oob(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_pci_queue_select_oob(struct virtio_dev *dev)
 {
-    (void)vr;
-
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     cfg->queue_select = 0xFFFF;
@@ -32,6 +29,6 @@ static test_result_t test_pci_queue_select_oob(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0087, VIRTIO_PCI_DEVICE_BLK, test_pci_queue_select_oob,
-              "Select non existent queue index 0xFFFF",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(PCI0087, VIRTIO_PCI_DEVICE_BLK, test_pci_queue_select_oob,
+                  "Select non existent queue index 0xFFFF",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

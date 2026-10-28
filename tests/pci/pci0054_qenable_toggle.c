@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_qenable_toggle(struct virtio_dev *dev,
-                                             struct vring *vr)
+static test_result_t test_pci_qenable_toggle(struct virtio_dev *dev)
 {
-    (void)vr;
     dev->common->queue_select = 0;
     __sync_synchronize();
     dev->common->queue_enable = 0;
@@ -22,6 +20,6 @@ static test_result_t test_pci_qenable_toggle(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0054, 0, test_pci_qenable_toggle,
-              "queue_enable toggle after DRIVER_OK",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(PCI0054, 0, test_pci_qenable_toggle,
+                  "queue_enable toggle after DRIVER_OK",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

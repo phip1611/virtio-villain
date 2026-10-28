@@ -7,16 +7,13 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_blk_same_sector_two_queues(struct virtio_dev *dev,
-                                                     struct vring *vr)
+static test_result_t test_blk_same_sector_two_queues(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     uint16_t nq = cfg->num_queues;
 
     if (nq < 2)
         return TEST_SKIP;
-
-    (void)vr;
 
     /* Reset and reinit with 2 queues */
     virtio_pci_reset(dev);
@@ -89,6 +86,6 @@ static test_result_t test_blk_same_sector_two_queues(struct virtio_dev *dev,
     TREJECT("no device response within timeout");
 }
 
-REGISTER_TEST(B0131, VIRTIO_PCI_DEVICE_BLK, test_blk_same_sector_two_queues,
-              "Concurrent writes to same sector from two queues",
-              VIRTIO_SPEC_V1_2, "5.2.6");
+REGISTER_TEST_DEV(B0131, VIRTIO_PCI_DEVICE_BLK, test_blk_same_sector_two_queues,
+                  "Concurrent writes to same sector from two queues",
+                  VIRTIO_SPEC_V1_2, "5.2.6");

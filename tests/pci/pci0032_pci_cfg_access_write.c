@@ -21,11 +21,8 @@
  *   +16: data[4] (the access window)
  */
 
-static test_result_t test_pci_cfg_access_write(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_pci_cfg_access_write(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!dev->pci_cfg_cap_offset)
         return TEST_SKIP;
 
@@ -84,6 +81,6 @@ static test_result_t test_pci_cfg_access_write(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0032, VIRTIO_PCI_DEVICE_BLK, test_pci_cfg_access_write,
-              "PCI cfg access capability structure and write validation",
-              VIRTIO_SPEC_V1_2, "4.1.4.9");
+REGISTER_TEST_DEV(PCI0032, VIRTIO_PCI_DEVICE_BLK, test_pci_cfg_access_write,
+                  "PCI cfg access capability structure and write validation",
+                  VIRTIO_SPEC_V1_2, "4.1.4.9");

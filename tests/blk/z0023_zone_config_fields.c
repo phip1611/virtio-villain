@@ -8,12 +8,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_blk_zone_config(struct virtio_dev *dev,
-                                          struct vring *vr)
+static test_result_t test_blk_zone_config(struct virtio_dev *dev)
 {
     volatile uint8_t *cfg = dev->device_cfg;
-
-    (void)vr;
 
     if (!cfg)
         return TEST_SKIP;
@@ -36,6 +33,6 @@ static test_result_t test_blk_zone_config(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(Z0023, VIRTIO_PCI_DEVICE_BLK, test_blk_zone_config,
-              "Read zoned block device config fields",
-              VIRTIO_SPEC_V1_3, "5.2.4");
+REGISTER_TEST_DEV(Z0023, VIRTIO_PCI_DEVICE_BLK, test_blk_zone_config,
+                  "Read zoned block device config fields",
+                  VIRTIO_SPEC_V1_3, "5.2.4");

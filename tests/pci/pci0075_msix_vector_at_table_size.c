@@ -11,12 +11,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_msix_vec_at_size(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_pci_msix_vec_at_size(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     cfg->queue_select = 0;
     __sync_synchronize();
@@ -43,6 +40,6 @@ static test_result_t test_pci_msix_vec_at_size(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0075, VIRTIO_PCI_DEVICE_BLK, test_pci_msix_vec_at_size,
-              "queue_msix_vector set to a probable out of range index",
-              VIRTIO_SPEC_V1_2, "4.1.5.1.4");
+REGISTER_TEST_DEV(PCI0075, VIRTIO_PCI_DEVICE_BLK, test_pci_msix_vec_at_size,
+                  "queue_msix_vector set to a probable out of range index",
+                  VIRTIO_SPEC_V1_2, "4.1.5.1.4");

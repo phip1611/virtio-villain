@@ -11,11 +11,8 @@
 
 #include <errno.h>
 
-static test_result_t test_pci_id_validation(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_pci_id_validation(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /* Read PCI config via sysfs */
     char path[512];
     snprintf(path, sizeof(path), "%s/vendor", dev->slot);
@@ -51,6 +48,6 @@ static test_result_t test_pci_id_validation(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0026, VIRTIO_PCI_DEVICE_BLK, test_pci_id_validation,
-              "PCI vendor=0x1AF4 and modern device ID range check",
-              VIRTIO_SPEC_V1_2, "4.1.2");
+REGISTER_TEST_DEV(PCI0026, VIRTIO_PCI_DEVICE_BLK, test_pci_id_validation,
+                  "PCI vendor=0x1AF4 and modern device ID range check",
+                  VIRTIO_SPEC_V1_2, "4.1.2");

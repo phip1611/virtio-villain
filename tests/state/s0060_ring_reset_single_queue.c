@@ -9,11 +9,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_ring_reset_single(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_ring_reset_single(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    (void)vr;
 
     /* Check if RING_RESET is offered */
     cfg->device_feature_select = VIRTIO_F_RING_RESET / 32;
@@ -46,7 +44,7 @@ static test_result_t test_ring_reset_single(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(S0060, VIRTIO_PCI_DEVICE_BLK, test_ring_reset_single,
-              "Reset single virtqueue with VIRTIO_F_RING_RESET",
-              VIRTIO_SPEC_V1_3, "2.2.1",
-              (1ULL << VIRTIO_F_RING_RESET), 0);
+REGISTER_TEST_DEV_REQUIRES(S0060, VIRTIO_PCI_DEVICE_BLK, test_ring_reset_single,
+                  "Reset single virtqueue with VIRTIO_F_RING_RESET",
+                  VIRTIO_SPEC_V1_3, "2.2.1",
+                  (1ULL << VIRTIO_F_RING_RESET), 0);

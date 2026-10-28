@@ -10,12 +10,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_feature_select_roundtrip(struct virtio_dev *dev,
-                                                   struct vring *vr)
+static test_result_t test_feature_select_roundtrip(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     static const uint32_t vals[] = {0, 1, 2, 7, 0x1234, 0xdeadbeef};
 
@@ -39,6 +36,6 @@ static test_result_t test_feature_select_roundtrip(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0047, VIRTIO_PCI_DEVICE_BLK, test_feature_select_roundtrip,
-              "feature_select registers round trip arbitrary values",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(S0047, VIRTIO_PCI_DEVICE_BLK, test_feature_select_roundtrip,
+                  "feature_select registers round trip arbitrary values",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

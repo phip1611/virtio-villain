@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_qsel_readback(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_pci_qsel_readback(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     cfg->queue_select = 0;
@@ -24,6 +22,6 @@ static test_result_t test_pci_qsel_readback(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0109, VIRTIO_PCI_DEVICE_BLK, test_pci_qsel_readback,
-              "queue_select readback matches written value",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(PCI0109, VIRTIO_PCI_DEVICE_BLK, test_pci_qsel_readback,
+                  "queue_select readback matches written value",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

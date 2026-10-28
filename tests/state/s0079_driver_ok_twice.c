@@ -9,12 +9,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_driver_ok_twice(struct virtio_dev *dev,
-                                          struct vring *vr)
+static test_result_t test_driver_ok_twice(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Already in DRIVER_OK from init; write it again */
     uint8_t old = cfg->device_status;
@@ -37,6 +34,6 @@ static test_result_t test_driver_ok_twice(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0079, VIRTIO_PCI_DEVICE_BLK, test_driver_ok_twice,
-              "Set DRIVER_OK twice without reset",
-              VIRTIO_SPEC_V1_2, "3.1.1");
+REGISTER_TEST_DEV(S0079, VIRTIO_PCI_DEVICE_BLK, test_driver_ok_twice,
+                  "Set DRIVER_OK twice without reset",
+                  VIRTIO_SPEC_V1_2, "3.1.1");

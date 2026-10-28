@@ -9,12 +9,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_state_ok_and_failed(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_state_ok_and_failed(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     cfg->device_status = (uint8_t)(VIRTIO_STATUS_DRIVER_OK
                                    | VIRTIO_STATUS_FAILED);
@@ -28,6 +25,6 @@ static test_result_t test_state_ok_and_failed(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0057, VIRTIO_PCI_DEVICE_BLK, test_state_ok_and_failed,
-              "Write DRIVER_OK and FAILED simultaneously",
-              VIRTIO_SPEC_V1_2, "2.1.1");
+REGISTER_TEST_DEV(S0057, VIRTIO_PCI_DEVICE_BLK, test_state_ok_and_failed,
+                  "Write DRIVER_OK and FAILED simultaneously",
+                  VIRTIO_SPEC_V1_2, "2.1.1");

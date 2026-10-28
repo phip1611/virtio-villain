@@ -8,12 +8,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_admin_queue_index(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_pci_admin_queue_index(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Read admin queue fields from common cfg extended region.
      * admin_queue_index is at offset 0x44, admin_queue_num at 0x46
@@ -35,6 +32,6 @@ static test_result_t test_pci_admin_queue_index(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0076, VIRTIO_PCI_DEVICE_BLK, test_pci_admin_queue_index,
-              "Read admin_queue_index and admin_queue_num from common cfg",
-              VIRTIO_SPEC_V1_3, "4.1.4.3.1");
+REGISTER_TEST_DEV(PCI0076, VIRTIO_PCI_DEVICE_BLK, test_pci_admin_queue_index,
+                  "Read admin_queue_index and admin_queue_num from common cfg",
+                  VIRTIO_SPEC_V1_3, "4.1.4.3.1");

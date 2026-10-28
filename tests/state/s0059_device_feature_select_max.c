@@ -9,12 +9,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_state_dev_feat_max(struct virtio_dev *dev,
-                                             struct vring *vr)
+static test_result_t test_state_dev_feat_max(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     cfg->device_feature_select = 0xFFFFFFFF;
     __sync_synchronize();
@@ -30,6 +27,6 @@ static test_result_t test_state_dev_feat_max(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0059, VIRTIO_PCI_DEVICE_BLK, test_state_dev_feat_max,
-              "device_feature_select set to UINT32_MAX",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(S0059, VIRTIO_PCI_DEVICE_BLK, test_state_dev_feat_max,
+                  "device_feature_select set to UINT32_MAX",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

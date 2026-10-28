@@ -7,10 +7,8 @@
  */
 #include "tests/scsi/scsi_util.h"
 
-static test_result_t test_scsi_cfg_sense_size(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_scsi_cfg_sense_size(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_scsi_config *cfg =
         (volatile struct virtio_scsi_config *)dev->device_cfg;
     __sync_synchronize();
@@ -20,6 +18,6 @@ static test_result_t test_scsi_cfg_sense_size(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(SCSI0012, VIRTIO_PCI_DEVICE_SCSI, test_scsi_cfg_sense_size,
-              "Config sense_size is the default 96",
-              VIRTIO_SPEC_V1_2, "5.6.4");
+REGISTER_TEST_DEV(SCSI0012, VIRTIO_PCI_DEVICE_SCSI, test_scsi_cfg_sense_size,
+                  "Config sense_size is the default 96",
+                  VIRTIO_SPEC_V1_2, "5.6.4");

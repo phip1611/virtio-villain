@@ -8,11 +8,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_ring_reset_no_feature(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_ring_reset_no_feature(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    (void)vr;
 
     /* Confirm RING_RESET is NOT negotiated (our harness negotiates
      * zero features by default) */
@@ -46,6 +44,6 @@ static test_result_t test_ring_reset_no_feature(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0063, VIRTIO_PCI_DEVICE_BLK, test_ring_reset_no_feature,
-              "queue_enable=0 without VIRTIO_F_RING_RESET negotiated",
-              VIRTIO_SPEC_V1_3, "4.1.4.3.2");
+REGISTER_TEST_DEV(S0063, VIRTIO_PCI_DEVICE_BLK, test_ring_reset_no_feature,
+                  "queue_enable=0 without VIRTIO_F_RING_RESET negotiated",
+                  VIRTIO_SPEC_V1_3, "4.1.4.3.2");

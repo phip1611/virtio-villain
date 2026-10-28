@@ -6,11 +6,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_queue_addr_outside_ram(struct virtio_dev *dev,
-                                                 struct vring *vr)
+static test_result_t test_queue_addr_outside_ram(struct virtio_dev *dev)
 {
-    (void)vr;
-
     virtio_pci_reset(dev);
 
     dev->common->device_status = VIRTIO_STATUS_ACKNOWLEDGE;
@@ -49,6 +46,6 @@ static test_result_t test_queue_addr_outside_ram(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(T0048, VIRTIO_PCI_DEVICE_BLK, test_queue_addr_outside_ram,
-              "queue_desc/avail/used beyond guest RAM",
-              VIRTIO_SPEC_V1_2, "2.7");
+REGISTER_TEST_DEV(T0048, VIRTIO_PCI_DEVICE_BLK, test_queue_addr_outside_ram,
+                  "queue_desc/avail/used beyond guest RAM",
+                  VIRTIO_SPEC_V1_2, "2.7");

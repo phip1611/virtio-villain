@@ -12,10 +12,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_snapshot_masked_msix(struct virtio_dev *dev,
-                                                   struct vring *vr)
+static test_result_t test_pci_snapshot_masked_msix(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     if (!(cfg->device_status & VIRTIO_STATUS_DRIVER_OK))
         return TEST_SKIP;
@@ -57,7 +55,7 @@ static test_result_t test_pci_snapshot_masked_msix(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0201, VIRTIO_PCI_DEVICE_BLK,
-              test_pci_snapshot_masked_msix,
-              "device survives a snapshot with MSI-X vectors masked",
-              VIRTIO_SPEC_V1_2, "4.1.5.1.4");
+REGISTER_TEST_DEV(PCI0201, VIRTIO_PCI_DEVICE_BLK,
+                  test_pci_snapshot_masked_msix,
+                  "device survives a snapshot with MSI-X vectors masked",
+                  VIRTIO_SPEC_V1_2, "4.1.5.1.4");

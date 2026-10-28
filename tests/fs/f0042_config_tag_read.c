@@ -8,11 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_fs_config_tag(struct virtio_dev *dev,
-                                        struct vring *vr)
+static test_result_t test_fs_config_tag(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!dev->device_cfg || dev->device_cfg_length < 36)
         return TEST_SKIP;
 
@@ -44,6 +41,6 @@ static test_result_t test_fs_config_tag(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(F0042, VIRTIO_PCI_DEVICE_FS, test_fs_config_tag,
-              "Read virtio-fs config tag and validate format",
-              VIRTIO_SPEC_V1_2, "5.11.4");
+REGISTER_TEST_DEV(F0042, VIRTIO_PCI_DEVICE_FS, test_fs_config_tag,
+                  "Read virtio-fs config tag and validate format",
+                  VIRTIO_SPEC_V1_2, "5.11.4");

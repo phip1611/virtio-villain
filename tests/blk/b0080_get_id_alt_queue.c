@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_blk_get_id_alt_queue(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_blk_get_id_alt_queue(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     uint16_t nq = cfg->num_queues;
     if (nq < 2)
@@ -37,6 +35,6 @@ static test_result_t test_blk_get_id_alt_queue(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &q1vr, 1, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(B0080, VIRTIO_PCI_DEVICE_BLK, test_blk_get_id_alt_queue,
-              "GET_ID request on alternate queue (queue 1)",
-              VIRTIO_SPEC_V1_2, "5.2.6");
+REGISTER_TEST_DEV(B0080, VIRTIO_PCI_DEVICE_BLK, test_blk_get_id_alt_queue,
+                  "GET_ID request on alternate queue (queue 1)",
+                  VIRTIO_SPEC_V1_2, "5.2.6");

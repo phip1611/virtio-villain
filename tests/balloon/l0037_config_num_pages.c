@@ -9,11 +9,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_balloon_config_read(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_balloon_config_read(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!dev->device_cfg || dev->device_cfg_length < 8)
         return TEST_SKIP;
 
@@ -33,6 +30,6 @@ static test_result_t test_balloon_config_read(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(L0037, VIRTIO_PCI_DEVICE_BALLOON, test_balloon_config_read,
-              "Read balloon num_pages and actual config fields",
-              VIRTIO_SPEC_V1_2, "5.5.4");
+REGISTER_TEST_DEV(L0037, VIRTIO_PCI_DEVICE_BALLOON, test_balloon_config_read,
+                  "Read balloon num_pages and actual config fields",
+                  VIRTIO_SPEC_V1_2, "5.5.4");

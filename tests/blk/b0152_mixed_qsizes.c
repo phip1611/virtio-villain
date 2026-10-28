@@ -25,15 +25,12 @@ static int submit_read(struct vring *vr, uint64_t sector, uint8_t **st_out)
     return 0;
 }
 
-static test_result_t test_blk_mixed_qsizes(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_blk_mixed_qsizes(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     if (cfg->num_queues < 2)
         return TEST_SKIP;
-
-    (void)vr;
 
     virtio_pci_reset(dev);
     cfg->device_status = VIRTIO_STATUS_ACKNOWLEDGE;
@@ -91,7 +88,7 @@ static test_result_t test_blk_mixed_qsizes(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(B0152, VIRTIO_PCI_DEVICE_BLK, test_blk_mixed_qsizes,
-              "queues with different ring sizes both serve reads",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2",
-              0, 2);
+REGISTER_TEST_DEV_REQUIRES(B0152, VIRTIO_PCI_DEVICE_BLK, test_blk_mixed_qsizes,
+                  "queues with different ring sizes both serve reads",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2",
+                  0, 2);

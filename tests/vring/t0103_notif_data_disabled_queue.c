@@ -8,12 +8,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_notif_data_disabled_q(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_notif_data_disabled_q(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (!virtio_pci_feature_offered(dev, VIRTIO_F_NOTIFICATION_DATA))
         return TEST_SKIP;
@@ -63,6 +60,6 @@ static test_result_t test_notif_data_disabled_q(struct virtio_dev *dev,
     TREJECT("no device response within timeout");
 }
 
-REGISTER_TEST(T0103, VIRTIO_PCI_DEVICE_BLK, test_notif_data_disabled_q,
-              "NOTIFICATION_DATA for queue not enabled",
-              VIRTIO_SPEC_V1_2, "4.1.5.2");
+REGISTER_TEST_DEV(T0103, VIRTIO_PCI_DEVICE_BLK, test_notif_data_disabled_q,
+                  "NOTIFICATION_DATA for queue not enabled",
+                  VIRTIO_SPEC_V1_2, "4.1.5.2");

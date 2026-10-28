@@ -9,10 +9,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_3byte(struct virtio_dev *dev, struct vring *vr)
+static test_result_t test_pci_3byte(struct virtio_dev *dev)
 {
-    (void)vr;
-
     volatile uint8_t *p = (volatile uint8_t *)dev->common;
     uint8_t a = p[0];
     uint8_t b = p[1];
@@ -29,6 +27,6 @@ static test_result_t test_pci_3byte(struct virtio_dev *dev, struct vring *vr)
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0073, VIRTIO_PCI_DEVICE_BLK, test_pci_3byte,
-              "Three byte split reads of common cfg",
-              VIRTIO_SPEC_V1_2, "4.1");
+REGISTER_TEST_DEV(PCI0073, VIRTIO_PCI_DEVICE_BLK, test_pci_3byte,
+                  "Three byte split reads of common cfg",
+                  VIRTIO_SPEC_V1_2, "4.1");

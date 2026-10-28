@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_features_all_bits(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_features_all_bits(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Reset device */
@@ -67,6 +65,6 @@ static test_result_t test_features_all_bits(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &tvr, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(S0020, VIRTIO_PCI_DEVICE_BLK, test_features_all_bits,
-              "Feature negotiation accepting all 128 bits",
-              VIRTIO_SPEC_V1_2, "2.2");
+REGISTER_TEST_DEV(S0020, VIRTIO_PCI_DEVICE_BLK, test_features_all_bits,
+                  "Feature negotiation accepting all 128 bits",
+                  VIRTIO_SPEC_V1_2, "2.2");

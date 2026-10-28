@@ -7,10 +7,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_qen_readback(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_pci_qen_readback(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Queue 0 should already be enabled by the harness */
@@ -24,6 +22,6 @@ static test_result_t test_pci_qen_readback(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0113, VIRTIO_PCI_DEVICE_BLK, test_pci_qen_readback,
-              "queue_enable readback is 1 after enabling",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(PCI0113, VIRTIO_PCI_DEVICE_BLK, test_pci_qen_readback,
+                  "queue_enable readback is 1 after enabling",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

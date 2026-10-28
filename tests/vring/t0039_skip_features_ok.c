@@ -7,11 +7,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_skip_features_ok(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_skip_features_ok(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /* Reset */
     virtio_pci_reset(dev);
 
@@ -53,6 +50,6 @@ static test_result_t test_skip_features_ok(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(T0039, VIRTIO_PCI_DEVICE_BLK, test_skip_features_ok,
-              "Skip FEATURES_OK, go straight to DRIVER_OK",
-              VIRTIO_SPEC_V1_2, "2.2");
+REGISTER_TEST_DEV(T0039, VIRTIO_PCI_DEVICE_BLK, test_skip_features_ok,
+                  "Skip FEATURES_OK, go straight to DRIVER_OK",
+                  VIRTIO_SPEC_V1_2, "2.2");

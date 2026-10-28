@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_balloon_deflate_valid(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_balloon_deflate_valid(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Deflate queue is queue 1 */
@@ -39,6 +37,6 @@ static test_result_t test_balloon_deflate_valid(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &dq, 1, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(L0039, VIRTIO_PCI_DEVICE_BALLOON, test_balloon_deflate_valid,
-              "Deflate one page on deflate queue",
-              VIRTIO_SPEC_V1_2, "5.5.6.1");
+REGISTER_TEST_DEV(L0039, VIRTIO_PCI_DEVICE_BALLOON, test_balloon_deflate_valid,
+                  "Deflate one page on deflate queue",
+                  VIRTIO_SPEC_V1_2, "5.5.6.1");

@@ -13,11 +13,8 @@
 
 #define BALLOON_CFG_POISON_VAL_OFFSET 12
 
-static test_result_t test_balloon_page_poison(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_balloon_page_poison(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_PAGE_POISON))
         return TEST_SKIP;
 
@@ -46,8 +43,8 @@ static test_result_t test_balloon_page_poison(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(L0036, VIRTIO_PCI_DEVICE_BALLOON,
-              test_balloon_page_poison,
-              "Read and write poison_val config field",
-              VIRTIO_SPEC_V1_2, "5.5.4",
-              (1ULL << VIRTIO_BALLOON_F_PAGE_POISON), 0);
+REGISTER_TEST_DEV_REQUIRES(L0036, VIRTIO_PCI_DEVICE_BALLOON,
+                  test_balloon_page_poison,
+                  "Read and write poison_val config field",
+                  VIRTIO_SPEC_V1_2, "5.5.4",
+                  (1ULL << VIRTIO_BALLOON_F_PAGE_POISON), 0);

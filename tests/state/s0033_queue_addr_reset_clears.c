@@ -10,12 +10,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_queue_addr_reset_clears(struct virtio_dev *dev,
-                                                  struct vring *vr)
+static test_result_t test_queue_addr_reset_clears(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     uint16_t nq = cfg->num_queues;
     if (nq == 0)
@@ -47,6 +44,6 @@ static test_result_t test_queue_addr_reset_clears(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0033, VIRTIO_PCI_DEVICE_BLK, test_queue_addr_reset_clears,
-              "queue_desc queue_driver queue_device read 0 after reset",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(S0033, VIRTIO_PCI_DEVICE_BLK, test_queue_addr_reset_clears,
+                  "queue_desc queue_driver queue_device read 0 after reset",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

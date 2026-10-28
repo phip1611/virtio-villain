@@ -13,12 +13,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_notification_data(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_notification_data(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Probe support */
     if (!virtio_pci_feature_offered(dev, VIRTIO_F_NOTIFICATION_DATA))
@@ -91,6 +88,6 @@ static test_result_t test_notification_data(struct virtio_dev *dev,
     TWEDGED("device unresponsive after timeout");
 }
 
-REGISTER_TEST(T0098, VIRTIO_PCI_DEVICE_BLK, test_notification_data,
-              "encoded notify with NOTIFICATION_DATA reaches device",
-              VIRTIO_SPEC_V1_2, "4.1.5.2");
+REGISTER_TEST_DEV(T0098, VIRTIO_PCI_DEVICE_BLK, test_notification_data,
+                  "encoded notify with NOTIFICATION_DATA reaches device",
+                  VIRTIO_SPEC_V1_2, "4.1.5.2");

@@ -18,13 +18,12 @@ static test_result_t check(struct msix_test *ctx)
     return msix_finish_live(ctx);
 }
 
-static test_result_t test(struct virtio_dev *dev, struct vring *vr)
+static test_result_t test(struct virtio_dev *dev)
 {
-    (void)vr;
     return msix_run(dev, 1, check);
 }
 
-REGISTER_TEST_REQUIRES(PCI0130, VIRTIO_PCI_DEVICE_BLK, test,
-                       "snapshot restore reconstructs live MSI-X routing",
-                       VIRTIO_SPEC_V1_2, "4.1.5.1.2.1",
-                       1ULL << VIRTIO_F_VERSION_1, 1);
+REGISTER_TEST_DEV_REQUIRES(PCI0130, VIRTIO_PCI_DEVICE_BLK, test,
+                           "snapshot restore reconstructs live MSI-X routing",
+                           VIRTIO_SPEC_V1_2, "4.1.5.1.2.1",
+                           1ULL << VIRTIO_F_VERSION_1, 1);

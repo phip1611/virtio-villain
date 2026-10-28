@@ -8,10 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_pci_config_gen(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_pci_config_gen(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Just read it twice; the value should be stable with no config change */
@@ -27,6 +25,6 @@ static test_result_t test_pci_config_gen(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0112, VIRTIO_PCI_DEVICE_BLK, test_pci_config_gen,
-              "config_generation is readable and stable",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(PCI0112, VIRTIO_PCI_DEVICE_BLK, test_pci_config_gen,
+                  "config_generation is readable and stable",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

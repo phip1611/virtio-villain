@@ -8,11 +8,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_vsock_config_cid(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_vsock_config_cid(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!dev->device_cfg || dev->device_cfg_length < 8)
         return TEST_SKIP;
 
@@ -31,6 +28,6 @@ static test_result_t test_vsock_config_cid(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(V0078, VIRTIO_PCI_DEVICE_VSOCK, test_vsock_config_cid,
-              "Read guest_cid config and verify valid CID",
-              VIRTIO_SPEC_V1_2, "5.10.4");
+REGISTER_TEST_DEV(V0078, VIRTIO_PCI_DEVICE_VSOCK, test_vsock_config_cid,
+                  "Read guest_cid config and verify valid CID",
+                  VIRTIO_SPEC_V1_2, "5.10.4");

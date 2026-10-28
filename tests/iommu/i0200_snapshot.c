@@ -10,10 +10,8 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_iommu_survives_snapshot(struct virtio_dev *dev,
-                                                  struct vring *vr)
+static test_result_t test_iommu_survives_snapshot(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     if (!(cfg->device_status & VIRTIO_STATUS_DRIVER_OK))
         return TEST_SKIP;
@@ -33,7 +31,7 @@ static test_result_t test_iommu_survives_snapshot(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(I0200, VIRTIO_PCI_DEVICE_IOMMU,
-              test_iommu_survives_snapshot,
-              "virtio-iommu survives a host triggered snapshot",
-              VIRTIO_SPEC_V1_2, "2.6");
+REGISTER_TEST_DEV(I0200, VIRTIO_PCI_DEVICE_IOMMU,
+                  test_iommu_survives_snapshot,
+                  "virtio-iommu survives a host triggered snapshot",
+                  VIRTIO_SPEC_V1_2, "2.6");

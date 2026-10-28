@@ -11,12 +11,9 @@
  */
 #include "tests/test.h"
 
-static test_result_t test_dev_feat_past_pages(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_dev_feat_past_pages(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     cfg->device_feature_select = 0;
     __sync_synchronize();
@@ -45,6 +42,6 @@ static test_result_t test_dev_feat_past_pages(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0054, VIRTIO_PCI_DEVICE_BLK, test_dev_feat_past_pages,
-              "device_feature reads zero for selectors past page 1",
-              VIRTIO_SPEC_V1_2, "4.1.4.3");
+REGISTER_TEST_DEV(S0054, VIRTIO_PCI_DEVICE_BLK, test_dev_feat_past_pages,
+                  "device_feature reads zero for selectors past page 1",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3");
