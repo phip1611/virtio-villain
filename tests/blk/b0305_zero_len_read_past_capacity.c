@@ -55,7 +55,13 @@ static test_result_t test_blk_zero_len_read_past_cap(struct virtio_dev *dev,
     /* Byte offset 1 << 63, negative as off_t. */
     VV_TRY(zero_len_read(dev, vr, 1ULL << 54, &s_far));
 
-    TSKIP("not implemented");
+    if (s_near != s_far)
+        TFAIL("inconsistent status: sector cap+8 -> %u, 1<<54 -> %u",
+              s_near, s_far);
+    if (s_near == VIRTIO_BLK_S_OK)
+        TFAIL("zero length READ past capacity returned S_OK");
+
+    return TEST_PASS;
 }
 
 REGISTER_TEST(B0305, VIRTIO_PCI_DEVICE_BLK, test_blk_zero_len_read_past_cap,
