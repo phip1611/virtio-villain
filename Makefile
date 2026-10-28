@@ -49,6 +49,11 @@ BUILD_FLAGS = $(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS)
 	@mkdir -p $(@D)
 	@$(call update_file,$@,$(BUILD_FLAGS))
 
+# Harness version that init prints at boot, so that every test log names
+# the exact commit. Outside a Git checkout, pass VV_VERSION=... instead.
+VV_VERSION := $(shell git describe --always --dirty 2>/dev/null || \
+                echo unknown)
+
 SRCS = bin/init.c \
        lib/pci.c \
        lib/irq.c \
@@ -71,6 +76,17 @@ $(OBJDIR)/%.o: %.c $(OBJDIR)/.flags
 	@mkdir -p $(dir $@)
 	@echo "  CC    $<"
 	$(Q)$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
+
+# Only init.o gets the version, so that a new commit does not rebuild all
+# objects. "private" keeps the define away from the prerequisites, and
+# "override" keeps it when CPPFLAGS is set on the command line.
+$(OBJDIR)/bin/init.o: private override CPPFLAGS += \
+                      -DVV_VERSION='"$(VV_VERSION)"'
+$(OBJDIR)/bin/init.o: $(OBJDIR)/.version
+
+$(OBJDIR)/.version: FORCE
+	@mkdir -p $(@D)
+	@$(call update_file,$@,$(VV_VERSION))
 
 -include $(DEPS)
 
