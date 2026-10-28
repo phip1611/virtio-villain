@@ -49,6 +49,13 @@
     return TEST_SKIP; \
 } while (0)
 
+/* Return the result of expr from the calling test unless it is TEST_PASS. */
+#define VV_TRY(expr) do { \
+    test_result_t vv_try_r_ = (expr); \
+    if (vv_try_r_ != TEST_PASS) \
+        return vv_try_r_; \
+} while (0)
+
 typedef enum {
     TEST_PASS,
     TEST_FAIL,
