@@ -34,9 +34,11 @@ static const char *c_reset = "";
 #define CHECK(cond, fmt, ...) do { \
     tests_run++; \
     if (!(cond)) { \
-        printf("  %s[FAIL]%s " fmt "\n", c_fail, c_reset, ##__VA_ARGS__); \
+        printf("  %s[FAIL]%s " fmt "\n", \
+               c_fail, c_reset __VA_OPT__(,) __VA_ARGS__); \
     } else { \
-        printf("  %s[PASS]%s " fmt "\n", c_pass, c_reset, ##__VA_ARGS__); \
+        printf("  %s[PASS]%s " fmt "\n", \
+               c_pass, c_reset __VA_OPT__(,) __VA_ARGS__); \
         tests_passed++; \
     } \
 } while (0)

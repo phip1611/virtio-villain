@@ -2,7 +2,6 @@
 #ifndef VV_VRING_H
 #define VV_VRING_H
 
-#include <stdbool.h>
 #include <stdint.h>
 #include "virtio_pci.h"
 

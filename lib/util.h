@@ -13,10 +13,10 @@
 #define PAGE_SIZE 4096
 
 #define vv_log(fmt, ...) \
-    fprintf(stderr, "[vv] " fmt "\n", ##__VA_ARGS__)
+    fprintf(stderr, "[vv] " fmt "\n" __VA_OPT__(,) __VA_ARGS__)
 
 #define vv_die(fmt, ...) do { \
-    fprintf(stderr, "[vv] FATAL: " fmt "\n", ##__VA_ARGS__); \
+    fprintf(stderr, "[vv] FATAL: " fmt "\n" __VA_OPT__(,) __VA_ARGS__); \
     exit(1); \
 } while (0)
 
