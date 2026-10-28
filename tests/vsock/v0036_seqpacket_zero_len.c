@@ -24,10 +24,7 @@ static test_result_t test_vsock_seqpacket_zero_len(struct virtio_dev *dev,
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Check SEQPACKET feature */
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_VSOCK_F_SEQPACKET)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_VSOCK_F_SEQPACKET))
         return TEST_SKIP;
 
     if (cfg->num_queues < 2)

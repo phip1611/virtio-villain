@@ -20,10 +20,7 @@
 
 static test_result_t test_event_idx(struct virtio_dev *dev, struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_F_EVENT_IDX)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_F_EVENT_IDX))
         return TEST_SKIP;
 
     /* Set used_event to 1 (at the end of the avail ring) */

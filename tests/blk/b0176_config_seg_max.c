@@ -22,11 +22,8 @@ static test_result_t test_blk_config_seg_max(struct virtio_dev *dev,
                                              struct vring *vr)
 {
     (void)vr;
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_BLK_F_SEG_MAX)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BLK_F_SEG_MAX))
         return TEST_SKIP;
 
     if (!dev->device_cfg || dev->device_cfg_length <= BLK_CFG_SEG_MAX_OFFSET + 3)

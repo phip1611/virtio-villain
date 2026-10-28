@@ -24,9 +24,7 @@ static test_result_t test_console_port_ready_unannounced(struct virtio_dev *dev,
 
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1u << VIRTIO_CONSOLE_F_MULTIPORT)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_CONSOLE_F_MULTIPORT))
         return TEST_SKIP;
 
     cfg->queue_select = 2;

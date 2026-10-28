@@ -22,10 +22,7 @@ static test_result_t test_rss_non_power_of_2(struct virtio_dev *dev,
     (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
-    cfg->device_feature_select = 1;
-    __sync_synchronize();
-    uint32_t offered_hi = cfg->device_feature;
-    if (!(offered_hi & (1U << (VIRTIO_NET_F_RSS - 32))))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_RSS))
         return TEST_SKIP;
 
     uint16_t nq = cfg->num_queues;

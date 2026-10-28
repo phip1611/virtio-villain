@@ -23,9 +23,7 @@ static test_result_t test_balloon_free_page_hint_stop(struct virtio_dev *dev,
 
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_BALLOON_F_FREE_PAGE_HINT)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_FREE_PAGE_HINT))
         return TEST_SKIP;
 
     /* Queue 2 is the free page hint VQ. */

@@ -21,10 +21,7 @@ static test_result_t test_net_mrg_rxbuf_overflow(struct virtio_dev *dev,
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Check if MRG_RXBUF is available */
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_NET_F_MRG_RXBUF)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_MRG_RXBUF))
         return TEST_SKIP;
 
     if (cfg->num_queues < 2)

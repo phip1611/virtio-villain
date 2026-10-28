@@ -20,11 +20,7 @@
 static test_result_t test_watchdog_indirect_zero(struct virtio_dev *dev,
                                                  struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_F_INDIRECT_DESC)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_F_INDIRECT_DESC))
         return TEST_SKIP;
 
     /* Indirect descriptor with len=0 (no entries reachable) */

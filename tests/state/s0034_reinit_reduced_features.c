@@ -39,10 +39,7 @@ static test_result_t test_reinit_reduced_features(struct virtio_dev *dev,
     cfg->device_feature_select = 0;
     __sync_synchronize();
     (void)cfg->device_feature;
-    cfg->device_feature_select = 1;
-    __sync_synchronize();
-    uint32_t high = cfg->device_feature;
-    if (!(high & (1u << (VIRTIO_F_VERSION_1 - 32))))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_F_VERSION_1))
         return TEST_SKIP;
 
     /* Accept only VIRTIO_F_VERSION_1 */

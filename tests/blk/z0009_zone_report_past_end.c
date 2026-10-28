@@ -20,11 +20,7 @@ static test_result_t test_zone_report_past_end(struct virtio_dev *dev,
     if (!dev->device_cfg)
         return TEST_SKIP;
 
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_BLK_F_ZONED)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BLK_F_ZONED))
         return TEST_SKIP;
 
     /* Read capacity */

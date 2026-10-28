@@ -20,11 +20,8 @@ static test_result_t test_net_config_status(struct virtio_dev *dev,
                                             struct vring *vr)
 {
     (void)vr;
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_NET_F_STATUS)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_STATUS))
         return TEST_SKIP;
 
     if (!dev->device_cfg || dev->device_cfg_length < 8)

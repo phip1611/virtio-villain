@@ -56,10 +56,7 @@ static test_result_t test_event_idx_suppress(struct virtio_dev *dev,
 
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t f0 = cfg->device_feature;
-    if (!(f0 & (1u << VIRTIO_F_EVENT_IDX)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_F_EVENT_IDX))
         return TEST_SKIP;
 
     virtio_pci_reset(dev);

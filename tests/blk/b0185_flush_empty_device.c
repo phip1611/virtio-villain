@@ -18,10 +18,7 @@
 static test_result_t test_blk_flush_empty(struct virtio_dev *dev,
                                           struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_BLK_F_FLUSH)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BLK_F_FLUSH))
         return TEST_SKIP;
 
     struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);

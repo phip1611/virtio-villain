@@ -23,9 +23,7 @@ static test_result_t test_balloon_stats_any_order(struct virtio_dev *dev,
     (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_BALLOON_F_STATS_VQ)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_STATS_VQ))
         return TEST_SKIP;
 
     cfg->queue_select = 1;

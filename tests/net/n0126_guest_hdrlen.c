@@ -14,10 +14,7 @@
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {
     (void)vr;
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    cfg->device_feature_select = 1;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << (VIRTIO_NET_F_GUEST_HDRLEN - 32))))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_GUEST_HDRLEN))
         return TEST_SKIP;
     if (!dev->device_cfg || dev->device_cfg_length < 12)
         TFAIL("GUEST_HDRLEN offered but device config too small");

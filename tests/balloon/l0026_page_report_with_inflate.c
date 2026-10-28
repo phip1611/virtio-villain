@@ -21,10 +21,7 @@ static test_result_t test_balloon_report_with_inflate(struct virtio_dev *dev,
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t feat = cfg->device_feature;
-    if (!(feat & (1U << VIRTIO_BALLOON_F_REPORTING)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_REPORTING))
         return TEST_SKIP;
 
     cfg->queue_select = 3;
