@@ -19,12 +19,10 @@ static test_result_t test_queue_size_change(struct virtio_dev *dev,
     /*
      * Phase 1: Do I/O on current queue (size=16, set by harness).
      */
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
@@ -86,12 +84,10 @@ static test_result_t test_queue_size_change(struct virtio_dev *dev,
      * Phase 3: Do I/O on the resized queue.
      * If VMM still uses old size=16, it may read past our size=8 arrays.
      */
-    struct virtio_blk_outhdr *hdr2 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr2 = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data2 = vv_alloc_pages(1);
     uint8_t *status2 = vv_alloc_pages(1);
 
-    hdr2->type = VIRTIO_BLK_T_IN;
-    hdr2->sector = 0;
     *status2 = 0xFF;
 
     vring_raw_set_desc(&vr2, 0, vv_virt_to_phys(hdr2), sizeof(*hdr2),

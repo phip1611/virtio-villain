@@ -24,11 +24,9 @@ static inline test_result_t blk_mmio_attach(struct virtio_mmio_dev *dev,
 static inline test_result_t blk_mmio_read(struct virtio_mmio_dev *dev,
                                          struct vring *ring, uint64_t sector)
 {
-    struct virtio_blk_outhdr *header = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *header = blk_hdr(VIRTIO_BLK_T_IN, sector);
     void *data = vv_alloc_pages(1);
     volatile uint8_t *status = vv_alloc_pages(1);
-    header->type = VIRTIO_BLK_T_IN;
-    header->sector = sector;
     *status = 0xff;
     vring_raw_set_desc(ring, 0, vv_virt_to_phys(header), sizeof(*header),
                        VRING_DESC_F_NEXT, 1);

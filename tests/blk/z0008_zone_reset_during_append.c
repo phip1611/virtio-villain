@@ -27,11 +27,10 @@ static test_result_t test_zone_reset_during_append(struct virtio_dev *dev,
     vring_attach(dev, &vr2, 1);
 
     /* Zone append on queue 0 */
-    struct virtio_blk_outhdr *hdr0 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr0 = blk_hdr(VIRTIO_BLK_T_ZONE_APPEND, 0);
     uint8_t *data0 = vv_alloc_pages(1);
     uint8_t *st0 = vv_alloc_pages(1);
 
-    hdr0->type = VIRTIO_BLK_T_ZONE_APPEND;
     hdr0->sector = 0; /* first zone */
     memset(data0, 0x42, 512);
     *st0 = 0xFF;
@@ -45,10 +44,9 @@ static test_result_t test_zone_reset_during_append(struct virtio_dev *dev,
     vring_submit(vr, 0);
 
     /* Zone reset on queue 1 */
-    struct virtio_blk_outhdr *hdr1 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr1 = blk_hdr(VIRTIO_BLK_T_ZONE_RESET, 0);
     uint8_t *st1 = vv_alloc_pages(1);
 
-    hdr1->type = VIRTIO_BLK_T_ZONE_RESET;
     hdr1->sector = 0; /* same zone */
     *st1 = 0xFF;
 

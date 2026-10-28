@@ -10,21 +10,17 @@
 static test_result_t test_blk_write_read_same_sector(struct virtio_dev *dev,
                                                      struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr_w = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr_w = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *data_w = vv_alloc_pages(1);
     uint8_t *status_w = vv_alloc_pages(1);
 
-    struct virtio_blk_outhdr *hdr_r = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr_r = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data_r = vv_alloc_pages(1);
     uint8_t *status_r = vv_alloc_pages(1);
 
-    hdr_w->type = VIRTIO_BLK_T_OUT;
-    hdr_w->sector = 0;
     memset(data_w, 0x42, 512);
     *status_w = 0xFF;
 
-    hdr_r->type = VIRTIO_BLK_T_IN;
-    hdr_r->sector = 0;
     *status_r = 0xFF;
 
     /* Chain 1 (write): descs 0-1-2 */

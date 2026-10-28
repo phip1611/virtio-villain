@@ -11,11 +11,9 @@
 static test_result_t test(struct virtio_dev *dev, struct vring_packed *vr)
 {
     /* WRITE sector 0 */
-    struct virtio_blk_outhdr *wh = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *wh = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *wdata = vv_alloc_pages(1);
     uint8_t *wst = vv_alloc_pages(1);
-    wh->type = VIRTIO_BLK_T_OUT;
-    wh->sector = 0;
     for (int i = 0; i < 512; i++)
         wdata[i] = (uint8_t)(i ^ 0x3C);
     *wst = 0xFF;
@@ -40,11 +38,9 @@ static test_result_t test(struct virtio_dev *dev, struct vring_packed *vr)
         TFAIL("write status %u", *wst);
 
     /* READ sector 0 */
-    struct virtio_blk_outhdr *rh = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *rh = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *rdata = vv_alloc_pages(1);
     uint8_t *rst = vv_alloc_pages(1);
-    rh->type = VIRTIO_BLK_T_IN;
-    rh->sector = 0;
     *rst = 0xFF;
 
     head = vr->next_avail;

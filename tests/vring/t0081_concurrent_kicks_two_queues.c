@@ -23,12 +23,10 @@ static test_result_t test_concurrent_kicks_two_queues(struct virtio_dev *dev,
     vring_attach(dev, &vr2, 1);
 
     /* Prepare request on queue 0 */
-    struct virtio_blk_outhdr *hdr0 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr0 = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data0 = vv_alloc_pages(1);
     uint8_t *st0 = vv_alloc_pages(1);
 
-    hdr0->type = VIRTIO_BLK_T_IN;
-    hdr0->sector = 0;
     *st0 = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr0), sizeof(*hdr0),
@@ -41,12 +39,10 @@ static test_result_t test_concurrent_kicks_two_queues(struct virtio_dev *dev,
     vring_raw_set_avail_idx(vr, 1);
 
     /* Prepare request on queue 1 */
-    struct virtio_blk_outhdr *hdr1 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr1 = blk_hdr(VIRTIO_BLK_T_IN, 1);
     uint8_t *data1 = vv_alloc_pages(1);
     uint8_t *st1 = vv_alloc_pages(1);
 
-    hdr1->type = VIRTIO_BLK_T_IN;
-    hdr1->sector = 1;
     *st1 = 0xFF;
 
     vring_raw_set_desc(&vr2, 0, vv_virt_to_phys(hdr1), sizeof(*hdr1),

@@ -55,12 +55,10 @@ static test_result_t test_queue_setup_after_driver_ok(struct virtio_dev *dev,
      * have defined semantics, but the point is whether the VMM crashes
      * from late queue enablement.
      */
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_IN;
-    hdr->sector = 0;
     *status = 0xFF;
 
     vring_raw_set_desc(&vr2, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
@@ -80,12 +78,10 @@ static test_result_t test_queue_setup_after_driver_ok(struct virtio_dev *dev,
     /*
      * Also verify queue 0 still works after this abuse.
      */
-    struct virtio_blk_outhdr *hdr0 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr0 = blk_hdr(VIRTIO_BLK_T_IN, 0);
     uint8_t *data0 = vv_alloc_pages(1);
     uint8_t *status0 = vv_alloc_pages(1);
 
-    hdr0->type = VIRTIO_BLK_T_IN;
-    hdr0->sector = 0;
     *status0 = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr0), sizeof(*hdr0),

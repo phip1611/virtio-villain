@@ -24,12 +24,11 @@ static test_result_t test_zone_report_past_end(struct virtio_dev *dev,
     volatile uint64_t *cap = (volatile uint64_t *)dev->device_cfg;
     uint64_t capacity = *cap;
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_ZONE_REPORT, 0);
     struct virtio_blk_zone_report_hdr_wide *report = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
     /* Request zone report starting past the end of the device */
-    hdr->type = VIRTIO_BLK_T_ZONE_REPORT;
     hdr->sector = capacity + 1000; /* well past end */
     *status = 0xFF;
 

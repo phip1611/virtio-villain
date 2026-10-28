@@ -11,13 +11,11 @@
 static test_result_t test_blk_get_id_scattered(struct virtio_dev *dev,
                                                struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_GET_ID, 0);
     uint8_t *id_part1 = vv_alloc_pages(1);
     uint8_t *id_part2 = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_GET_ID;
-    hdr->sector = 0;
     *status = 0xFF;
 
     /* Split 20-byte ID buffer across two 10-byte descriptors */

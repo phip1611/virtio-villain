@@ -22,12 +22,10 @@ static test_result_t test_blk_concurrent_write_conflict(struct virtio_dev *dev,
     vring_attach(dev, &vr2, 1);
 
     /* Write request on queue 0: fill sector 0 with 0xAA */
-    struct virtio_blk_outhdr *hdr0 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr0 = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *data0 = vv_alloc_pages(1);
     uint8_t *st0 = vv_alloc_pages(1);
 
-    hdr0->type = VIRTIO_BLK_T_OUT;
-    hdr0->sector = 0;
     memset(data0, 0xAA, 512);
     *st0 = 0xFF;
 
@@ -40,12 +38,10 @@ static test_result_t test_blk_concurrent_write_conflict(struct virtio_dev *dev,
     vring_submit(vr, 0);
 
     /* Write request on queue 1: fill sector 0 with 0xBB */
-    struct virtio_blk_outhdr *hdr1 = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr1 = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *data1 = vv_alloc_pages(1);
     uint8_t *st1 = vv_alloc_pages(1);
 
-    hdr1->type = VIRTIO_BLK_T_OUT;
-    hdr1->sector = 0;
     memset(data1, 0xBB, 512);
     *st1 = 0xFF;
 

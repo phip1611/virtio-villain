@@ -20,15 +20,13 @@ static test_result_t test_blk_fua_write_read(struct virtio_dev *dev,
         (volatile struct virtio_blk_config_head *)dev->device_cfg;
     if (!bcfg || bcfg->capacity < 1) return TEST_SKIP;
 
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_OUT, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *st = vv_alloc_pages(1);
     uint16_t ai = 0;
 
     /* Write sector 0 with the Force Unit Access flag set. */
-    hdr->type = VIRTIO_BLK_T_OUT;
     hdr->ioprio = 1u << VIRTIO_BLK_REQ_FLAG_OUT_FUA; /* flags word */
-    hdr->sector = 0;
     memset(data, 0x6C, 512);
     *st = 0xFF;
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

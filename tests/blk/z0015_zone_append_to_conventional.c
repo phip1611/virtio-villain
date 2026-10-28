@@ -13,12 +13,10 @@
 static test_result_t test_zone_append_conv(struct virtio_dev *dev,
                                            struct vring *vr)
 {
-    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+    struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_ZONE_APPEND, 0);
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    hdr->type = VIRTIO_BLK_T_ZONE_APPEND;
-    hdr->sector = 0;
     memset(data, 0x33, 512);
     *status = 0xFF;
 
