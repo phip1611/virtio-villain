@@ -26,6 +26,7 @@ STATIC_LDFLAGS ?= -static
 STRIP   ?= strip
 TARGET  ?= target
 OBJDIR  ?= $(TARGET)/obj
+SELFTEST_DIR ?= $(TARGET)/selftest
 
 # Auto generate per object header dependencies.
 DEPFLAGS = -MMD -MP
@@ -165,10 +166,17 @@ clean:
 	  "$(TARGET)" "$(OBJDIR)" "$(APPLIANCE_TARGET)" \
 	  selftest/test_lib selftest/test_irq selftest/cloud-hypervisor
 
-selftest: selftest/test_lib selftest/test_irq
-	@echo "selftest/lib:"
-	@./selftest/test_lib
-	@./selftest/test_irq
+selftest-c: $(SELFTEST_DIR)/test_lib $(SELFTEST_DIR)/test_irq
+	@$(SELFTEST_DIR)/test_lib
+	@$(SELFTEST_DIR)/test_irq
+
+selftest-sanitize:
+	$(MAKE) selftest-c SELFTEST_DIR=$(TARGET)/selftest-sanitize \
+	  CFLAGS="$(CFLAGS) -O1 -g -fno-omit-frame-pointer \
+	    -fsanitize=address,undefined -fno-sanitize-recover=all" \
+	  LDFLAGS="$(LDFLAGS) -fsanitize=address,undefined"
+
+selftest: selftest-c
 	@python3 -m unittest discover -s selftest -p 'test_msix_host.py'
 	@python3 -m unittest discover -s selftest -p 'test_kernel.py'
 	@python3 -m unittest discover -s selftest -p 'test_artifacts.py'
@@ -184,16 +192,18 @@ selftest: selftest/test_lib selftest/test_irq
 	@echo "selftest/perf:"
 	@python3 selftest/test_perf.py
 
-selftest/test_lib: selftest/test_lib.c \
+$(SELFTEST_DIR)/test_lib: selftest/test_lib.c \
 		   lib/mmio.h lib/virtio_mmio.h lib/virtio_pci.h lib/virtio_spec.h \
 		   lib/perf_engine.c lib/perf_engine.h \
 		   lib/vring.c lib/vring.h \
 		   lib/vring_packed.c lib/vring_packed.h \
 		   tests/test.h lib/test.h
+	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) -I. -o $@ selftest/test_lib.c \
 	  lib/perf_engine.c lib/vring.c lib/vring_packed.c $(LDFLAGS)
 
-selftest/test_irq: selftest/test_irq.c lib/irq.c lib/irq.h lib/vfio.h
+$(SELFTEST_DIR)/test_irq: selftest/test_irq.c lib/irq.c lib/irq.h lib/vfio.h
+	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) -I. -o $@ \
 	  selftest/test_irq.c lib/irq.c $(LDFLAGS)
 
@@ -230,6 +240,8 @@ help:
 	@echo "  appliance           Build explicit APPLIANCE_SRCS independently"
 	@echo "  appliance-initramfs Pack the external appliance as /init"
 	@echo "  selftest            Build and run runner and lib self tests"
+	@echo "  selftest-c          Build and run C library selftests"
+	@echo "  selftest-sanitize   Run C selftests with ASan and UBSan (CC=gcc/clang)"
 	@echo "  guest-kernel        Build an optional Linux image with KERNEL_ARGS"
 	@echo "  flake8              Run flake8 across run, run-fuzz, selftest, tests"
 	@echo "  deps-check          Verify build dependencies are present"
@@ -262,6 +274,6 @@ help:
 	@echo "clean removes TARGET, custom object/appliance outputs and host test binaries."
 	@echo "Caches and results inside those output directories are removed too."
 
-.PHONY: init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest flake8 flake8-deps-check help guest-kernel
+.PHONY: init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest selftest-c selftest-sanitize flake8 flake8-deps-check help guest-kernel
 .PHONY: appliance appliance-initramfs appliance-check
 endif

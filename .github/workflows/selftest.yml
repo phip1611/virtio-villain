@@ -30,6 +30,8 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y ${{ matrix.pkgs }}
       - run: make deps-check CC=${{ matrix.cc }}
       - run: make -j$(nproc) init perf CC=${{ matrix.cc }}
+      - run: sh selftest/test_mmio_codegen.sh ${{ matrix.cc }}
+        if: matrix.arch == 'aarch64-cross'
       - run: make initramfs CC=${{ matrix.cc }}
         if: matrix.arch == 'x86_64'
   selftest:
@@ -45,6 +47,20 @@ jobs:
           echo "$RUNNER_TEMP/gcc-14" >> "$GITHUB_PATH"
       - run: make -j$(nproc)
       - run: make selftest
+  sanitize:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cc: gcc-14
+            pkgs: gcc-14
+          - cc: clang-19
+            pkgs: clang-19
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ${{ matrix.pkgs }}
+      - run: make selftest-sanitize CC=${{ matrix.cc }}
   fuzz-build:
     runs-on: ${{ matrix.runner }}
     strategy:

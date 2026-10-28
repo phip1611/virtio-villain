@@ -54,6 +54,18 @@ VMM integration test suites.
   `lib/` API.
 - Keep tests deterministic. No timing dependent assertions.
 
+## Verification
+
+Run `make selftest` for host checks and `make selftest-sanitize CC=gcc`
+(or `CC=clang`) for ASan and UBSan checks of the C libraries. Sanitizers
+require a supported host libc and runtime; use a glibc toolchain rather
+than musl-gcc. Instrumented executables live separately under
+`target/selftest-sanitize` and are never packed into the guest initramfs.
+
+These checks do not execute a VMM. For transport changes, also run the
+relevant guest tests. On ARM64, check the MMIO instruction contract with
+`sh selftest/test_mmio_codegen.sh <compiler>`.
+
 ## Commit Messages
 
 - One logical change per commit.
