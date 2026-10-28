@@ -16,9 +16,7 @@ static test_result_t test_console_port_open_bad_value(struct virtio_dev *dev,
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1u << VIRTIO_CONSOLE_F_MULTIPORT)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_CONSOLE_F_MULTIPORT))
         return TEST_SKIP;
 
     cfg->queue_select = 2;

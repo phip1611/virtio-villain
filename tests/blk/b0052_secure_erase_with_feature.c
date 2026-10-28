@@ -10,13 +10,8 @@
 static test_result_t test_blk_secure_erase(struct virtio_dev *dev,
                                            struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
     /* Check if device offers SECURE_ERASE (feature bit 16, word 0) */
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_BLK_F_SECURE_ERASE)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BLK_F_SECURE_ERASE))
         return TEST_SKIP;
 
     struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_SECURE_ERASE, 0);

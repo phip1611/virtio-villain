@@ -12,10 +12,7 @@
 static test_result_t test_net_tx_csum_valid(struct virtio_dev *dev,
                                             struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_NET_F_CSUM)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_CSUM))
         return TEST_SKIP;
 
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);

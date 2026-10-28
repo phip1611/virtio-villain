@@ -18,10 +18,7 @@ static test_result_t test_notif_config_data(struct virtio_dev *dev,
     (void)vr;
 
     /* Check if device offers NOTIF_CONFIG_DATA */
-    cfg->device_feature_select = 1;
-    __sync_synchronize();
-    uint32_t hi = cfg->device_feature;
-    if (!(hi & (1u << (VIRTIO_F_NOTIF_CONFIG_DATA - 32))))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_F_NOTIF_CONFIG_DATA))
         return TEST_SKIP;
 
     /* Reinit with NOTIF_CONFIG_DATA negotiated */

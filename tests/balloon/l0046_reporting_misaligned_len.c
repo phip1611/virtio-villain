@@ -19,10 +19,7 @@ static test_result_t test_balloon_reporting_misaligned_len(struct virtio_dev *de
 
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t feat = cfg->device_feature;
-    if (!(feat & (1U << VIRTIO_BALLOON_F_REPORTING)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_REPORTING))
         return TEST_SKIP;
 
     /* Queue 3 is the reporting VQ. */

@@ -10,9 +10,7 @@
 static test_result_t test_net_vlan_del(struct virtio_dev *dev, struct vring *vr)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_NET_F_CTRL_VLAN)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_CTRL_VLAN))
         return TEST_SKIP;
     if (!(cfg->device_feature & (1U << VIRTIO_NET_F_CTRL_VQ)))
         return TEST_SKIP;

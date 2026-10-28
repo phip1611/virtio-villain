@@ -13,11 +13,7 @@
 
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    cfg->device_feature_select = 1;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << (VIRTIO_F_NOTIFICATION_DATA - 32))))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_F_NOTIFICATION_DATA))
         return TEST_SKIP;
 
     uint8_t *p = vv_alloc_pages(1);

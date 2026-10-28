@@ -14,10 +14,7 @@ static test_result_t test_net_rx_indirect_write(struct virtio_dev *dev,
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Check INDIRECT_DESC feature */
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_F_INDIRECT_DESC)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_F_INDIRECT_DESC))
         return TEST_SKIP;
 
     if (cfg->num_queues < 1)

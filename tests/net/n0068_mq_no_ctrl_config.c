@@ -19,10 +19,7 @@ static test_result_t test_mq_no_ctrl_config(struct virtio_dev *dev,
     (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_NET_F_MQ)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_MQ))
         return TEST_SKIP;
 
     /* Need at least 2 TX/RX pairs + ctrl = 5 queues */

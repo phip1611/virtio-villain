@@ -12,11 +12,7 @@
 static test_result_t test_vsock_seqpacket_eom_eor(struct virtio_dev *dev,
                                                   struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_VSOCK_F_SEQPACKET)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_VSOCK_F_SEQPACKET))
         return TEST_SKIP;
 
     /* CONNECT first to establish a seqpacket connection */

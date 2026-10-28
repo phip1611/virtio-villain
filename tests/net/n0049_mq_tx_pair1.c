@@ -18,10 +18,7 @@ static test_result_t test_net_mq_tx_pair1(struct virtio_dev *dev,
     if (cfg->num_queues < 5)
         return TEST_SKIP;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_NET_F_MQ)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_MQ))
         return TEST_SKIP;
 
     /* TX queue for pair 1 is queue index 3 (RX1=2, TX1=3) */

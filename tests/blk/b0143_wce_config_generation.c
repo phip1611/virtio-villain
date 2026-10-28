@@ -23,9 +23,7 @@ static test_result_t test_blk_wce_config_generation(struct virtio_dev *dev,
     if (dev->device_cfg_length <= VIRTIO_BLK_CFG_WCE_OFFSET)
         return TEST_SKIP;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_BLK_F_CONFIG_WCE)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BLK_F_CONFIG_WCE))
         return TEST_SKIP;
 
     volatile uint8_t *wce = (volatile uint8_t *)dev->device_cfg +

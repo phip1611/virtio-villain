@@ -18,10 +18,7 @@ static test_result_t test_console_ctrl_vq_no_multiport(struct virtio_dev *dev,
 
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t feat = cfg->device_feature;
-    if (feat & (1U << VIRTIO_CONSOLE_F_MULTIPORT))
+    if (virtio_pci_feature_offered(dev, VIRTIO_CONSOLE_F_MULTIPORT))
         return TEST_SKIP;
 
     uint16_t nq = cfg->num_queues;

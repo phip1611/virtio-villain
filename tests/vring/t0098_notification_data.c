@@ -21,10 +21,7 @@ static test_result_t test_notification_data(struct virtio_dev *dev,
     (void)vr;
 
     /* Probe support */
-    cfg->device_feature_select = 1;
-    __sync_synchronize();
-    uint32_t hi = cfg->device_feature;
-    if (!(hi & (1u << (VIRTIO_F_NOTIFICATION_DATA - 32))))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_F_NOTIFICATION_DATA))
         return TEST_SKIP;
 
     /* Renegotiate with NOTIFICATION_DATA set */

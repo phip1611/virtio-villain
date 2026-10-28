@@ -16,10 +16,7 @@ static test_result_t test_notif_data_stale_idx(struct virtio_dev *dev,
 
     (void)vr;
 
-    cfg->device_feature_select = 1;
-    __sync_synchronize();
-    uint32_t hi = cfg->device_feature;
-    if (!(hi & (1u << (VIRTIO_F_NOTIFICATION_DATA - 32))))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_F_NOTIFICATION_DATA))
         return TEST_SKIP;
 
     virtio_pci_reset(dev);

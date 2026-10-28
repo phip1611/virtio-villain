@@ -11,14 +11,10 @@
 
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
     if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_CTRL_VQ))
         return TEST_SKIP;
 
-    cfg->device_feature_select = 1;
-    __sync_synchronize();
-    if (cfg->device_feature & (1U << (VIRTIO_NET_F_RSS - 32)))
+    if (virtio_pci_feature_offered(dev, VIRTIO_NET_F_RSS))
         return TEST_SKIP;
 
     struct virtio_net_ctrl_hdr *h = vv_alloc_pages(1);

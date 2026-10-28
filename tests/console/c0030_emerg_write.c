@@ -20,10 +20,7 @@ static test_result_t test_console_emerg_write(struct virtio_dev *dev,
         return TEST_SKIP;
 
     /* Check if feature is advertised */
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t feat = cfg->device_feature;
-    if (!(feat & (1u << VIRTIO_CONSOLE_F_EMERG_WRITE)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_CONSOLE_F_EMERG_WRITE))
         return TEST_SKIP;
 
     /* Write a byte to emerg_wr at device config offset 12 */

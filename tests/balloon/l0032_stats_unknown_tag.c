@@ -16,9 +16,7 @@ static test_result_t test_balloon_stats_unknown_tag(struct virtio_dev *dev,
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_BALLOON_F_STATS_VQ)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_STATS_VQ))
         return TEST_SKIP;
     if (cfg->num_queues < 3)
         return TEST_SKIP;

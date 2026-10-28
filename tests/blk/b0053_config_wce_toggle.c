@@ -14,13 +14,8 @@ static test_result_t test_blk_config_wce_toggle(struct virtio_dev *dev,
     if (!dev->device_cfg)
         return TEST_SKIP;
 
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
     /* Check if device offers CONFIG_WCE */
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_BLK_F_CONFIG_WCE)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BLK_F_CONFIG_WCE))
         return TEST_SKIP;
 
     if (dev->device_cfg_length <= VIRTIO_BLK_CFG_WCE_OFFSET)

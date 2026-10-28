@@ -19,10 +19,7 @@ static test_result_t test_console_emerg_no_feat(struct virtio_dev *dev,
         return TEST_SKIP;
 
     /* Confirm feature not offered, or skip if it is */
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t feat = cfg->device_feature;
-    if (feat & (1u << VIRTIO_CONSOLE_F_EMERG_WRITE))
+    if (virtio_pci_feature_offered(dev, VIRTIO_CONSOLE_F_EMERG_WRITE))
         return TEST_SKIP;
 
     /* Write anyway; must not crash */

@@ -17,11 +17,7 @@ static test_result_t test_blk_discard_max_segments(struct virtio_dev *dev,
     if (!dev->device_cfg)
         return TEST_SKIP;
 
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_BLK_F_DISCARD)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BLK_F_DISCARD))
         return TEST_SKIP;
 
     if (dev->device_cfg_length <= CFG_MAX_DISCARD_SEG_OFF + 4)

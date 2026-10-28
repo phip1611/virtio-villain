@@ -13,9 +13,7 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_CONSOLE_F_MULTIPORT)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_CONSOLE_F_MULTIPORT))
         return TEST_SKIP;
 
     cfg->queue_select = 2;

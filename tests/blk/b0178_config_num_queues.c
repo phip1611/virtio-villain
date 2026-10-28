@@ -17,9 +17,7 @@ static test_result_t test_blk_config_num_queues(struct virtio_dev *dev,
     (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_BLK_F_MQ)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BLK_F_MQ))
         return TEST_SKIP;
 
     if (!dev->device_cfg ||

@@ -17,9 +17,7 @@ static test_result_t test_balloon_page_report_misaligned(struct virtio_dev *dev,
 
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_BALLOON_F_REPORTING)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_REPORTING))
         return TEST_SKIP;
 
     cfg->queue_select = 3;

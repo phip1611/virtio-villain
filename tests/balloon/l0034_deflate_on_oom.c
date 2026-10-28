@@ -13,11 +13,7 @@
 static test_result_t test_balloon_deflate_on_oom(struct virtio_dev *dev,
                                                  struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1U << VIRTIO_BALLOON_F_DEFLATE_ON_OOM)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_DEFLATE_ON_OOM))
         return TEST_SKIP;
 
     void *pages = vv_alloc_pages(2);

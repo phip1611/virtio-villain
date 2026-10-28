@@ -19,10 +19,7 @@ static test_result_t test_mq_pairs_zero(struct virtio_dev *dev,
     if (nq < 5)
         return TEST_SKIP;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t offered = cfg->device_feature;
-    if (!(offered & (1U << VIRTIO_NET_F_MQ)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_MQ))
         return TEST_SKIP;
 
     uint16_t ctrl_q = nq - 1;

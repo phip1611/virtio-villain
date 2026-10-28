@@ -16,10 +16,7 @@ static test_result_t test_console_ctrl_unknown(struct virtio_dev *dev,
 
     (void)vr;
 
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    uint32_t feat = cfg->device_feature;
-    if (!(feat & (1u << VIRTIO_CONSOLE_F_MULTIPORT)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_CONSOLE_F_MULTIPORT))
         return TEST_SKIP;
 
     /* Queue 2 is the TX ctrl queue */

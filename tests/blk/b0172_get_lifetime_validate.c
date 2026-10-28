@@ -12,11 +12,7 @@
 static test_result_t test_blk_lifetime_fields(struct virtio_dev *dev,
                                               struct vring *vr)
 {
-    volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    cfg->device_feature_select = 0;
-    __sync_synchronize();
-    if (!(cfg->device_feature & (1u << VIRTIO_BLK_F_LIFETIME)))
+    if (!virtio_pci_feature_offered(dev, VIRTIO_BLK_F_LIFETIME))
         return TEST_SKIP;
 
     struct virtio_blk_outhdr *hdr = blk_hdr(VIRTIO_BLK_T_GET_LIFETIME, 0);
