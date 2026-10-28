@@ -33,7 +33,6 @@ static test_result_t test_rtc_alarm_far_future(struct virtio_dev *dev,
     vring_attach(dev, &alarmq, 1);
 
     struct rtc_notif_alarm *notif = vv_alloc_pages(1);
-    memset(notif, 0, sizeof(*notif));
     vring_raw_set_desc(&alarmq, 0, vv_virt_to_phys(notif), sizeof(*notif),
                        VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&alarmq, 0, 0);
@@ -44,7 +43,6 @@ static test_result_t test_rtc_alarm_far_future(struct virtio_dev *dev,
     /* Arm an alarm far in the future on the requestq. */
     struct rtc_req_set_alarm_nested *req = vv_alloc_pages(1);
     struct rtc_resp_head *resp = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     memset(resp, 0xFF, sizeof(*resp));
     req->head.msg_type = VIRTIO_RTC_REQ_SET_ALARM;
     req->clock_id = 0;

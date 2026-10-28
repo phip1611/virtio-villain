@@ -19,7 +19,6 @@ static test_result_t test_mem_resp_addr_len_wrap(struct virtio_dev *dev,
                                                  struct vring *vr)
 {
     struct virtio_mem_req *req = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->type = VIRTIO_MEM_REQ_STATE;
     req->addr = 0;
     req->nb_blocks = 1;

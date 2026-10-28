@@ -12,7 +12,6 @@ static test_result_t test_watchdog_packed_ping(struct virtio_dev *dev,
                                                struct vring_packed *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 1);
 
     vring_packed_set_desc(vr, 0, vv_virt_to_phys(buf), 1, 0,
                           VRING_PACKED_DESC_F_WRITE);

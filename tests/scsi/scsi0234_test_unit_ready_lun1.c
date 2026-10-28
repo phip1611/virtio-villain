@@ -13,7 +13,6 @@ static test_result_t test_scsi_tur_lun1(struct virtio_dev *dev,
     struct virtio_scsi_cmd_req *req = vv_alloc_pages(1);
     struct virtio_scsi_cmd_resp *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 1);
     req->cdb[0] = 0x00;      /* TEST UNIT READY clears UA */
     scsi_do_cmd(dev, vr, req, resp, NULL, 0, SCSI_DATA_NONE, 0);

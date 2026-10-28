@@ -15,7 +15,6 @@ static test_result_t test_blk_sector_beyond_capacity(struct virtio_dev *dev,
 
     /* Sector way beyond any reasonable disk */
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0xFFFFFFFFFFFFULL;
     *status = 0xFF;
 

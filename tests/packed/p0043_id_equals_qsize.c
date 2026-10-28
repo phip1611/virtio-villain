@@ -13,7 +13,6 @@ static test_result_t test_packed_id_oob(struct virtio_dev *dev,
                                         struct vring_packed *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 512);
 
     uint16_t qsz = dev->common->queue_size;
 

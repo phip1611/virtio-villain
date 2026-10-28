@@ -20,7 +20,6 @@ static test_result_t test_admin_zero_cmd_len(struct virtio_dev *dev,
     uint8_t *cmd = vv_alloc_pages(1);
     uint8_t *result = vv_alloc_pages(1);
 
-    memset(cmd, 0, PAGE_SIZE);
     memset(result, 0xFF, 64);
 
     /* Command descriptor with len=0 (invalid) */

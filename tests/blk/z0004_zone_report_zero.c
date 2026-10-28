@@ -19,7 +19,6 @@ static test_result_t test_blk_zone_report_zero(struct virtio_dev *dev,
     hdr->sector = 0;
 
     /* Request 0 zones in the report */
-    memset(report, 0, sizeof(*report));
 
     *status = 0xFF;
 

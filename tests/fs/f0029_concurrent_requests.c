@@ -14,7 +14,6 @@ static test_result_t test_fs_concurrent_requests(struct virtio_dev *dev,
 {
     /* Phase 1: FUSE_INIT */
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     struct fuse_in_header *hdr = (struct fuse_in_header *)page;
     struct fuse_init_in *init = (struct fuse_init_in *)(page + sizeof(*hdr));
@@ -37,8 +36,6 @@ static test_result_t test_fs_concurrent_requests(struct virtio_dev *dev,
     /* Phase 2: Two LOOKUPs submitted in one batch */
     uint8_t *p2 = vv_alloc_pages(1);
     uint8_t *p3 = vv_alloc_pages(1);
-    memset(p2, 0, 4096);
-    memset(p3, 0, 4096);
 
     /* Request A */
     struct fuse_in_header *hdrA = (struct fuse_in_header *)p2;

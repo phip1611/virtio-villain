@@ -15,7 +15,6 @@ static test_result_t test_net_tx_max_chain(struct virtio_dev *dev,
 {
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
     uint8_t *frag = vv_alloc_pages(1);
-    memset(hdr, 0, sizeof(*hdr));
     memset(frag, 0x5a, 64);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

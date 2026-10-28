@@ -14,11 +14,8 @@ static test_result_t test_scsi_write16_past(struct virtio_dev *dev,
     struct virtio_scsi_cmd_resp *resp = vv_alloc_pages(1);
     uint8_t *data = vv_alloc_pages(1);
 
-    memset(data, 0, 512);
-
     uint16_t seq = scsi_clear_ua(dev, vr, 0);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x8A;      /* WRITE(16) */
     req->cdb[7] = 0x10;      /* LBA far past capacity */

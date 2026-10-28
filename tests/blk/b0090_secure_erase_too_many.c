@@ -18,7 +18,6 @@ static test_result_t test_blk_secure_erase_too_many(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_SECURE_ERASE;
-    hdr->ioprio = 0;
     hdr->sector = 0;
 
     /* Fill 256 segments (4096 bytes = 1 page) */

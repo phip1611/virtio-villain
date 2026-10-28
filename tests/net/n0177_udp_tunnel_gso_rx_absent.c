@@ -17,7 +17,6 @@ static test_result_t test_net_udp_tunnel_gso_rx_absent(struct virtio_dev *dev,
                                                        struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 4096);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf),
                        sizeof(struct virtio_net_hdr_mrg) + 1500,

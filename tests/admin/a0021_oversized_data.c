@@ -16,7 +16,6 @@ static test_result_t test_admin_oversized(struct virtio_dev *dev,
     uint8_t *data = vv_alloc_pages(8);
     uint8_t *result = vv_alloc_pages(1);
 
-    memset(cmd, 0, sizeof(*cmd));
     cmd->opcode = VIRTIO_ADMIN_CMD_LIST_USE;
 
     memset(data, 0xAA, 8 * 4096);

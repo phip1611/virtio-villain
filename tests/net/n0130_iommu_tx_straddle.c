@@ -293,9 +293,6 @@ static test_result_t test_net_iommu_tx_straddle(struct virtio_dev *dev,
     uint8_t *page_a = vv_alloc_pages(1);
     (void)vv_alloc_pages(1); /* gap to prevent physical contiguity */
     uint8_t *page_b = vv_alloc_pages(1);
-    memset(a, 0, sizeof(*a));
-    memset(m1, 0, sizeof(*m1));
-    memset(m2, 0, sizeof(*m2));
     memset(page_a, 0xAA, 4096);
     memset(page_b, 0xBB, 4096);
 

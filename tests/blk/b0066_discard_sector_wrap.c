@@ -20,7 +20,6 @@ static test_result_t test_blk_discard_sector_wrap(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_DISCARD;
-    hdr->ioprio = 0;
     hdr->sector = 0;
 
     seg->sector = 0xFFFFFFFF00000000ULL;

@@ -15,7 +15,6 @@ static test_result_t test_fs_lookup_invalid_nodeid(struct virtio_dev *dev,
                                                    struct vring *vr)
 {
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     /* Phase 1: FUSE_INIT to establish the session */
     struct fuse_in_header *hdr = (struct fuse_in_header *)page;
@@ -40,7 +39,6 @@ static test_result_t test_fs_lookup_invalid_nodeid(struct virtio_dev *dev,
 
     /* Phase 2: FUSE_LOOKUP with invalid parent nodeid */
     uint8_t *page2 = vv_alloc_pages(1);
-    memset(page2, 0, 4096);
 
     struct fuse_in_header *lhdr = (struct fuse_in_header *)page2;
     char *name = (char *)(page2 + sizeof(*lhdr));

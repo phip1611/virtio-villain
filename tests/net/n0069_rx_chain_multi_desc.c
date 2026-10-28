@@ -29,10 +29,6 @@ static test_result_t test_net_rx_chain_multi(struct virtio_dev *dev,
     uint8_t *data1 = vv_alloc_pages(1);
     uint8_t *data2 = vv_alloc_pages(1);
 
-    memset(hdr_buf, 0, sizeof(struct virtio_net_hdr));
-    memset(data1, 0, 64);
-    memset(data2, 0, 1460);
-
     vring_raw_set_desc(&rxvr, 0, vv_virt_to_phys(hdr_buf),
                        sizeof(struct virtio_net_hdr),
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 1);
@@ -59,7 +55,6 @@ static test_result_t test_net_rx_chain_multi(struct virtio_dev *dev,
     struct virtio_net_hdr *txhdr = vv_alloc_pages(1);
     uint8_t *frame = vv_alloc_pages(1);
 
-    memset(txhdr, 0, sizeof(*txhdr));
     memset(frame, 0xFF, 6);       /* dst broadcast */
     memset(frame + 6, 0x02, 6);   /* src */
     frame[12] = 0x08; frame[13] = 0x00;

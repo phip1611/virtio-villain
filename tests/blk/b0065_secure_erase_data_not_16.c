@@ -17,9 +17,7 @@ static test_result_t test_blk_secure_erase_bad_len(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_SECURE_ERASE;
-    hdr->ioprio = 0;
     hdr->sector = 0;
-    memset(data, 0, 24);
     *status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

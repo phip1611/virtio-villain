@@ -16,7 +16,6 @@ static test_result_t test_blk_write_status_ok(struct virtio_dev *dev,
     uint8_t *st = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_OUT;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     memset(data, 0x55, 512);
     *st = 0xFF;

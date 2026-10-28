@@ -14,7 +14,6 @@ static test_result_t test_rtc_clock_cap_smearing(struct virtio_dev *dev,
                                                  struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 4096);
 
     struct rtc_req_clock_cap_legacy *req = (void *)buf;
     req->msg_type = VIRTIO_RTC_REQ_CLOCK_CAP;

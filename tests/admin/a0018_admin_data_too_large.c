@@ -21,7 +21,6 @@ static test_result_t test_admin_data_too_large(struct virtio_dev *dev,
     struct virtio_admin_cmd_hdr_short *cmd = vv_alloc_pages(1);
     uint8_t *result = vv_alloc_pages(1);
 
-    memset(cmd, 0, PAGE_SIZE);
     memset(result, 0xFF, 64);
 
     /* Opcode 0 (list use), with data_len claiming 4096 bytes */

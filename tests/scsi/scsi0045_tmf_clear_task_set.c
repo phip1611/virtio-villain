@@ -13,7 +13,6 @@ static test_result_t test_scsi_tmf_clear_task_set(struct virtio_dev *dev,
     struct virtio_scsi_ctrl_tmf_req *req = vv_alloc_pages(1);
     struct virtio_scsi_ctrl_tmf_resp *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     req->type = VIRTIO_SCSI_T_TMF;
     req->subtype = VIRTIO_SCSI_T_TMF_CLEAR_TASK_SET;
     scsi_set_lun(req->lun, 0, 0);

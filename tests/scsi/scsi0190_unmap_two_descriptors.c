@@ -14,7 +14,6 @@ static test_result_t test_scsi_unmap_two(struct virtio_dev *dev,
     uint8_t *data = vv_alloc_pages(1);
 
     /* Header plus two 16-byte block descriptors. */
-    memset(data, 0, 40);
     data[0] = 0; data[1] = 38;   /* unmap data length */
     data[2] = 0; data[3] = 32;   /* block descriptor data length */
     data[8 + 7] = 60;            /* first descriptor LBA */
@@ -24,7 +23,6 @@ static test_result_t test_scsi_unmap_two(struct virtio_dev *dev,
 
     uint16_t seq = scsi_clear_ua(dev, vr, 0);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x42;      /* UNMAP */
     req->cdb[8] = 40;

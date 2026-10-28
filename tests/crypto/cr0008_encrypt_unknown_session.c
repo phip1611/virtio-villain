@@ -27,7 +27,6 @@ static test_result_t test_crypto_encrypt_unknown(struct virtio_dev *dev,
     uint8_t *dst = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     req->header.opcode = VIRTIO_CRYPTO_CIPHER_ENCRYPT;
     req->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     req->header.session_id = 0xdeadbeefcafef00dULL;
@@ -35,9 +34,7 @@ static test_result_t test_crypto_encrypt_unknown(struct virtio_dev *dev,
     req->u.sym_cipher.para.src_data_len = 16;
     req->u.sym_cipher.para.dst_data_len = 16;
     req->u.sym_cipher.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
-    memset(iv, 0, 16);
     memset(src, 0x41, 16);
-    memset(dst, 0, 16);
     inhdr->status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),

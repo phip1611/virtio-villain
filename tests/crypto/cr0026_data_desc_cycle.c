@@ -26,7 +26,6 @@ static test_result_t test_crypto_data_desc_cycle(struct virtio_dev *dev,
     struct virtio_crypto_op_data_req *dreq = vv_alloc_pages(1);
     uint8_t *buf = vv_alloc_pages(1);
 
-    memset(dreq, 0, sizeof(*dreq));
     dreq->header.opcode = VIRTIO_CRYPTO_CIPHER_ENCRYPT;
     dreq->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     dreq->header.session_id = 0;
@@ -34,7 +33,6 @@ static test_result_t test_crypto_data_desc_cycle(struct virtio_dev *dev,
     dreq->u.sym_cipher.para.src_data_len = 16;
     dreq->u.sym_cipher.para.dst_data_len = 16;
     dreq->u.sym_cipher.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
-    memset(buf, 0, 64);
 
     /* Descriptor 0 links to 1, descriptor 1 links back to 0. */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),

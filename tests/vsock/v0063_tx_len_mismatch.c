@@ -12,7 +12,6 @@ static test_result_t test_vsock_tx_len_mismatch(struct virtio_dev *dev,
                                                 struct vring *vr)
 {
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     struct virtio_vsock_hdr *pkt = (struct virtio_vsock_hdr *)page;
     uint8_t *data = page + sizeof(*pkt);

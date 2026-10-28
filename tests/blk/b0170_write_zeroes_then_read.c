@@ -25,7 +25,6 @@ static test_result_t test_blk_wz_then_read(struct virtio_dev *dev,
     uint8_t *wst = vv_alloc_pages(1);
 
     whdr->type = VIRTIO_BLK_T_OUT;
-    whdr->ioprio = 0;
     whdr->sector = 0;
     memset(wdata, 0xAA, 512);
     *wst = 0xFF;
@@ -49,7 +48,6 @@ static test_result_t test_blk_wz_then_read(struct virtio_dev *dev,
     uint8_t *zst = vv_alloc_pages(1);
 
     zhdr->type = VIRTIO_BLK_T_WRITE_ZEROES;
-    zhdr->ioprio = 0;
     zhdr->sector = 0;
     zseg->sector = 0;
     zseg->num_sectors = 8;
@@ -78,7 +76,6 @@ static test_result_t test_blk_wz_then_read(struct virtio_dev *dev,
     uint8_t *rst = vv_alloc_pages(1);
 
     rhdr->type = VIRTIO_BLK_T_IN;
-    rhdr->ioprio = 0;
     rhdr->sector = 0;
     memset(rdata, 0xBB, 512);
     *rst = 0xFF;

@@ -52,13 +52,11 @@ static test_result_t test_blk_same_sector_two_queues(struct virtio_dev *dev,
     uint8_t *status1 = vv_alloc_pages(1);
 
     hdr0->type = VIRTIO_BLK_T_OUT;
-    hdr0->ioprio = 0;
     hdr0->sector = 0;
     memset(data0, 0xAA, 512);
     *status0 = 0xFF;
 
     hdr1->type = VIRTIO_BLK_T_OUT;
-    hdr1->ioprio = 0;
     hdr1->sector = 0;
     memset(data1, 0xBB, 512);
     *status1 = 0xFF;

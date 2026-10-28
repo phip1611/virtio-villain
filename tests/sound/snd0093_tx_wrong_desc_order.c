@@ -17,7 +17,6 @@ static test_result_t test_tx_wrong_desc_order(struct virtio_dev *dev,
     struct virtio_snd_pcm_status *status = vv_alloc_pages(1);
     uint16_t used_idx = tx_vr->used->idx;
     xfer->stream_id = stream_id;
-    memset(data, 0, 1024);
     memset(status, 0xff, sizeof(*status));
     vring_raw_set_desc(tx_vr, 0, vv_virt_to_phys(status), sizeof(*status),
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 1);

@@ -15,7 +15,6 @@ static test_result_t test_scsi_two_tmf(struct virtio_dev *dev,
     struct virtio_scsi_ctrl_tmf_resp *resp0 = vv_alloc_pages(1);
     struct virtio_scsi_ctrl_tmf_resp *resp1 = vv_alloc_pages(1);
 
-    memset(req0, 0, sizeof(*req0));
     req0->type = VIRTIO_SCSI_T_TMF;
     req0->subtype = VIRTIO_SCSI_T_TMF_ABORT_TASK_SET;
     scsi_set_lun(req0->lun, 0, 0);

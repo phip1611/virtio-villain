@@ -14,7 +14,6 @@ static test_result_t test_blk_all_zero_header(struct virtio_dev *dev,
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *status = vv_alloc_pages(1);
 
-    memset(hdr, 0, sizeof(*hdr)); /* type=0=IN, ioprio=0, sector=0 */
     *status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

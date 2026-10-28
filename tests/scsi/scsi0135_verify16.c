@@ -15,7 +15,6 @@ static test_result_t test_scsi_verify16(struct virtio_dev *dev,
 
     uint16_t seq = scsi_clear_ua(dev, vr, 0);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x8F;      /* VERIFY(16) */
     req->cdb[13] = 1;        /* verify one block */

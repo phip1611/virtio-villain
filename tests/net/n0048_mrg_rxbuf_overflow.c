@@ -43,7 +43,6 @@ static test_result_t test_net_mrg_rxbuf_overflow(struct virtio_dev *dev,
     struct virtio_net_hdr_mrg *txhdr = vv_alloc_pages(1);
     uint8_t *frame = vv_alloc_pages(1);
 
-    memset(txhdr, 0, sizeof(*txhdr));
     memset(frame, 0xFF, 6);       /* dst broadcast */
     memset(frame + 6, 0x02, 6);   /* src */
     frame[12] = 0x08; frame[13] = 0x00;

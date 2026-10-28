@@ -34,9 +34,7 @@ static test_result_t test_admin_query_use_query(struct virtio_dev *dev,
     struct admin_resp *ru = vv_alloc_pages(1);
     struct admin_resp *r2 = vv_alloc_pages(1);
 
-    memset(q1, 0, sizeof(*q1));
     memset(u, 0, sizeof(*u));
-    memset(q2, 0, sizeof(*q2));
     r1->status = 0xFFFF;
     ru->status = 0xFFFF;
     r2->status = 0xFFFF;

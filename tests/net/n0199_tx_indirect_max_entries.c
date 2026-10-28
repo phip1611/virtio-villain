@@ -20,7 +20,6 @@ static test_result_t test_net_tx_indirect_max_entries(struct virtio_dev *dev,
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
     uint8_t *frag = vv_alloc_pages(1);
     struct vring_desc *indirect = vv_alloc_pages(1);
-    memset(hdr, 0, sizeof(*hdr));
     memset(frag, 0x5a, 128);
 
     indirect[0].addr = vv_virt_to_phys(hdr);

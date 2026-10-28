@@ -26,7 +26,6 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     if (bad < c->domain_range.end) return TEST_SKIP;
 
     struct virtio_iommu_req_attach *a = vv_alloc_pages(1);
-    memset(a, 0, sizeof(*a));
     a->head.type = VIRTIO_IOMMU_T_ATTACH;
     a->domain = bad;
     a->endpoint = 0;

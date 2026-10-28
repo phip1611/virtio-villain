@@ -16,7 +16,6 @@ static test_result_t test_scsi_read12_32(struct virtio_dev *dev,
 
     uint16_t seq = scsi_clear_ua(dev, vr, 0);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0xA8;      /* READ(12) */
     req->cdb[9] = 32;

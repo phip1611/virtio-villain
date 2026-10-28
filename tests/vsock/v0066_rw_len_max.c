@@ -17,7 +17,6 @@ static test_result_t test_vsock_rw_len_max(struct virtio_dev *dev,
     struct virtio_vsock_hdr *hdr = vv_alloc_pages(1);
     uint8_t *payload = vv_alloc_pages(1);
 
-    memset(hdr, 0, sizeof(*hdr));
     hdr->src_cid   = 3;
     hdr->dst_cid   = 2;
     hdr->src_port  = 0xC0DE;

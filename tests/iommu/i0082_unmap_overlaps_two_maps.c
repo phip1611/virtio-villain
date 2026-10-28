@@ -35,7 +35,6 @@ static test_result_t test_iommu_unmap_overlaps_two_maps(struct virtio_dev *dev,
     uint8_t *page = vv_alloc_pages(1);
 
     /* MAP A */
-    memset(page, 0, sizeof(struct virtio_iommu_req_map));
     struct virtio_iommu_req_map *m = (void *)page;
     m->head.type  = VIRTIO_IOMMU_T_MAP;
     m->domain     = 1;

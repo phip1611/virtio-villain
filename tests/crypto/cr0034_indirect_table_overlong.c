@@ -32,7 +32,6 @@ static test_result_t test_crypto_indirect_overlong(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
     struct vring_desc *table = vv_alloc_pages(1);
 
-    memset(dreq, 0, sizeof(*dreq));
     dreq->header.opcode = VIRTIO_CRYPTO_CIPHER_ENCRYPT;
     dreq->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     dreq->header.session_id = 0;
@@ -40,7 +39,6 @@ static test_result_t test_crypto_indirect_overlong(struct virtio_dev *dev,
     dreq->u.sym_cipher.para.src_data_len = 16;
     dreq->u.sym_cipher.para.dst_data_len = 16;
     dreq->u.sym_cipher.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
-    memset(buf, 0, 64);
 
     /* Build an oversized indirect table chained 0 -> 1 -> ... -> N-1. */
     memset(table, 0, INDIRECT_OVERLONG_ENTRIES * sizeof(*table));

@@ -20,7 +20,6 @@ static test_result_t test_blk_status_write_indirect(struct virtio_dev *dev,
     void *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
 
     /* Readable header, then writable data, then a status slot that sets

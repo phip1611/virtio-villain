@@ -33,7 +33,6 @@ static test_result_t test_console_ctrl_short(struct virtio_dev *dev,
     __sync_synchronize();
 
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 8);
 
     /* Only 2 bytes, way shorter than 8 byte control struct */
     vring_raw_set_desc(&cq, 0, vv_virt_to_phys(buf), 2, 0, 0);

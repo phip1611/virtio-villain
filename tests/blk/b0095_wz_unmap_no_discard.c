@@ -15,7 +15,6 @@ static test_result_t test_blk_wz_unmap_no_discard(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_WRITE_ZEROES;
-    hdr->ioprio = 0;
     hdr->sector = 0;
 
     seg->sector = 0;

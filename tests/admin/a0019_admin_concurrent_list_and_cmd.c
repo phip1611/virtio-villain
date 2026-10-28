@@ -23,7 +23,6 @@ static test_result_t test_admin_concurrent(struct virtio_dev *dev,
     /* Chain 1: LIST_USE command */
     struct virtio_admin_cmd_hdr_short *cmd1 = vv_alloc_pages(1);
     uint8_t *result1 = vv_alloc_pages(1);
-    memset(cmd1, 0, PAGE_SIZE);
     memset(result1, 0xFF, 64);
 
     cmd1->opcode = ADMIN_OPCODE_LIST_USE;
@@ -34,7 +33,6 @@ static test_result_t test_admin_concurrent(struct virtio_dev *dev,
     /* Chain 2: LIST_QUERY command */
     struct virtio_admin_cmd_hdr_short *cmd2 = vv_alloc_pages(1);
     uint8_t *result2 = vv_alloc_pages(1);
-    memset(cmd2, 0, PAGE_SIZE);
     memset(result2, 0xFF, 64);
 
     cmd2->opcode = ADMIN_OPCODE_LIST_QUERY;

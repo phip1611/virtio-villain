@@ -39,7 +39,6 @@ static test_result_t test_rss_unsupported_hash(struct virtio_dev *dev,
     ctrl->class = VIRTIO_NET_CTRL_MQ;
     ctrl->command = VIRTIO_NET_CTRL_MQ_RSS_CONFIG;
 
-    memset(rss_buf, 0, 4096);
     /* hash_types = 0xFFFFFFFF (all bits, most unsupported) */
     uint32_t hash_types = 0xFFFFFFFF;
     memcpy(rss_buf, &hash_types, 4);

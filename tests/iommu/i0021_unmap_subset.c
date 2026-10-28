@@ -17,8 +17,6 @@ static test_result_t test_iommu_unmap_subset(struct virtio_dev *dev,
 {
     struct virtio_iommu_req_map   *r1 = vv_alloc_pages(1);
     struct virtio_iommu_req_unmap *r2 = vv_alloc_pages(1);
-    memset(r1, 0, sizeof(*r1));
-    memset(r2, 0, sizeof(*r2));
 
     r1->head.type   = VIRTIO_IOMMU_T_MAP;
     r1->domain      = 0;

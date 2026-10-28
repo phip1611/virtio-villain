@@ -33,7 +33,6 @@ static test_result_t test_watchdog_ping_after_ring_reset(struct virtio_dev *dev,
 
     /* Submit a fresh ping */
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 64);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 64,
                        VRING_DESC_F_WRITE, 0);

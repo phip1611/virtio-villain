@@ -30,7 +30,6 @@ static test_result_t test_net_device_stats_no_feature(struct virtio_dev *dev,
 
     h->class = VIRTIO_NET_CTRL_STATS;
     h->command = VIRTIO_NET_CTRL_STATS_QUERY;
-    memset(payload, 0, 256);
     *ack = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(h), sizeof(*h),

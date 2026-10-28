@@ -21,7 +21,6 @@ static test_result_t test_admin_header_split(struct virtio_dev *dev,
     vring_attach(dev, &avr, 0);
 
     uint8_t *backing = vv_alloc_pages(1);
-    memset(backing, 0, 4096);
     struct virtio_admin_cmd_hdr *cmd = (struct virtio_admin_cmd_hdr *)backing;
     cmd->opcode          = VIRTIO_ADMIN_CMD_LIST_USE;
     cmd->group_type      = 1;

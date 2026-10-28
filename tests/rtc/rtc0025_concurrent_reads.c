@@ -12,8 +12,6 @@ static test_result_t test_rtc_concurrent_reads(struct virtio_dev *dev,
 {
     uint8_t *p1 = vv_alloc_pages(1);
     uint8_t *p2 = vv_alloc_pages(1);
-    memset(p1, 0, 4096);
-    memset(p2, 0, 4096);
 
     struct rtc_req_read *req1 = (void *)p1;
     struct rtc_resp_read *resp1 = (void *)(p1 + 256);

@@ -12,7 +12,6 @@ static test_result_t test_net_tx_bad_addr(struct virtio_dev *dev,
                                           struct vring *vr)
 {
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
-    memset(hdr, 0, sizeof(*hdr));
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);

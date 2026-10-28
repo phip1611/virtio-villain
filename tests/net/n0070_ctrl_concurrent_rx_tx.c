@@ -35,7 +35,6 @@ static test_result_t test_net_ctrl_concurrent(struct virtio_dev *dev,
 
     /* Post RX buffer */
     uint8_t *rxbuf = vv_alloc_pages(1);
-    memset(rxbuf, 0, 1526);
     vring_raw_set_desc(&rxvr, 0, vv_virt_to_phys(rxbuf), 1526,
                        VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&rxvr, 0, 0);
@@ -44,7 +43,6 @@ static test_result_t test_net_ctrl_concurrent(struct virtio_dev *dev,
     /* Prepare TX packet */
     struct virtio_net_hdr *txhdr = vv_alloc_pages(1);
     uint8_t *frame = vv_alloc_pages(1);
-    memset(txhdr, 0, sizeof(*txhdr));
     memset(frame, 0xFF, 6);
     memset(frame + 6, 0x02, 6);
     frame[12] = 0x08; frame[13] = 0x00;

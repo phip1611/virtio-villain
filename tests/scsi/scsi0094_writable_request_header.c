@@ -14,7 +14,6 @@ static test_result_t test_scsi_writable_header(struct virtio_dev *dev,
     struct virtio_scsi_cmd_req *req = vv_alloc_pages(1);
     struct virtio_scsi_cmd_resp *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x00;      /* TEST UNIT READY */
 

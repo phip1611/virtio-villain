@@ -15,7 +15,6 @@ static test_result_t test_blk_type_high_bit(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = 0x80000000; /* high bit, unknown type */
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xFF;
 

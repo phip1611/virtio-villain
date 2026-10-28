@@ -30,9 +30,7 @@ static test_result_t test_crypto_control_truncated(struct virtio_dev *dev,
 
     struct virtio_crypto_op_ctrl_req *req = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->header.opcode = VIRTIO_CRYPTO_CIPHER_CREATE_SESSION;
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     /* Request descriptor is 4 bytes, far shorter than the control header. */

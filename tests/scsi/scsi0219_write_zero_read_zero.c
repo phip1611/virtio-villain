@@ -14,12 +14,10 @@ static test_result_t test_scsi_zero_roundtrip(struct virtio_dev *dev,
     uint8_t *wbuf = vv_alloc_pages(1);
     uint8_t *rbuf = vv_alloc_pages(1);
 
-    memset(wbuf, 0, 512);
     memset(rbuf, 0xAA, 512);
 
     uint16_t seq = scsi_clear_ua(dev, vr, 0);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x2A;      /* WRITE(10) */
     req->cdb[5] = 95;

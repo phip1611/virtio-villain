@@ -19,9 +19,6 @@ static test_result_t test_iommu_unmap_huge_range(struct virtio_dev *dev,
     struct virtio_iommu_req_map   *m2 = vv_alloc_pages(1);
     struct virtio_iommu_req_map   *m3 = vv_alloc_pages(1);
     struct virtio_iommu_req_unmap *u  = vv_alloc_pages(1);
-    memset(m1, 0, sizeof(*m1));
-    memset(m2, 0, sizeof(*m2));
-    memset(m3, 0, sizeof(*m3));
     memset(u,  0, sizeof(*u));
 
     m1->head.type   = VIRTIO_IOMMU_T_MAP;

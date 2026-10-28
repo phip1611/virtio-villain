@@ -33,7 +33,6 @@ static test_result_t test_crypto_cipher_session(struct virtio_dev *dev,
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
 
     /* Create an AES-CBC encrypt session with a 16 byte key. */
-    memset(req, 0, sizeof(*req));
     req->header.opcode = VIRTIO_CRYPTO_CIPHER_CREATE_SESSION;
     req->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     req->header.queue_id = 0;
@@ -42,7 +41,6 @@ static test_result_t test_crypto_cipher_session(struct virtio_dev *dev,
     req->u.sym_create.para.op = VIRTIO_CRYPTO_OP_ENCRYPT;
     req->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
     memset(key, 0x2b, 16);
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
