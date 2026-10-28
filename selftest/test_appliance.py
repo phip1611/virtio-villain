@@ -1358,6 +1358,7 @@ class HumanOutputTests(unittest.TestCase):
                     captured = Console()
                     description = "create initialized partition"
                     with patch.object(appliance.subprocess, "Popen", side_effect=popen), \
+                         patch.object(appliance.process, "kill_process"), \
                          patch.object(appliance, "control", side_effect=control), \
                          contextlib.redirect_stdout(captured):
                         status = appliance.launch(suite, args, ["EX001"],
@@ -1415,10 +1416,11 @@ class ControlTests(unittest.TestCase):
                     proc.wait.return_value = 1 if name == "EX001" and failure == "crash" else 0
                     if name == "EX001" and failure == "timeout":
                         proc.poll.return_value = None
-                        proc.wait.side_effect = [subprocess.TimeoutExpired(command, 0.01), 0]
+                        proc.wait.side_effect = [subprocess.TimeoutExpired(command, 0.01), 0, 0]
                     return proc
 
                 with patch.object(appliance.subprocess, "Popen", side_effect=popen), \
+                     patch.object(appliance.process, "kill_process"), \
                      contextlib.redirect_stdout(io.StringIO()) as progress, \
                      contextlib.redirect_stderr(io.StringIO()):
                     status = appliance.launch(suite, args, ["EX001", "EX002"])
@@ -1478,6 +1480,7 @@ class ControlTests(unittest.TestCase):
 
                 with patch.object(appliance, "control", side_effect=fake_control), \
                      patch.object(appliance.subprocess, "Popen", side_effect=popen), \
+                     patch.object(appliance.process, "kill_process"), \
                      contextlib.redirect_stdout(io.StringIO()), \
                      contextlib.redirect_stderr(io.StringIO()):
                     status = appliance.launch(suite, args, ["EX001"])

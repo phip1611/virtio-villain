@@ -19,7 +19,7 @@ import threading
 import time
 from typing import Optional
 import uuid
-from villain import execution, reporting
+from villain import execution, process, reporting
 from villain.build import BuildSpec
 from villain.cli import canonicalize_tests
 from villain.console import FileFollower
@@ -413,7 +413,7 @@ def launch(suite, args, selected, descriptions=None):
                     if args.console:
                         follower = FileFollower(log_path, sys.stdout)
                     proc = subprocess.Popen(command, stdout=console, stderr=subprocess.STDOUT,
-                                            stdin=subprocess.DEVNULL)
+                                            stdin=subprocess.DEVNULL, start_new_session=True)
                     try:
                         returncode = wait_for_appliance(
                             proc, suite, args, [test], run_id, log_path, outcome,
@@ -434,9 +434,9 @@ def launch(suite, args, selected, descriptions=None):
                 if isinstance(error, KeyboardInterrupt):
                     outcome["interrupted"] = True
             finally:
-                if proc is not None and proc.poll() is None:
+                if proc is not None:
                     try:
-                        proc.kill()
+                        process.kill_process(proc)
                         proc.wait(timeout=5)
                     except (OSError, subprocess.TimeoutExpired) as error:
                         outcome["termination_error"] = str(error)
@@ -571,6 +571,7 @@ def parse_args(suite, argv):
 
 
 def main(argv=None):
+    process.install_termination_as_interrupt()
     argv = list(sys.argv[1:] if argv is None else argv)
     if len(argv) < 2 or argv[0] != "--suite":
         print("usage: run --suite /path/to/suite [suite options]", file=sys.stderr)
