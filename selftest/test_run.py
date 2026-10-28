@@ -1085,6 +1085,14 @@ def test_unit_qemu_no_fuzz_device_attaches_full_set():
     assert "none" not in cmd
 
 
+def test_unit_qemu_tcg_accel():
+    be = RUN_MOD.Qemu("/usr/bin/qemu-system-x86_64")
+    cmd = be.build_cmd("/k", "/i", "/d.raw", "console=ttyS0",
+                       {"accel": "tcg"})
+    assert cmd[cmd.index("-accel") + 1] == "tcg"
+    assert "-enable-kvm" not in cmd
+
+
 def test_unit_qemu_aarch64_build_cmd_sets_machine():
     original = RUN_MOD.platform.machine
     try:
@@ -1099,6 +1107,20 @@ def test_unit_qemu_aarch64_build_cmd_sets_machine():
     assert "isa-debug-exit,iobase=0x501,iosize=1" not in cmd
     assert not any("pmem0" in arg for arg in cmd)
     assert not any("virtio-pmem" in arg for arg in cmd)
+
+
+def test_unit_qemu_aarch64_tcg_omits_host_cpu():
+    original = RUN_MOD.platform.machine
+    try:
+        RUN_MOD.platform.machine = lambda: "aarch64"
+        be = RUN_MOD.Qemu("/usr/bin/qemu-system-aarch64")
+        cmd = be.build_cmd("/k", "/i", "/d.raw", "console=ttyAMA0",
+                           {"accel": "tcg"})
+    finally:
+        RUN_MOD.platform.machine = original
+    assert cmd[cmd.index("-accel") + 1] == "tcg"
+    assert cmd[cmd.index("-M") + 1] == "virt"
+    assert "-cpu" not in cmd
 
 
 # ---------------------------------------------------------------------------
@@ -1796,6 +1818,12 @@ def test_transport_rejects_non_qemu():
     result = run_runner("--transport", "mmio", "PASS")
     assert result.returncode != 0
     assert "--transport is only supported for QEMU" in result.stderr
+
+
+def test_accel_rejects_non_qemu():
+    result = run_runner("--accel", "tcg", "PASS")
+    assert result.returncode != 0
+    assert "--accel is only supported for QEMU" in result.stderr
 
 
 def test_unit_mmio_unsupported_backend_reports_skips_without_fallback():

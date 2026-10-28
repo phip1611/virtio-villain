@@ -569,6 +569,7 @@ class Qemu(VmmBackend):
     def build_cmd(self, kernel, initramfs, disk_path, cmdline, opts=None):
         opts = opts or {}
         arch = platform.machine()
+        accel = opts.get("accel", "kvm")
         cpus = opts.get("cpus", 1)
         mem = opts.get("memory", "512M")
         blk_queues = opts.get("blk_queues", 4)
@@ -605,13 +606,15 @@ class Qemu(VmmBackend):
         else:
             netdev = "user,id=net0"
         cpu_model = opts.get("cpu_model")
-        machine_args = ["-M", "virt", "-cpu", "host"] if arch == "aarch64" else []
+        machine_args = ["-M", "virt"] if arch == "aarch64" else []
+        if arch == "aarch64" and accel == "kvm":
+            machine_args += ["-cpu", "host"]
         if arch != "aarch64" and cpu_model:
             machine_args += ["-cpu", cpu_model]
         cmd = [
             self.binary,
             *machine_args,
-            "-enable-kvm",
+            "-accel", accel,
             "-kernel", kernel,
             "-initrd", initramfs,
         ]
@@ -729,8 +732,11 @@ class QemuMicrovm(VmmBackend):
         fmt_map = {"raw": "raw", "qcow2": "qcow2", "vhd": "vpc", "vhdx": "vhdx"}
         qemu_fmt = fmt_map.get(ext, "raw")
         arch = platform.machine()
+        accel = opts.get("accel", "kvm")
         if arch == "aarch64":
-            machine_args = ["-M", "virt", "-cpu", "host"]
+            machine_args = ["-M", "virt"]
+            if accel == "kvm":
+                machine_args += ["-cpu", "host"]
             self.console_device = "ttyAMA0"
         else:
             machine_args = ["-M", "microvm,rtc=off"]
@@ -738,7 +744,7 @@ class QemuMicrovm(VmmBackend):
             self.binary,
             *machine_args,
             "-global", "virtio-mmio.force-legacy=false",
-            "-enable-kvm",
+            "-accel", accel,
             "-kernel", kernel,
             "-initrd", initramfs,
             "-drive", self._qemu_drive_arg(disk_path, qemu_fmt, opts),
@@ -2715,6 +2721,8 @@ def main():
                        help="Guest kernel, fetched automatically if omitted")
     g_vmm.add_argument("--transport", choices=("pci", "mmio"), default=None,
                        help="Select the QEMU virtio transport")
+    g_vmm.add_argument("--accel", choices=("kvm", "tcg"), default=None,
+                       help="QEMU accelerator (default: kvm)")
     g_vmm.add_argument("--init", default=None, metavar="PATH",
                        help="Host executable for test discovery "
                             "(default: target/init)")
@@ -2847,6 +2855,8 @@ def main():
             sys.exit("--transport is only supported for QEMU")
         if args.transport == "mmio":
             backend = QemuMicrovm(args.vmm)
+    if args.accel is not None and not isinstance(backend, (Qemu, QemuMicrovm)):
+        sys.exit("--accel is only supported for QEMU")
     kernel = args.kernel
 
     vmm_trace = []
@@ -2870,6 +2880,8 @@ def main():
         "io_engine": args.io_engine,
         "direct": args.direct,
     }
+    if args.accel is not None:
+        vm_opts["accel"] = args.accel
 
     # Scale the per VM wall clock deadline by the host oversubscription
     # factor. When the user requests more total guest vCPUs than the
