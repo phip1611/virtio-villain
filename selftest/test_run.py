@@ -21,6 +21,14 @@ INIT_BINARY = os.path.join(ROOT_DIR, "target", "init")
 RUN = os.path.join(ROOT_DIR, "run")
 RUN_FUZZ = os.path.join(ROOT_DIR, "run-fuzz")
 MOCK_VMM = os.path.join(SCRIPT_DIR, "mock-vmm")
+DISK_SIZE = 16 * 1024 * 1024
+PMEM_SIZE = 128 * 1024 * 1024
+HOTPLUG_DISK_SIZE = 16 * 1024 * 1024
+FUZZ_DISK_SIZE = 64 * 1024 * 1024
+IOMMU_DISK_SIZE = 1024 * 1024
+MEMORY_SIZE = 512 * 1024 * 1024
+MEMORY_HOTPLUG_SIZE = 256 * 1024 * 1024
+MEMORY_REDUCTION = 64 * 1024 * 1024
 
 
 class SkipTest(Exception):
@@ -2949,6 +2957,52 @@ def test_unit_sidecar_supported_backend_runs():
         action.assert_called_once()
 
 
+def test_unit_run_test_uses_shared_images_with_existing_backing_sizes():
+    from unittest.mock import patch
+
+    class Backend:
+        name = "fake"
+        console_device = "ttyS0"
+        mmio_transport = False
+
+        def build_cmd(self, kernel, initramfs, disk_path, cmdline, opts=None):
+            assert os.path.getsize(disk_path) == RUN_MOD.DISK_SIZE
+            assert os.path.getsize(opts["pmem_path"]) == PMEM_SIZE
+            for name in ("scsi_path", "scsi_path2"):
+                assert os.path.getsize(opts[name]) == RUN_MOD.DISK_SIZE
+            return [sys.executable, "-c", "print('[PASS] T9999')"]
+
+    with patch.object(RUN_MOD, "_find_sidecar", return_value=None), \
+         patch.object(RUN_MOD.images, "create", wraps=RUN_MOD.images.create) as create:
+        results = RUN_MOD.run_test(Backend(), "kernel", "T9999", 5)
+    assert results[0][:2] == ("T9999", "PASS"), results
+    create.assert_called_once()
+    assert create.call_args.args[1] == RUN_MOD.DISK_SIZE
+    assert create.call_args.kwargs == {"image_format": "raw"}
+
+
+def test_unit_sidecar_backing_images_use_shared_creation():
+    from types import SimpleNamespace
+    from unittest.mock import Mock, patch
+
+    for relative, action, filename in (
+            ("host_helpers.py", "add_disk", "hp.raw"),
+            ("pmem/e0200_hotplug_add.py", "run", "hp_pmem.raw"),
+            ("scsi/scsi_helpers.py", "hot_add", "hp.raw")):
+        module = RUN_MOD._load_sidecar(os.path.join(ROOT_DIR, "tests", relative))
+        with tempfile.TemporaryDirectory() as work:
+            ctx = SimpleNamespace(
+                tmpdir=work, backend=SimpleNamespace(name="qemu"), api_sock="api",
+                wait_text=Mock(return_value=True), log=Mock(),
+                vm_api=Mock(return_value={"return": {}}))
+            with patch.object(RUN_MOD.images, "create_raw",
+                              wraps=RUN_MOD.images.create_raw) as create:
+                getattr(module, action)(ctx)
+            path = os.path.join(work, filename)
+            create.assert_called_once_with(path, HOTPLUG_DISK_SIZE)
+            assert os.path.getsize(path) == HOTPLUG_DISK_SIZE
+
+
 def test_unit_sidecar_outcomes():
     import glob
     import json
@@ -3005,10 +3059,10 @@ def test_unit_sidecar_outcomes():
         with tempfile.TemporaryDirectory() as tmpdir, patch("time.sleep"):
             disk = os.path.join(tmpdir, "disk.raw")
             with open(disk, "wb") as image:
-                image.truncate(16 * 1024 * 1024)
+                image.truncate(DISK_SIZE)
             success = (subprocess.CompletedProcess([], 0, "", "")
                        if backend_name in ("ch", "openvmm")
-                       else {"return": {"actual": 512 * 1024 * 1024,
+                       else {"return": {"actual": MEMORY_SIZE,
                                         "status": "completed"}})
             ctx = SimpleNamespace(
                 backend=SimpleNamespace(name=backend_name), api_sock="api",
@@ -3021,8 +3075,8 @@ def test_unit_sidecar_outcomes():
                 if command == "info":
                     return subprocess.CompletedProcess([], 0, json.dumps({
                         "config": {"memory": {
-                            "size": 512 * 1024 * 1024,
-                            "hotplug_size": 256 * 1024 * 1024,
+                            "size": MEMORY_SIZE,
+                            "hotplug_size": MEMORY_HOTPLUG_SIZE,
                         }},
                     }), "")
                 if command == "human-monitor-command":
@@ -3041,13 +3095,13 @@ def test_unit_sidecar_outcomes():
             for command in commands:
                 if command.args[0] == "balloon":
                     assert command.args[1] == {
-                        "value": success["return"]["actual"] - 64 * 1024 * 1024
+                        "value": success["return"]["actual"] - MEMORY_REDUCTION
                     }, (path, command)
                 if command.args[0] == "block_resize":
                     assert command.args[1] == {
                         "device": "scsidisk" if scsi else "vd0",
-                        "size": ((2 + resize_index) * 16 * 1024 * 1024
-                                 if name == "PCI0131" else 32 * 1024 * 1024)
+                        "size": ((2 + resize_index) * DISK_SIZE
+                                 if name == "PCI0131" else 2 * DISK_SIZE)
                     }, (path, command)
                     resize_index += 1
             waits = ctx.wait_text.call_args_list
@@ -4232,6 +4286,39 @@ def test_fuzz_vmm_command_preserves_explicit_launch_policy():
     assert "-vv" not in cmd
     assert [cmd[index + 1] for index, flag in enumerate(cmd) if flag == "--disk"] == [
         "path=/disk,num_queues=2", "path=/work/iommu.raw,iommu=virtio"]
+
+
+def test_run_vmm_shares_image_creation_without_replacing_existing_data():
+    from unittest.mock import patch
+
+    with tempfile.TemporaryDirectory() as work:
+        paths = {
+            os.path.join(work, "selected.raw"): FUZZ_DISK_SIZE,
+            os.path.join(work, "pmem.raw"): PMEM_SIZE,
+            os.path.join(work, "iommu.raw"): IOMMU_DISK_SIZE}
+        disk = os.path.join(work, "selected.raw")
+        result = subprocess.CompletedProcess([], 0, stdout=b"", stderr=b"")
+        with patch.object(FUZZ_MOD, "_detect_backend", return_value=VMM_MOD.Qemu("/vmm")), \
+             patch.object(FUZZ_MOD.subprocess, "run", return_value=result), \
+             patch.object(FUZZ_MOD.images, "create_raw",
+                          wraps=FUZZ_MOD.images.create_raw) as create:
+            FUZZ_MOD.run_vmm("/vmm", "/archive", work, kernel_path="/kernel", disk_path=disk)
+            assert [(call.args, call.kwargs) for call in create.call_args_list] == [
+                ((path, size), {}) for path, size in paths.items()]
+            for path, size in paths.items():
+                assert os.path.getsize(path) == size
+                with open(path, "rb") as stream:
+                    assert stream.read(4096) == bytes(4096)
+                    stream.seek(-4096, os.SEEK_END)
+                    assert stream.read() == bytes(4096)
+                with open(path, "wb") as stream:
+                    stream.write(b"retained contents")
+            create.reset_mock()
+            FUZZ_MOD.run_vmm("/vmm", "/archive", work, kernel_path="/kernel", disk_path=disk)
+            create.assert_not_called()
+        for path in paths:
+            with open(path, "rb") as stream:
+                assert stream.read() == b"retained contents"
 
 
 def test_vqblob_serialize_is_blob_size():
