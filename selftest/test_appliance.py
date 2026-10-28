@@ -20,7 +20,7 @@ from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "lib/python"))
-from villain import appliance, initramfs, reporting  # noqa: E402
+from villain import appliance, execution, initramfs, reporting  # noqa: E402
 
 
 def output(verdict="PASS"):
@@ -1159,7 +1159,7 @@ class ParallelTests(unittest.TestCase):
             args = appliance.parse_args(suite, [
                 "--kernel", str(image), "--jobs", "2", "--timeout", "5",
                 "--output", str(root / "results")])
-            original_wait = appliance.wait
+            original_wait = execution.wait
             interrupted = False
 
             def interrupt_once(*args, **kwargs):
@@ -1174,7 +1174,7 @@ class ParallelTests(unittest.TestCase):
                     raise KeyboardInterrupt
                 return original_wait(*args, **kwargs)
 
-            with patch.object(appliance, "wait", side_effect=interrupt_once), \
+            with patch.object(execution, "wait", side_effect=interrupt_once), \
                  contextlib.redirect_stdout(io.StringIO()), \
                  contextlib.redirect_stderr(io.StringIO()):
                 status = appliance.launch(suite, args, ["EX001", "EX002", "EX003"])
