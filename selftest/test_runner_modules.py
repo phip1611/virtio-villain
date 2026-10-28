@@ -3,9 +3,12 @@
 """Shared runner primitives without VM or device prerequisites."""
 
 import io
+import json
 import os
 from pathlib import Path
+import shutil
 import signal
+import struct
 import subprocess
 import sys
 import tempfile
@@ -15,7 +18,9 @@ from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "lib/python"))
-from villain import cli, console, process, vmm  # noqa: E402
+from villain import cli, console, images, process, vmm  # noqa: E402
+
+TEST_IMAGE_SIZE = 16 * 1024 * 1024
 
 
 class ModuleTests(unittest.TestCase):
@@ -24,8 +29,9 @@ class ModuleTests(unittest.TestCase):
             "import runpy, sys\n"
             "from unittest.mock import patch\n"
             "entry = runpy.run_path(sys.argv[1], run_name='runner_import_test')\n"
-            "from villain import cli, console, initramfs, vmm\n"
+            "from villain import cli, console, images, initramfs, vmm\n"
             "assert not any(name.startswith('vv_run') for name in sys.modules)\n"
+            "assert entry['images'] is images\n"
             "if sys.argv[1].endswith('/run'):\n"
             "    assert entry['detect_vmm'] is vmm.detect_vmm\n"
             "    assert entry['print_banner'] is cli.print_banner\n"
@@ -90,6 +96,19 @@ class ModuleTests(unittest.TestCase):
                                  "/cache/verified/kernel\n" if mode == "pass" else "")
                 self.assertEqual(result.stderr,
                                  "" if mode == "pass" else "Kernel checksum failed\n")
+
+    def test_standalone_host_helpers_do_not_require_the_framework_package(self):
+        check = (
+            "import sys\n"
+            "sys.path.insert(0, sys.argv[1])\n"
+            "import msix_host\n"
+            "sys.path.insert(0, sys.argv[1] + '/scsi')\n"
+            "import scsi_helpers\n"
+            "assert 'villain' not in sys.modules\n")
+        result = subprocess.run(
+            [sys.executable, "-I", "-c", check, str(ROOT / "tests")],
+            cwd="/", capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_backend_detection_is_owned_by_the_shared_module(self):
         for name, backend in (
@@ -249,6 +268,111 @@ class LaunchCommandTests(unittest.TestCase):
             "--fs", "tag=vvfs,socket=/fs,num_queues=1,queue_size=128",
             "--api-socket", "path=/api"])
         self.assertEqual(options["cpus"], 1)
+
+
+class ImageTests(unittest.TestCase):
+    def test_raw_creation_has_exact_size_and_zero_contents_without_external_tools(self):
+        with tempfile.TemporaryDirectory() as work:
+            path = Path(work) / "disk.raw"
+            for size in (0, 1, TEST_IMAGE_SIZE):
+                with self.subTest(size=size), patch.object(images.subprocess, "run") as run:
+                    self.assertIsNone(images.create(path, size))
+                    self.assertEqual(path.stat().st_size, size)
+                    with path.open("rb") as stream:
+                        self.assertEqual(stream.read(4096), bytes(min(size, 4096)))
+                        stream.seek(max(0, size - 4096))
+                        self.assertEqual(stream.read(), bytes(min(size, 4096)))
+                    run.assert_not_called()
+
+    def test_raw_replacement_does_not_retain_old_bytes(self):
+        with tempfile.TemporaryDirectory() as work:
+            path = Path(work) / "disk.raw"
+            path.write_bytes(b"old contents")
+            images.create_raw(path, 8)
+            self.assertEqual(path.read_bytes(), bytes(8))
+
+    def test_exclusive_raw_creation_preserves_existing_files(self):
+        with tempfile.TemporaryDirectory() as work:
+            path = Path(work) / "disk.raw"
+            images.create_raw(path, 8, exclusive=True)
+            path.write_bytes(b"retained contents")
+            with self.assertRaises(FileExistsError):
+                images.create_raw(path, 16, exclusive=True)
+            self.assertEqual(path.read_bytes(), b"retained contents")
+
+    def test_invalid_sizes_and_formats_fail_before_modifying_files(self):
+        with tempfile.TemporaryDirectory() as work, \
+             patch.object(images.subprocess, "run") as run:
+            path = Path(work) / "disk.raw"
+            path.write_bytes(b"retained contents")
+            for size in (-1, 1.5, True):
+                for image_format in images.FORMATS:
+                    with self.subTest(size=size, image_format=image_format), \
+                         self.assertRaisesRegex(ValueError, "Image size"):
+                        images.create(path, size, image_format)
+            with self.assertRaisesRegex(ValueError, "Unsupported disk image format"):
+                images.create(path, 16, "unknown")
+            self.assertEqual(path.read_bytes(), b"retained contents")
+            run.assert_not_called()
+
+    def test_container_commands_preserve_formats_sizes_and_fixed_vhd(self):
+        for image_format, qemu_format in (("qcow2", "qcow2"), ("vhd", "vpc"), ("vhdx", "vhdx")):
+            with self.subTest(image_format=image_format), \
+                 patch.object(images.subprocess, "run") as run:
+                path = Path(f"disk.{image_format}")
+                images.create(path, TEST_IMAGE_SIZE, image_format)
+                command = ["qemu-img", "create", "-f", qemu_format]
+                if image_format == "vhd":
+                    command += ["-o", "subformat=fixed"]
+                command += [str(path), str(TEST_IMAGE_SIZE)]
+                run.assert_called_once_with(command, check=True, capture_output=True)
+
+    def test_filesystem_and_external_tool_errors_are_not_hidden(self):
+        denied = PermissionError("Image is not writable")
+        with patch("builtins.open", side_effect=denied), \
+             self.assertRaises(PermissionError) as caught:
+            images.create_raw("/disk.raw", 16)
+        self.assertIs(caught.exception, denied)
+        for error in (FileNotFoundError("qemu-img is missing"),
+                      subprocess.CalledProcessError(1, ["qemu-img"], stderr=b"Disk error")):
+            with self.subTest(error=type(error).__name__), \
+                 patch.object(images.subprocess, "run", side_effect=error), \
+                 self.assertRaises(type(error)) as caught:
+                images.create("/disk.qcow2", 16, "qcow2")
+            self.assertIs(caught.exception, error)
+
+    @unittest.skipUnless(shutil.which("qemu-img"), "qemu-img required")
+    def test_native_formats_preserve_capacity_and_subformats(self):
+        with tempfile.TemporaryDirectory() as work:
+            for image_format, qemu_format in (
+                    ("raw", "raw"), ("qcow2", "qcow2"), ("vhd", "vpc"), ("vhdx", "vhdx")):
+                with self.subTest(image_format=image_format):
+                    path = Path(work) / f"disk.{image_format}"
+                    reference = Path(work) / f"reference.{image_format}"
+                    size = TEST_IMAGE_SIZE
+                    images.create(path, size, image_format)
+                    if image_format == "raw":
+                        with reference.open("wb") as stream:
+                            stream.truncate(size)
+                    else:
+                        command = ["qemu-img", "create", "-f", qemu_format]
+                        if image_format == "vhd":
+                            command += ["-o", "subformat=fixed"]
+                        subprocess.run(command + [str(reference), str(size)],
+                                       check=True, capture_output=True)
+                    info = json.loads(subprocess.check_output([
+                        "qemu-img", "info", "-f", qemu_format, "--output=json", str(path)]))
+                    expected = json.loads(subprocess.check_output([
+                        "qemu-img", "info", "-f", qemu_format, "--output=json", str(reference)]))
+                    self.assertEqual(info["format"], qemu_format)
+                    self.assertEqual(info["virtual-size"], expected["virtual-size"])
+                    self.assertEqual(path.stat().st_size, reference.stat().st_size)
+                    if image_format == "vhd":
+                        with path.open("rb") as stream:
+                            stream.seek(-512, os.SEEK_END)
+                            footer = stream.read(512)
+                        self.assertEqual(footer[:8], b"conectix")
+                        self.assertEqual(struct.unpack_from(">I", footer, 60)[0], 2)
 
 
 class ConsoleTests(unittest.TestCase):
