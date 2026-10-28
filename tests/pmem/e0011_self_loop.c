@@ -16,9 +16,7 @@ static test_result_t test_pmem_self_loop(struct virtio_dev *dev,
     req->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
                        VRING_DESC_F_NEXT, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(E0011, VIRTIO_PCI_DEVICE_PMEM, test_pmem_self_loop,

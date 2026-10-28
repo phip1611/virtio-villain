@@ -43,8 +43,7 @@ static test_result_t test_zone_reset_during_append(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 2);
     vring_raw_set_desc(vr, 2, vv_virt_to_phys(st0), 1,
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* Zone reset on queue 1 */
     struct virtio_blk_outhdr *hdr1 = vv_alloc_pages(1);

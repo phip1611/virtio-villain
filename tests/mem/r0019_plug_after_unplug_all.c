@@ -31,10 +31,7 @@ static test_result_t test_mem_plug_after_unplug_all(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    rc = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    rc = vv_submit_and_wait(dev, vr, 0);
     if (rc != TEST_PASS)
         return rc;
 

@@ -49,10 +49,7 @@ static test_result_t test_rng_huge_len(struct virtio_dev *dev,
     uint32_t len = (uint32_t)overshoot;
 
     vring_raw_set_desc(vr, 0, buf_phys, len, VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(RNG0004, VIRTIO_PCI_DEVICE_RNG, test_rng_huge_len,

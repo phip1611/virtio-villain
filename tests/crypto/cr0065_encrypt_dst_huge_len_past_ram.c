@@ -66,10 +66,7 @@ static test_result_t test_crypto_encrypt_dst_huge_len_past_ram(
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
     vring_raw_set_desc(vr, 4, vv_virt_to_phys(inhdr), sizeof(*inhdr),
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(CR0065, VIRTIO_PCI_DEVICE_CRYPTO,

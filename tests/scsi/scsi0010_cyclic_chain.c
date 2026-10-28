@@ -25,8 +25,7 @@ static test_result_t test_scsi_cyclic_chain(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* The device must bound the descriptor walk. It refuses the cyclic
      * chain without a completion; the host stays alive. */

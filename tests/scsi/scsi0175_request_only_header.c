@@ -18,8 +18,7 @@ static test_result_t test_scsi_only_header(struct virtio_dev *dev,
     req->cdb[0] = 0x00;      /* TEST UNIT READY */
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req), 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     if (vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS) == TEST_PASS)
         TFAIL("device completed a request with no response buffer");

@@ -25,8 +25,7 @@ static test_result_t test_state_queue_desc_in_bar(struct virtio_dev *dev,
     virtio_store64(&cfg->queue_desc, mmio_phys);
     __sync_synchronize();
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     virtio_pci_kick(dev, vr->queue);
     usleep(VV_TIMEOUT_MS * 1000);

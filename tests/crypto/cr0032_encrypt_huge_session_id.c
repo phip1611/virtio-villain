@@ -52,10 +52,7 @@ static test_result_t test_crypto_huge_session_id(struct virtio_dev *dev,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 4);
     vring_raw_set_desc(vr, 4, vv_virt_to_phys(inhdr), sizeof(*inhdr),
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r == TEST_FAIL)
         TFAIL("device reported failure on a huge session id");
     if (r == TEST_PASS || r == TEST_WEDGED)

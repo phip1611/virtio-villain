@@ -35,9 +35,7 @@ static test_result_t test_blk_8k(struct virtio_dev *dev, struct vring *vr)
                        VRING_DESC_F_NEXT, 3);
     vring_raw_set_desc(vr, 3, vv_virt_to_phys(st), 1,
                        VRING_DESC_F_WRITE, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-    test_result_t r = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    test_result_t r = vv_submit_and_wait(dev, vr, 0);
     if (r != TEST_PASS) return r;
     if (*st != VIRTIO_BLK_S_OK) TFAIL("write status %u", *st);
 

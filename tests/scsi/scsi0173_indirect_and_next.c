@@ -41,8 +41,7 @@ static test_result_t test_scsi_indirect_next(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(tbl),
                        3 * sizeof(struct vring_desc),
                        VRING_DESC_F_INDIRECT | VRING_DESC_F_NEXT, 1);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* Some devices reject this, others ignore the extra flag. Either
      * way the host must survive and the device stay operational. */

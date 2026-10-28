@@ -77,10 +77,7 @@ static test_result_t test_pci_msi_io(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 2, vv_virt_to_phys(sts), 1,
                        VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    test_result_t result = vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    test_result_t result = vv_submit_and_wait(dev, vr, 0);
 
     /* Disable MSI (restore) */
     pci_cfg_write32(fd, msi_pos, cap_dword0);

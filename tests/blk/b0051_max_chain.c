@@ -52,10 +52,7 @@ static test_result_t test_blk_max_chain(struct virtio_dev *dev,
                            chain_len - 1);
     }
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(B0051, VIRTIO_PCI_DEVICE_BLK, test_blk_max_chain,

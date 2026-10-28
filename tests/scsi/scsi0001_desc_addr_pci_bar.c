@@ -47,8 +47,7 @@ static test_result_t test_scsi_desc_addr_pci_bar(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 2, bar_addr, 512,
                        VRING_DESC_F_WRITE, 0);
 
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
+    vring_submit(vr, 0);
 
     /* The completing READ DMAs into the device's own common config,
      * zeroing device_status. Unlike virtio-blk (T0063), virtio-scsi

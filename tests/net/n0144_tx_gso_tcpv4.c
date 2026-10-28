@@ -42,10 +42,7 @@ static test_result_t test_net_tx_gso_tcp4(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, vv_virt_to_phys(frame), 154, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST_REQUIRES(N0144, VIRTIO_PCI_DEVICE_NET, test_net_tx_gso_tcp4,

@@ -21,10 +21,7 @@ static test_result_t test_balloon_chain(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 0, p,     4, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, p + 4, 4, VRING_DESC_F_NEXT, 2);
     vring_raw_set_desc(vr, 2, p + 8, 4, 0, 0);
-    vring_raw_set_avail(vr, 0, 0);
-    vring_raw_set_avail_idx(vr, 1);
-
-    return vv_kick_and_wait(dev, vr, 0, VV_TIMEOUT_MS);
+    return vv_submit_and_wait(dev, vr, 0);
 }
 
 REGISTER_TEST(L0015, VIRTIO_PCI_DEVICE_BALLOON, test_balloon_chain,
