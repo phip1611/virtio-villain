@@ -10,9 +10,13 @@ help:
 	@echo "Compiler and suite build variables can be passed as Make overrides."
 else
 
+ifeq ($(origin CC),default)
+CC = musl-gcc
+endif
 CC      ?= musl-gcc
-CFLAGS  ?= -static -O2 -Wall -Wextra -Werror
-LDFLAGS ?= -static
+CFLAGS  ?= -O2 -Wall -Wextra -Werror
+CSTD     = -std=gnu23
+STATIC_LDFLAGS ?= -static
 STRIP   ?= strip
 TARGET  ?= target
 OBJDIR  ?= $(TARGET)/obj
@@ -40,12 +44,12 @@ DEPS = $(OBJS:.o=.d)
 $(TARGET)/init: $(OBJS)
 	@mkdir -p $(TARGET)
 	@echo "  LINK  $@"
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -I. -o $@ $(OBJS)
+	$(Q)$(CC) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS) -o $@ $(OBJS)
 
 $(OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	@echo "  CC    $<"
-	$(Q)$(CC) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
+	$(Q)$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
 
 -include $(DEPS)
 
@@ -84,12 +88,12 @@ FUZZ_DEPS = $(FUZZ_OBJS:.o=.d)
 $(TARGET)/fuzz: $(FUZZ_OBJS)
 	@mkdir -p $(TARGET)
 	@echo "  LINK  $@"
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -I. -o $@ $(FUZZ_OBJS)
+	$(Q)$(CC) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS) -o $@ $(FUZZ_OBJS)
 
 $(OBJDIR)/fuzz/%.o: %.c
 	@mkdir -p $(dir $@)
 	@echo "  CC    $<"
-	$(Q)$(CC) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
+	$(Q)$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
 
 -include $(FUZZ_DEPS)
 
@@ -106,12 +110,12 @@ PERF_DEPS = $(PERF_OBJS:.o=.d)
 $(TARGET)/perf: $(PERF_OBJS)
 	@mkdir -p $(TARGET)
 	@echo "  LINK  $@"
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -I. -o $@ $(PERF_OBJS)
+	$(Q)$(CC) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS) -o $@ $(PERF_OBJS)
 
 $(OBJDIR)/perf/%.o: %.c
 	@mkdir -p $(dir $@)
 	@echo "  CC    $<"
-	$(Q)$(CC) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
+	$(Q)$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
 
 -include $(PERF_DEPS)
 
@@ -129,11 +133,11 @@ $(APPLIANCE_OBJS): | appliance-check
 
 $(APPLIANCE_TARGET)/obj/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(Q)$(CC) $(CFLAGS) $(DEPFLAGS) -I. $(APPLIANCE_CPPFLAGS) -c -o $@ $<
+	$(Q)$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(DEPFLAGS) -I. $(APPLIANCE_CPPFLAGS) -c -o $@ $<
 
 $(APPLIANCE_TARGET)/init: $(APPLIANCE_OBJS) appliance-check
 	@mkdir -p $(dir $@)
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(APPLIANCE_OBJS)
+	$(Q)$(CC) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS) -o $@ $(APPLIANCE_OBJS)
 
 appliance: $(APPLIANCE_TARGET)/init
 
@@ -180,11 +184,12 @@ selftest/test_lib: selftest/test_lib.c \
 		   lib/vring.c lib/vring.h \
 		   lib/vring_packed.c lib/vring_packed.h \
 		   tests/test.h lib/test.h
-	$(CC) -O2 -Wall -Wextra -I. -o $@ selftest/test_lib.c \
-	  lib/perf_engine.c lib/vring.c lib/vring_packed.c
+	$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) -I. -o $@ selftest/test_lib.c \
+	  lib/perf_engine.c lib/vring.c lib/vring_packed.c $(LDFLAGS)
 
 selftest/test_irq: selftest/test_irq.c lib/irq.c lib/irq.h lib/vfio.h
-	$(CC) -O2 -Wall -Wextra -Werror -I. -o $@ selftest/test_irq.c lib/irq.c
+	$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) -I. -o $@ \
+	  selftest/test_irq.c lib/irq.c $(LDFLAGS)
 
 PY_SRCS = run run-fuzz run-perf build-kernel $(shell find selftest tests lib -name '*.py' 2>/dev/null)
 

@@ -47,9 +47,8 @@ VMM integration test suites.
 
 ## Coding Style
 
-- C89 with selected C99 features, `-Wall -Wextra -Werror`.
-- No dynamic allocation in the harness path; tests use a fixed page
-  pool through `vv_alloc_pages`.
+- C23 with GNU extensions, `-Wall -Wextra -Werror`.
+- Tests allocate locked, zeroed pages through `vv_alloc_pages`.
 - Static functions per file, no cross-file symbol leakage outside the
   `lib/` API.
 - Keep tests deterministic. No timing dependent assertions.
