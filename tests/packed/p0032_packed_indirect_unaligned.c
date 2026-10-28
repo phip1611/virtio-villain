@@ -50,10 +50,9 @@ static test_result_t test_packed_indirect_unaligned(struct virtio_dev *dev,
     indirect[2].flags = VRING_PACKED_DESC_F_WRITE;
 
     /* Submit indirect descriptor with misaligned table address */
-    uint64_t indirect_phys = vv_virt_to_phys(indirect);
     uint8_t wrap = vr->wrap_counter;
 
-    vring_packed_set_desc(vr, vr->next_avail, indirect_phys,
+    vring_packed_set_desc(vr, vr->next_avail, vv_virt_to_phys(indirect),
                           3 * sizeof(struct vring_packed_desc), 0,
                           VRING_PACKED_DESC_F_INDIRECT);
 

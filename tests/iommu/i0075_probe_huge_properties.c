@@ -26,14 +26,13 @@ static test_result_t test_iommu_probe_huge(struct virtio_dev *dev,
     req->endpoint = 0;
     req->tail.status = 0xFF;
 
-    uint64_t base = vv_virt_to_phys(req);
     /* in_len is the request header through endpoint plus reserved */
     size_t in_len = sizeof(req->head) + sizeof(req->endpoint)
                     + sizeof(req->reserved);
     uint64_t out_phys;
     vv_alloc_page_high(&out_phys);
 
-    vring_raw_set_desc(vr, 0, base, (uint32_t)in_len,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), (uint32_t)in_len,
                        VRING_DESC_F_NEXT, 1);
     /* Output buffer with a comically large length */
     vring_raw_set_desc(vr, 1, out_phys, 0xFFFFF000,

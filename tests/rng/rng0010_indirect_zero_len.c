@@ -18,9 +18,8 @@ static test_result_t test_rng_indirect_zero_len(struct virtio_dev *dev,
                                                 struct vring *vr)
 {
     struct vring_desc *itab = vv_alloc_pages(1);
-    uint64_t itab_phys = vv_virt_to_phys(itab);
 
-    vring_raw_set_desc(vr, 0, itab_phys, 0,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(itab), 0,
                        VRING_DESC_F_INDIRECT, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }

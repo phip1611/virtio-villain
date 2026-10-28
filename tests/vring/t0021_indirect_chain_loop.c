@@ -25,16 +25,14 @@ static test_result_t test_indirect_chain_loop(struct virtio_dev *dev,
     hdr->ioprio = 0;
     hdr->sector = 0;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
     uint64_t indirect_phys = vv_virt_to_phys(indirect);
 
     /* Indirect table with a loop: [0] -> [1] -> [0] */
-    indirect[0].addr = hdr_phys;
+    indirect[0].addr = vv_virt_to_phys(hdr);
     indirect[0].len = sizeof(*hdr);
     indirect[0].flags = VRING_DESC_F_NEXT;
     indirect[0].next = 1;
-    indirect[1].addr = data_phys;
+    indirect[1].addr = vv_virt_to_phys(data);
     indirect[1].len = 512;
     indirect[1].flags = VRING_DESC_F_NEXT | VRING_DESC_F_WRITE;
     indirect[1].next = 0; /* loop back to [0] */

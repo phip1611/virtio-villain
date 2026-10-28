@@ -35,15 +35,11 @@ static test_result_t test_net_ctrl_vlan_add(struct virtio_dev *dev,
     *vlan_id = 100;  /* VLAN ID 100 */
     *ack = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t vlan_phys = vv_virt_to_phys(vlan_id);
-    uint64_t ack_phys = vv_virt_to_phys(ack);
-
-    vring_raw_set_desc(&ctrl_vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(&ctrl_vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&ctrl_vr, 1, vlan_phys, sizeof(*vlan_id),
+    vring_raw_set_desc(&ctrl_vr, 1, vv_virt_to_phys(vlan_id), sizeof(*vlan_id),
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&ctrl_vr, 2, ack_phys, 1,
+    vring_raw_set_desc(&ctrl_vr, 2, vv_virt_to_phys(ack), 1,
                        VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&ctrl_vr, 0, 0);

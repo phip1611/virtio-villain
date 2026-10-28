@@ -23,9 +23,6 @@ static test_result_t test_vsock_reserved_cid(struct virtio_dev *dev,
 
     memset(payload, 0xCC, 16);
 
-    uint64_t pkt_phys = vv_virt_to_phys(pkt);
-    uint64_t payload_phys = vv_virt_to_phys(payload);
-
     /* Try dst_cid = 0xFFFFFFFF (VMADDR_CID_ANY) */
     pkt->src_cid = 3;
     pkt->dst_cid = 0xFFFFFFFF;
@@ -38,9 +35,9 @@ static test_result_t test_vsock_reserved_cid(struct virtio_dev *dev,
     pkt->buf_alloc = 4096;
     pkt->fwd_cnt = 0;
 
-    vring_raw_set_desc(vr, 0, pkt_phys, sizeof(*pkt),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt), sizeof(*pkt),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, payload_phys, 16, 0, 0);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(payload), 16, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

@@ -42,10 +42,9 @@ static test_result_t test_balloon_report_zero_len(struct virtio_dev *dev,
     __sync_synchronize();
 
     void *page = vv_alloc_pages(1);
-    uint64_t phys = vv_virt_to_phys(page);
 
     /* Zero length report */
-    vring_raw_set_desc(&rq, 0, phys, 0, 0, 0);
+    vring_raw_set_desc(&rq, 0, vv_virt_to_phys(page), 0, 0, 0);
     vring_raw_set_avail(&rq, 0, 0);
     vring_raw_set_avail_idx(&rq, 1);
 

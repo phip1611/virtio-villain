@@ -36,14 +36,13 @@ static test_result_t test_blk_any_layout_write_merged(struct virtio_dev *dev,
     memset(buf + sizeof(*hdr), 0x5a, 512);
     *status = 0xFF;
 
-    uint64_t buf_phys = vv_virt_to_phys(buf);
     uint64_t status_phys = vv_virt_to_phys(status);
 
     /*
      * desc 0: header + data in one readable descriptor (16 + 512 bytes)
      * desc 1: status (writable, 1 byte)
      */
-    vring_raw_set_desc(vr, 0, buf_phys, sizeof(*hdr) + 512,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), sizeof(*hdr) + 512,
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, status_phys, 1, VRING_DESC_F_WRITE, 0);
 

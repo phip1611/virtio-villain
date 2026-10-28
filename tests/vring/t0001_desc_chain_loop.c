@@ -27,16 +27,13 @@ static test_result_t test_desc_chain_loop(struct virtio_dev *dev, struct vring *
     hdr->sector = 0;
     memset(data, 0, 512);
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-
     /*
      * Descriptor chain: [0] header -> [1] data -> [1] (loop!)
      * Descriptor 1's next points back to itself.
      */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, data_phys, 512,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 1);
 
     /* Submit head 0 */

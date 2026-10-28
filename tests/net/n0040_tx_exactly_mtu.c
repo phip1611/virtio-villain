@@ -36,10 +36,9 @@ static test_result_t test_net_tx_exactly_mtu(struct virtio_dev *dev,
     memset(frame + 14, 0x42, 1500); /* payload = MTU */
 
     uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t frame_phys = vv_virt_to_phys(frame);
 
     vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, frame_phys, 1514, 0, 0);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(frame), 1514, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

@@ -35,15 +35,11 @@ static test_result_t test_net_ctrl_rx_allmulti(struct virtio_dev *dev,
     *on_off = 1;  /* enable allmulti */
     *ack = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t onoff_phys = vv_virt_to_phys(on_off);
-    uint64_t ack_phys = vv_virt_to_phys(ack);
-
-    vring_raw_set_desc(&ctrl_vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(&ctrl_vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&ctrl_vr, 1, onoff_phys, 1,
+    vring_raw_set_desc(&ctrl_vr, 1, vv_virt_to_phys(on_off), 1,
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&ctrl_vr, 2, ack_phys, 1,
+    vring_raw_set_desc(&ctrl_vr, 2, vv_virt_to_phys(ack), 1,
                        VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&ctrl_vr, 0, 0);

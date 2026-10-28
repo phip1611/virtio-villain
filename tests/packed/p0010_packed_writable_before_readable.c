@@ -30,27 +30,22 @@ static test_result_t test_packed_writable_before_readable(
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t extra_phys = vv_virt_to_phys(extra);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Chain: [0] header (readable) -> [1] data (WRITABLE) ->
      *        [2] extra (READABLE) -> [3] status (WRITABLE)
      * The readable desc [2] after writable [1] violates ordering.
      */
-    vring_packed_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0,
+    vring_packed_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0,
                           VRING_PACKED_DESC_F_NEXT);
     vring_packed_advance(vr);
-    vring_packed_set_desc(vr, 1, data_phys, 512, 1,
+    vring_packed_set_desc(vr, 1, vv_virt_to_phys(data), 512, 1,
                           VRING_PACKED_DESC_F_NEXT | VRING_PACKED_DESC_F_WRITE);
     vring_packed_advance(vr);
     /* Readable after writable - violation */
-    vring_packed_set_desc(vr, 2, extra_phys, 16, 2,
+    vring_packed_set_desc(vr, 2, vv_virt_to_phys(extra), 16, 2,
                           VRING_PACKED_DESC_F_NEXT);
     vring_packed_advance(vr);
-    vring_packed_set_desc(vr, 3, status_phys, 1, 3,
+    vring_packed_set_desc(vr, 3, vv_virt_to_phys(status), 1, 3,
                           VRING_PACKED_DESC_F_WRITE);
     vring_packed_advance(vr);
 

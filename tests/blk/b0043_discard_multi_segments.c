@@ -46,15 +46,11 @@ static test_result_t test_blk_discard_multi_segments(struct virtio_dev *dev,
     segs[3].num_sectors = 8;
     segs[3].flags = 0;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t segs_phys = vv_virt_to_phys(segs);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, segs_phys, 4 * sizeof(*segs),
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(segs), 4 * sizeof(*segs),
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, status_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

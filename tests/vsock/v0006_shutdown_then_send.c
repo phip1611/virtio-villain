@@ -48,15 +48,13 @@ static test_result_t test_vsock_shutdown_then_send(struct virtio_dev *dev,
     memset(payload, 0xDD, 64);
 
     uint64_t shutdown_phys = vv_virt_to_phys(shutdown_pkt);
-    uint64_t data_phys = vv_virt_to_phys(data_pkt);
-    uint64_t payload_phys = vv_virt_to_phys(payload);
 
     /* Desc 0: shutdown packet (single desc) */
     vring_raw_set_desc(vr, 0, shutdown_phys, sizeof(*shutdown_pkt), 0, 0);
     /* Desc 1: data header + payload chain */
-    vring_raw_set_desc(vr, 1, data_phys, sizeof(*data_pkt),
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data_pkt), sizeof(*data_pkt),
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, payload_phys, 64, 0, 0);
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(payload), 64, 0, 0);
 
     /* Submit both in order */
     vring_raw_set_avail(vr, 0, 0);

@@ -17,12 +17,11 @@ static test_result_t test_indirect_len_zero(struct virtio_dev *dev,
                                             struct vring *vr)
 {
     uint8_t *page = vv_alloc_pages(1);
-    uint64_t page_phys = vv_virt_to_phys(page);
 
     /*
      * Main descriptor: INDIRECT with len = 0 (empty table).
      */
-    vring_raw_set_desc(vr, 0, page_phys, 0,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(page), 0,
                        VRING_DESC_F_INDIRECT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

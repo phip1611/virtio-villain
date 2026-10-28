@@ -34,13 +34,12 @@ static test_result_t test_net_notf_coal_rx(struct virtio_dev *dev,
     *status = 0xFF;
 
     uint64_t ctrl_phys = vv_virt_to_phys(ctrl);
-    uint64_t status_phys = vv_virt_to_phys(status);
 
     vring_raw_set_desc(vr, 0, ctrl_phys, sizeof(*ctrl),
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, ctrl_phys + sizeof(*ctrl), sizeof(*coal),
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, status_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

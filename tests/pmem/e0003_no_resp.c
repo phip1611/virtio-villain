@@ -22,10 +22,8 @@ static test_result_t test_pmem_no_resp(struct virtio_dev *dev,
     struct virtio_pmem_req *req = vv_alloc_pages(1);
     req->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
 
-    uint64_t req_phys = vv_virt_to_phys(req);
-
     /* Only a read-only descriptor, no writable response */
-    vring_raw_set_desc(vr, 0, req_phys, sizeof(*req), 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req), 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

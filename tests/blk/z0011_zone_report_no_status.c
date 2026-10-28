@@ -27,14 +27,11 @@ static test_result_t test_zone_report_no_status(struct virtio_dev *dev,
     hdr->reserved = 0;
     hdr->sector = 0;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-
     /* Header (device-readable) */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
     /* Data buffer (device-writable) but NO status descriptor */
-    vring_raw_set_desc(vr, 1, data_phys, 512,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

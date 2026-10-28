@@ -29,10 +29,8 @@ static test_result_t test_net_mergeable_abuse(struct virtio_dev *dev,
     /* Pre-fill with garbage num_buffers to test device resilience */
     buf->num_buffers = 0xFFFF;
 
-    uint64_t buf_phys = vv_virt_to_phys(buf);
-
     /* Single RX buffer (writable) */
-    vring_raw_set_desc(vr, 0, buf_phys, PAGE_SIZE,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), PAGE_SIZE,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

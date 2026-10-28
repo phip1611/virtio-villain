@@ -17,9 +17,8 @@ static test_result_t test_rtc_self_loop(struct virtio_dev *dev,
                                         struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    uint64_t base = vv_virt_to_phys(buf);
 
-    vring_raw_set_desc(vr, 0, base, 8, VRING_DESC_F_NEXT, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 8, VRING_DESC_F_NEXT, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

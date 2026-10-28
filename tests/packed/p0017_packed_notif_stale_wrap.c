@@ -28,10 +28,6 @@ static test_result_t test_packed_notif_stale_wrap(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Set driver event to DESC mode with a stale wrap counter.
      * The off_wrap field encodes (off | (wrap << 15)).
@@ -45,11 +41,11 @@ static test_result_t test_packed_notif_stale_wrap(struct virtio_dev *dev,
     __sync_synchronize();
 
     /* Submit a normal request */
-    vring_packed_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0,
+    vring_packed_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0,
                           VRING_PACKED_DESC_F_NEXT);
-    vring_packed_set_desc(vr, 1, data_phys, 512, 1,
+    vring_packed_set_desc(vr, 1, vv_virt_to_phys(data), 512, 1,
                           VRING_PACKED_DESC_F_NEXT | VRING_PACKED_DESC_F_WRITE);
-    vring_packed_set_desc(vr, 2, status_phys, 1, 2,
+    vring_packed_set_desc(vr, 2, vv_virt_to_phys(status), 1, 2,
                           VRING_PACKED_DESC_F_WRITE);
 
     return vv_kick_and_wait_packed(dev, vr, 0, 2, vr->wrap_counter, VV_TIMEOUT_MS);

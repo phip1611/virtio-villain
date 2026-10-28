@@ -26,13 +26,12 @@ static test_result_t test_packed_chain_too_long(struct virtio_dev *dev,
     hdr->ioprio = 0;
     hdr->sector = 0;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
     uint64_t data_phys = vv_virt_to_phys(data);
 
     uint16_t qsz = vr->size;
 
     /* Fill all slots with NEXT flag - creates chain of qsz descriptors */
-    vring_packed_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0,
+    vring_packed_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0,
                           VRING_PACKED_DESC_F_NEXT);
     vring_packed_advance(vr);
 

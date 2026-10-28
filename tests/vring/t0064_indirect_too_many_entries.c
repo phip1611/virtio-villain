@@ -27,10 +27,6 @@ static test_result_t test_indirect_too_many(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Build indirect table with 128 entries (queue_size is 64).
      * Only the first 3 are meaningful, rest are padding.
@@ -38,17 +34,17 @@ static test_result_t test_indirect_too_many(struct virtio_dev *dev,
     struct vring_desc *indirect = vv_alloc_pages(4);
     uint16_t num_entries = 128; /* > queue_size */
 
-    indirect[0].addr = hdr_phys;
+    indirect[0].addr = vv_virt_to_phys(hdr);
     indirect[0].len = sizeof(*hdr);
     indirect[0].flags = VRING_DESC_F_NEXT;
     indirect[0].next = 1;
 
-    indirect[1].addr = data_phys;
+    indirect[1].addr = vv_virt_to_phys(data);
     indirect[1].len = 512;
     indirect[1].flags = VRING_DESC_F_NEXT | VRING_DESC_F_WRITE;
     indirect[1].next = 2;
 
-    indirect[2].addr = status_phys;
+    indirect[2].addr = vv_virt_to_phys(status);
     indirect[2].len = 1;
     indirect[2].flags = VRING_DESC_F_WRITE;
     indirect[2].next = 0;
@@ -56,10 +52,8 @@ static test_result_t test_indirect_too_many(struct virtio_dev *dev,
     /* Fill remaining with zeros */
     memset(&indirect[3], 0, (num_entries - 3) * sizeof(struct vring_desc));
 
-    uint64_t indirect_phys = vv_virt_to_phys(indirect);
-
     /* Point ring descriptor at indirect table with oversized len */
-    vring_raw_set_desc(vr, 0, indirect_phys,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect),
                        num_entries * sizeof(struct vring_desc),
                        VRING_DESC_F_INDIRECT, 0);
 

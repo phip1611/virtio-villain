@@ -37,15 +37,11 @@ static test_result_t test_blk_get_id_alt_queue(struct virtio_dev *dev,
     memset(data, 0, 20);
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
-    vring_raw_set_desc(&q1vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(&q1vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&q1vr, 1, data_phys, 20,
+    vring_raw_set_desc(&q1vr, 1, vv_virt_to_phys(data), 20,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&q1vr, 2, status_phys, 1,
+    vring_raw_set_desc(&q1vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&q1vr, 0, 0);

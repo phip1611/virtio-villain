@@ -32,15 +32,11 @@ static test_result_t test_blk_zone_report_exceed(struct virtio_dev *dev,
     uint32_t *nr_zones = (uint32_t *)((uint8_t *)hdr + sizeof(*hdr));
     *nr_zones = 0xFFFFFFFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t result_phys = vv_virt_to_phys(result);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr) + 4,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr) + 4,
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, result_phys, 4096,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(result), 4096,
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, status_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

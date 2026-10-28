@@ -26,16 +26,13 @@ static test_result_t test_desc_no_status(struct virtio_dev *dev,
     hdr->ioprio = 0;
     hdr->sector = 0;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-
     /*
      * Descriptor chain: header -> data, NO status descriptor.
      * The chain ends at [1] (no NEXT flag).
      */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, data_phys, 512,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
                        VRING_DESC_F_WRITE, 0); /* no NEXT -> chain ends */
 
     return vv_submit_and_wait(dev, vr, 0);

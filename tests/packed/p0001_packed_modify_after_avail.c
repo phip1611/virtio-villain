@@ -30,19 +30,14 @@ static test_result_t test_packed_modify_after_avail(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-    uint64_t bogus_phys = vv_virt_to_phys(bogus);
-
     /* Make a valid 3-descriptor chain available */
-    vring_packed_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0,
+    vring_packed_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0,
                           VRING_PACKED_DESC_F_NEXT);
     vring_packed_advance(vr);
-    vring_packed_set_desc(vr, 1, data_phys, 512, 1,
+    vring_packed_set_desc(vr, 1, vv_virt_to_phys(data), 512, 1,
                           VRING_PACKED_DESC_F_NEXT | VRING_PACKED_DESC_F_WRITE);
     vring_packed_advance(vr);
-    vring_packed_set_desc(vr, 2, status_phys, 1, 2,
+    vring_packed_set_desc(vr, 2, vv_virt_to_phys(status), 1, 2,
                           VRING_PACKED_DESC_F_WRITE);
     vring_packed_advance(vr);
 
@@ -50,7 +45,7 @@ static test_result_t test_packed_modify_after_avail(struct virtio_dev *dev,
     virtio_pci_kick(dev, 0);
 
     /* Immediately modify the data descriptor after making available */
-    vr->desc[1].addr = bogus_phys;
+    vr->desc[1].addr = vv_virt_to_phys(bogus);
     vr->desc[1].len = 4096;
     __sync_synchronize();
 

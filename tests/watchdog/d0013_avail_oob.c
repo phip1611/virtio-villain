@@ -19,10 +19,9 @@ static test_result_t test_watchdog_avail_oob(struct virtio_dev *dev,
                                              struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    uint64_t buf_phys = vv_virt_to_phys(buf);
 
     /* Place a valid descriptor in slot 0 in case the device clamps. */
-    vring_raw_set_desc(vr, 0, buf_phys, 1, VRING_DESC_F_WRITE, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 1, VRING_DESC_F_WRITE, 0);
 
     /* But hand the device an out of range head index. */
     vring_raw_set_avail(vr, 0, 0xFFFE);

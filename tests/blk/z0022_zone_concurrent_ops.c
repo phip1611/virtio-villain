@@ -34,21 +34,16 @@ static test_result_t test_blk_zone_concurrent(struct virtio_dev *dev,
     *status1 = 0xFF;
     *status2 = 0xFF;
 
-    uint64_t hdr1_phys = vv_virt_to_phys(hdr1);
-    uint64_t hdr2_phys = vv_virt_to_phys(hdr2);
-    uint64_t status1_phys = vv_virt_to_phys(status1);
-    uint64_t status2_phys = vv_virt_to_phys(status2);
-
     /* First request: ZONE_OPEN */
-    vring_raw_set_desc(vr, 0, hdr1_phys, sizeof(*hdr1),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr1), sizeof(*hdr1),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, status1_phys, 1,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status1), 1,
                        VRING_DESC_F_WRITE, 0);
 
     /* Second request: ZONE_CLOSE */
-    vring_raw_set_desc(vr, 2, hdr2_phys, sizeof(*hdr2),
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(hdr2), sizeof(*hdr2),
                        VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, status2_phys, 1,
+    vring_raw_set_desc(vr, 3, vv_virt_to_phys(status2), 1,
                        VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(vr, 0, 0);

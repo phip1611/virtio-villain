@@ -28,12 +28,11 @@ static test_result_t test_packed_chain_exceeds_limit(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
     uint64_t data_phys = vv_virt_to_phys(data);
     uint64_t status_phys = vv_virt_to_phys(status);
 
     /* Header */
-    vring_packed_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0,
+    vring_packed_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0,
                           VRING_PACKED_DESC_F_NEXT);
     vring_packed_advance(vr);
 

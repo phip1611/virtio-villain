@@ -28,10 +28,9 @@ static test_result_t test_balloon_inflate_cross_page(struct virtio_dev *dev,
     for (int i = 0; i < 80; i++)
         pfns[i] = (uint32_t)(0x100 + i);
 
-    uint64_t phys = vv_virt_to_phys(pfns);
     uint32_t len  = (uint32_t)(80 * sizeof(uint32_t));
 
-    vring_raw_set_desc(vr, 0, phys, len, 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pfns), len, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

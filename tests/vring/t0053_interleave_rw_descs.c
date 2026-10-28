@@ -29,24 +29,19 @@ static test_result_t test_interleave_rw_descs(struct virtio_dev *dev,
     hdr->ioprio = 0;
     hdr->sector = 0;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t buf1_phys = vv_virt_to_phys(buf1);
-    uint64_t buf2_phys = vv_virt_to_phys(buf2);
-    uint64_t buf3_phys = vv_virt_to_phys(buf3);
-
     /*
      * Chain: [0] header (readable) -> [1] data (writable) ->
      *        [2] extra readable -> [3] status (writable)
      * The readable desc [2] after writable [1] violates ordering.
      */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, buf1_phys, 512,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(buf1), 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     /* Readable desc after writable - violation */
-    vring_raw_set_desc(vr, 2, buf2_phys, 16,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(buf2), 16,
                        VRING_DESC_F_NEXT, 3);
-    vring_raw_set_desc(vr, 3, buf3_phys, 1,
+    vring_raw_set_desc(vr, 3, vv_virt_to_phys(buf3), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

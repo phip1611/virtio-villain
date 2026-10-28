@@ -28,10 +28,6 @@ static test_result_t test_indirect_cross_page_split(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Allocate 2 contiguous pages, then place the indirect table
      * starting at offset 4080 (16 bytes before page boundary).
@@ -41,17 +37,17 @@ static test_result_t test_indirect_cross_page_split(struct virtio_dev *dev,
     struct vring_desc *indirect = (struct vring_desc *)(pages + 4096 - 16);
 
     /* 3 descriptors = 48 bytes, crossing the page boundary */
-    indirect[0].addr = hdr_phys;
+    indirect[0].addr = vv_virt_to_phys(hdr);
     indirect[0].len = sizeof(*hdr);
     indirect[0].flags = VRING_DESC_F_NEXT;
     indirect[0].next = 1;
 
-    indirect[1].addr = data_phys;
+    indirect[1].addr = vv_virt_to_phys(data);
     indirect[1].len = 512;
     indirect[1].flags = VRING_DESC_F_WRITE | VRING_DESC_F_NEXT;
     indirect[1].next = 2;
 
-    indirect[2].addr = status_phys;
+    indirect[2].addr = vv_virt_to_phys(status);
     indirect[2].len = 1;
     indirect[2].flags = VRING_DESC_F_WRITE;
     indirect[2].next = 0;

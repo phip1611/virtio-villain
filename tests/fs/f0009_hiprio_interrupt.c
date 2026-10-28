@@ -30,9 +30,7 @@ static test_result_t test_fs_hiprio_interrupt(struct virtio_dev *dev,
     hdr->unique = 0;
     intr->unique = 0xDEADBEEFCAFEBABEULL;
 
-    uint64_t hdr_phys = vv_virt_to_phys(page);
-
-    vring_raw_set_desc(vr, 0, hdr_phys, hdr->len, 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(page), hdr->len, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

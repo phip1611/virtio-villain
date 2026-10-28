@@ -26,9 +26,6 @@ static test_result_t test_desc_addr_pci_bar(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Use the BAR physical address (from dev->notify_base or similar)
      * as the data descriptor address. This points into PCI MMIO space.
@@ -36,12 +33,12 @@ static test_result_t test_desc_addr_pci_bar(struct virtio_dev *dev,
      */
     uint64_t bar_addr = 0xFE000000ULL; /* typical PCI BAR region */
 
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
     /* Data descriptor points into PCI BAR MMIO space */
     vring_raw_set_desc(vr, 1, bar_addr, 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, status_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

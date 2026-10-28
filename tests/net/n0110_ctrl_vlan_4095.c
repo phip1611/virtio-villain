@@ -36,13 +36,10 @@ static test_result_t test_net_vlan_4095(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
     *status = 0xFF;
 
-    uint64_t page_phys = vv_virt_to_phys(page);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
-    vring_raw_set_desc(vr, 0, page_phys,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(page),
                        sizeof(*ctrl) + sizeof(uint16_t),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, status_phys, 1,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

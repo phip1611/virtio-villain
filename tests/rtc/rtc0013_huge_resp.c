@@ -22,11 +22,10 @@ static test_result_t test_rtc_huge_resp(struct virtio_dev *dev,
     memset(buf, 0, 256);
     struct rtc_req_read *req = (void *)buf;
     req->msg_type = VIRTIO_RTC_REQ_READ;
-    uint64_t base = vv_virt_to_phys(buf);
     uint64_t resp_phys;
     vv_alloc_page_high(&resp_phys);
 
-    vring_raw_set_desc(vr, 0, base, sizeof(*req),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), sizeof(*req),
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, resp_phys, 1u << 30,
                        VRING_DESC_F_WRITE, 0);
