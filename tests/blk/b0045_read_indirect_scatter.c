@@ -24,13 +24,6 @@ static test_result_t test_blk_read_indirect_scatter(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t d0_phys = vv_virt_to_phys(data0);
-    uint64_t d1_phys = vv_virt_to_phys(data1);
-    uint64_t d2_phys = vv_virt_to_phys(data2);
-    uint64_t d3_phys = vv_virt_to_phys(data3);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Build indirect descriptor table:
      *   [0] header (readable)
@@ -41,40 +34,38 @@ static test_result_t test_blk_read_indirect_scatter(struct virtio_dev *dev,
      *   [5] status (writable)
      */
     struct vring_desc *indirect = vv_alloc_pages(1);
-    indirect[0].addr = hdr_phys;
+    indirect[0].addr = vv_virt_to_phys(hdr);
     indirect[0].len = sizeof(*hdr);
     indirect[0].flags = VRING_DESC_F_NEXT;
     indirect[0].next = 1;
 
-    indirect[1].addr = d0_phys;
+    indirect[1].addr = vv_virt_to_phys(data0);
     indirect[1].len = 128;
     indirect[1].flags = VRING_DESC_F_WRITE | VRING_DESC_F_NEXT;
     indirect[1].next = 2;
 
-    indirect[2].addr = d1_phys;
+    indirect[2].addr = vv_virt_to_phys(data1);
     indirect[2].len = 128;
     indirect[2].flags = VRING_DESC_F_WRITE | VRING_DESC_F_NEXT;
     indirect[2].next = 3;
 
-    indirect[3].addr = d2_phys;
+    indirect[3].addr = vv_virt_to_phys(data2);
     indirect[3].len = 128;
     indirect[3].flags = VRING_DESC_F_WRITE | VRING_DESC_F_NEXT;
     indirect[3].next = 4;
 
-    indirect[4].addr = d3_phys;
+    indirect[4].addr = vv_virt_to_phys(data3);
     indirect[4].len = 128;
     indirect[4].flags = VRING_DESC_F_WRITE | VRING_DESC_F_NEXT;
     indirect[4].next = 5;
 
-    indirect[5].addr = status_phys;
+    indirect[5].addr = vv_virt_to_phys(status);
     indirect[5].len = 1;
     indirect[5].flags = VRING_DESC_F_WRITE;
     indirect[5].next = 0;
 
-    uint64_t indirect_phys = vv_virt_to_phys(indirect);
-
     /* Main ring: single indirect descriptor */
-    vring_raw_set_desc(vr, 0, indirect_phys, 6 * 16,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect), 6 * 16,
                        VRING_DESC_F_INDIRECT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

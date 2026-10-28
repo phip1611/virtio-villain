@@ -28,12 +28,9 @@ static test_result_t test_vsock_double_connect(struct virtio_dev *dev,
     /* Second CONNECT - same ports */
     memcpy(pkt2, pkt1, sizeof(*pkt2));
 
-    uint64_t pkt1_phys = vv_virt_to_phys(pkt1);
-    uint64_t pkt2_phys = vv_virt_to_phys(pkt2);
-
     /* Submit both as separate descriptors */
-    vring_raw_set_desc(vr, 0, pkt1_phys, sizeof(*pkt1), 0, 0);
-    vring_raw_set_desc(vr, 1, pkt2_phys, sizeof(*pkt2), 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt1), sizeof(*pkt1), 0, 0);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(pkt2), sizeof(*pkt2), 0, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 1);

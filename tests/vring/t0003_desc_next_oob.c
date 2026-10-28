@@ -23,9 +23,6 @@ static test_result_t test_desc_next_oob(struct virtio_dev *dev, struct vring *vr
     hdr->sector = 0;
     memset(data, 0, 512);
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-
     uint16_t qsz = vr->size;
 
     /*
@@ -34,13 +31,13 @@ static test_result_t test_desc_next_oob(struct virtio_dev *dev, struct vring *vr
      *
      * Slot 0 is valid but its next index exceeds the table boundary.
      */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, qsz);
 
     /* Put a plausible descriptor just past the table boundary in case
      * the VMM reads it without crashing (we want to distinguish
      * "silently read garbage" from "properly rejected"). */
-    (void)data_phys;
+    (void)vv_virt_to_phys(data);
 
     /* Submit head 0 */
     return vv_submit_and_wait(dev, vr, 0);

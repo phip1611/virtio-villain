@@ -31,12 +31,9 @@ static test_result_t test_net_tx_all_flags(struct virtio_dev *dev,
     payload[12] = 0x08; payload[13] = 0x00; /* EtherType IPv4 */
     memset(payload + 14, 0, 46); /* pad to minimum frame */
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t payload_phys = vv_virt_to_phys(payload);
-
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, payload_phys, 60, 0, 0);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(payload), 60, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

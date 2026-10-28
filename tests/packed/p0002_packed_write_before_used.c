@@ -23,8 +23,6 @@ static test_result_t test_packed_write_before_used(struct virtio_dev *dev,
     *status = 0xFF;
 
     uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
 
     uint8_t initial_wrap = vr->wrap_counter;
 
@@ -32,10 +30,10 @@ static test_result_t test_packed_write_before_used(struct virtio_dev *dev,
     vring_packed_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0,
                           VRING_PACKED_DESC_F_NEXT);
     vring_packed_advance(vr);
-    vring_packed_set_desc(vr, 1, data_phys, 512, 1,
+    vring_packed_set_desc(vr, 1, vv_virt_to_phys(data), 512, 1,
                           VRING_PACKED_DESC_F_NEXT | VRING_PACKED_DESC_F_WRITE);
     vring_packed_advance(vr);
-    vring_packed_set_desc(vr, 2, status_phys, 1, 2,
+    vring_packed_set_desc(vr, 2, vv_virt_to_phys(status), 1, 2,
                           VRING_PACKED_DESC_F_WRITE);
     vring_packed_advance(vr);
 

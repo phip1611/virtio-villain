@@ -25,14 +25,11 @@ static test_result_t test_net_ctrl_empty_data(struct virtio_dev *dev,
     ctrl->command = VIRTIO_NET_CTRL_RX_PROMISC;
     *status = 0xFF;
 
-    uint64_t ctrl_phys = vv_virt_to_phys(ctrl);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /* descriptor 0: header only (device-readable) */
-    vring_raw_set_desc(vr, 0, ctrl_phys, sizeof(*ctrl),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(ctrl), sizeof(*ctrl),
                        VRING_DESC_F_NEXT, 1);
     /* descriptor 1: ack byte (device-writable) - no data in between */
-    vring_raw_set_desc(vr, 1, status_phys, 1,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

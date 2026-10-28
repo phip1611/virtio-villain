@@ -33,15 +33,11 @@ static test_result_t test_blk_get_id_nonzero_queue(struct virtio_dev *dev,
     *status = 0xFF;
     memset(id_buf, 0, 20);
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t id_phys = vv_virt_to_phys(id_buf);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
-    vring_raw_set_desc(&vr1, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(&vr1, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&vr1, 1, id_phys, 20,
+    vring_raw_set_desc(&vr1, 1, vv_virt_to_phys(id_buf), 20,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(&vr1, 2, status_phys, 1,
+    vring_raw_set_desc(&vr1, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&vr1, 0, 0);

@@ -23,17 +23,13 @@ static test_result_t test_blk_status_write_indirect(struct virtio_dev *dev,
     hdr->ioprio = 0;
     hdr->sector = 0;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /* Readable header, then writable data, then a status slot that sets
      * VRING_DESC_F_INDIRECT on top of VRING_DESC_F_WRITE. */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, data_phys, 1024,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 1024,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, status_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE | VRING_DESC_F_INDIRECT, 0);
 
     vring_submit(vr, 0);

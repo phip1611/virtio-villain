@@ -25,7 +25,6 @@ static test_result_t test_iommu_probe_split_out(struct virtio_dev *dev,
     req->tail.status = 0xFF;
 
     uint64_t req_phys = vv_virt_to_phys(req);
-    uint64_t out2_phys = vv_virt_to_phys(out2);
     size_t   in_len   = (size_t)((uint8_t *)&req->properties - (uint8_t *)req);
     size_t   half     = sizeof(req->properties) / 2;
 
@@ -36,7 +35,7 @@ static test_result_t test_iommu_probe_split_out(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 1, req_phys + in_len, half,
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
     /* Second half of properties + tail in a different page. */
-    vring_raw_set_desc(vr, 2, out2_phys,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(out2),
                        (sizeof(req->properties) - half) + sizeof(req->tail),
                        VRING_DESC_F_WRITE, 0);
 

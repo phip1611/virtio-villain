@@ -19,10 +19,8 @@ static test_result_t test_blk_only_head_descriptor(struct virtio_dev *dev,
     hdr->ioprio = 0;
     hdr->sector = 0x7fffffff;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-
     /* Lone header descriptor: readable, no NEXT, no data, no status. */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0, 0);
 
     vring_submit(vr, 0);
 

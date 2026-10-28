@@ -22,12 +22,9 @@ static test_result_t test_mem_unplug(struct virtio_dev *dev,
 
     memset(resp, 0xFF, sizeof(*resp));
 
-    uint64_t req_phys = vv_virt_to_phys(req);
-    uint64_t resp_phys = vv_virt_to_phys(resp);
-
-    vring_raw_set_desc(vr, 0, req_phys, sizeof(*req),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, resp_phys, sizeof(*resp),
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

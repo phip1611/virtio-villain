@@ -24,9 +24,7 @@ static test_result_t test_vsock_credit_req_noconn(struct virtio_dev *dev,
     pkt->buf_alloc = 4096;
     pkt->fwd_cnt = 0;
 
-    uint64_t pkt_phys = vv_virt_to_phys(pkt);
-
-    vring_raw_set_desc(vr, 0, pkt_phys, sizeof(*pkt), 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt), sizeof(*pkt), 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

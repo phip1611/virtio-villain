@@ -25,28 +25,23 @@ static test_result_t test_packed_qsize_one_indirect(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /* Build indirect table: 3 descriptors for header, data, status */
     struct vring_packed_desc *indirect = vv_alloc_pages(1);
-    indirect[0].addr = hdr_phys;
+    indirect[0].addr = vv_virt_to_phys(hdr);
     indirect[0].len = sizeof(*hdr);
     indirect[0].id = 0;
     indirect[0].flags = VRING_PACKED_DESC_F_NEXT;
-    indirect[1].addr = data_phys;
+    indirect[1].addr = vv_virt_to_phys(data);
     indirect[1].len = 512;
     indirect[1].id = 0;
     indirect[1].flags = VRING_PACKED_DESC_F_NEXT | VRING_PACKED_DESC_F_WRITE;
-    indirect[2].addr = status_phys;
+    indirect[2].addr = vv_virt_to_phys(status);
     indirect[2].len = 1;
     indirect[2].id = 0;
     indirect[2].flags = VRING_PACKED_DESC_F_WRITE;
 
     /* Use only slot 0 with indirect flag */
-    uint64_t indirect_phys = vv_virt_to_phys(indirect);
-    vring_packed_set_desc(vr, 0, indirect_phys,
+    vring_packed_set_desc(vr, 0, vv_virt_to_phys(indirect),
                           3 * sizeof(struct vring_packed_desc), 0,
                           VRING_PACKED_DESC_F_INDIRECT);
 

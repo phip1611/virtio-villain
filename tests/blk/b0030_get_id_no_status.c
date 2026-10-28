@@ -19,11 +19,10 @@ static test_result_t test_blk_get_id_no_status(struct virtio_dev *dev,
     hdr->sector = 0;
 
     uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
 
     /* Header (readable) -> 20-byte data (writable) but NO status desc */
     vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, data_phys, 20, VRING_DESC_F_WRITE, 0);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 20, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

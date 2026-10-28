@@ -19,10 +19,8 @@ static test_result_t test_indirect_zero_valid(struct virtio_dev *dev,
     struct vring_desc *indirect = vv_alloc_pages(1);
     memset(indirect, 0, 48); /* 3 x 16-byte descs, all zeros */
 
-    uint64_t indirect_phys = vv_virt_to_phys(indirect);
-
     /* Point main descriptor at the indirect table with INDIRECT flag */
-    vring_raw_set_desc(vr, 0, indirect_phys, 48,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect), 48,
                        VRING_DESC_F_INDIRECT, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

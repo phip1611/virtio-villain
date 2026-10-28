@@ -20,9 +20,6 @@ static test_result_t test_blk_wz_beyond(struct virtio_dev *dev,
     hdr->sector = 0xFFFFFFFFFFFFULL;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /* WRITE_ZEROES has a discard/write_zeroes data segment */
     struct {
         uint64_t sector;
@@ -34,10 +31,10 @@ static test_result_t test_blk_wz_beyond(struct virtio_dev *dev,
     wz_data->num_sectors = 8;
     wz_data->flags = 0;
 
-    vring_raw_set_desc(vr, 0, hdr_phys,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr),
                        sizeof(*hdr) + 16,
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, status_phys, 1,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

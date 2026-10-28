@@ -22,30 +22,24 @@ static test_result_t test_packed_indirect_bad_flags(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /* Build indirect table with illegal AVAIL/USED bits set */
     struct vring_packed_desc *ind = vv_alloc_pages(1);
-    ind[0].addr = hdr_phys;
+    ind[0].addr = vv_virt_to_phys(hdr);
     ind[0].len = sizeof(*hdr);
     ind[0].id = 0;
     ind[0].flags = VRING_PACKED_DESC_F_NEXT |
                    VRING_PACKED_DESC_F_AVAIL | VRING_PACKED_DESC_F_USED;
-    ind[1].addr = data_phys;
+    ind[1].addr = vv_virt_to_phys(data);
     ind[1].len = 512;
     ind[1].id = 1;
     ind[1].flags = VRING_PACKED_DESC_F_NEXT | VRING_PACKED_DESC_F_WRITE |
                    VRING_PACKED_DESC_F_AVAIL;
-    ind[2].addr = status_phys;
+    ind[2].addr = vv_virt_to_phys(status);
     ind[2].len = 1;
     ind[2].id = 2;
     ind[2].flags = VRING_PACKED_DESC_F_WRITE | VRING_PACKED_DESC_F_USED;
 
-    uint64_t ind_phys = vv_virt_to_phys(ind);
-
-    vring_packed_set_desc(vr, 0, ind_phys,
+    vring_packed_set_desc(vr, 0, vv_virt_to_phys(ind),
                           3 * sizeof(struct vring_packed_desc), 0,
                           VRING_PACKED_DESC_F_INDIRECT);
     vring_packed_advance(vr);

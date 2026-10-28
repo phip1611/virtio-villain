@@ -21,17 +21,15 @@ static test_result_t test_indirect_and_next(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
     uint64_t status_phys = vv_virt_to_phys(status);
     uint64_t indirect_phys = vv_virt_to_phys(indirect);
 
     /* Valid indirect table */
-    indirect[0].addr = hdr_phys;
+    indirect[0].addr = vv_virt_to_phys(hdr);
     indirect[0].len = sizeof(*hdr);
     indirect[0].flags = VRING_DESC_F_NEXT;
     indirect[0].next = 1;
-    indirect[1].addr = data_phys;
+    indirect[1].addr = vv_virt_to_phys(data);
     indirect[1].len = 512;
     indirect[1].flags = VRING_DESC_F_NEXT | VRING_DESC_F_WRITE;
     indirect[1].next = 2;

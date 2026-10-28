@@ -39,12 +39,9 @@ static test_result_t test_vsock_shutdown_then_rst(struct virtio_dev *dev,
     pkt1->buf_alloc = 0;
     pkt1->fwd_cnt = 0;
 
-    uint64_t p0_phys = vv_virt_to_phys(pkt0);
-    uint64_t p1_phys = vv_virt_to_phys(pkt1);
-
     /* Two descriptors in the avail ring - processed back to back */
-    vring_raw_set_desc(vr, 0, p0_phys, sizeof(*pkt0), 0, 0);
-    vring_raw_set_desc(vr, 1, p1_phys, sizeof(*pkt1), 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt0), sizeof(*pkt0), 0, 0);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(pkt1), sizeof(*pkt1), 0, 0);
 
     vring_raw_set_avail(vr, 0, 0);
     vring_raw_set_avail(vr, 1, 1);

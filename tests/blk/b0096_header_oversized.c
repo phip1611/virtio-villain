@@ -22,16 +22,12 @@ static test_result_t test_blk_header_oversized(struct virtio_dev *dev,
     memset(hdr_buf + 16, 0xDE, 16);
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr_buf);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /* Header descriptor is 32 bytes instead of 16 */
-    vring_raw_set_desc(vr, 0, hdr_phys, 32,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr_buf), 32,
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, data_phys, 512,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(data), 512,
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, status_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

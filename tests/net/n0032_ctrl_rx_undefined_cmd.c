@@ -22,13 +22,10 @@ static test_result_t test_net_ctrl_rx_bad_cmd(struct virtio_dev *dev,
     hdr->command = 0xFF; /* undefined command within RX class */
     *ack = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t ack_phys = vv_virt_to_phys(ack);
-
     /* ctrl hdr (readable) -> ack (writable) */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, ack_phys, 1, VRING_DESC_F_WRITE, 0);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(ack), 1, VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

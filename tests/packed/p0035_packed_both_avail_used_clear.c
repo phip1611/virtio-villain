@@ -21,22 +21,18 @@ static test_result_t test_packed_both_clear(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     uint16_t idx = vr->next_avail;
 
     /*
      * Use raw set to force both AVAIL and USED bits to 0.
      * Regardless of wrap_counter, this is an invalid descriptor state.
      */
-    vring_packed_raw_set_desc(vr, idx, hdr_phys, sizeof(*hdr), 0,
+    vring_packed_raw_set_desc(vr, idx, vv_virt_to_phys(hdr), sizeof(*hdr), 0,
                               VRING_PACKED_DESC_F_NEXT);
-    vring_packed_raw_set_desc(vr, idx + 1, data_phys, 512, 0,
+    vring_packed_raw_set_desc(vr, idx + 1, vv_virt_to_phys(data), 512, 0,
                               VRING_PACKED_DESC_F_NEXT |
                               VRING_PACKED_DESC_F_WRITE);
-    vring_packed_raw_set_desc(vr, idx + 2, status_phys, 1, 0,
+    vring_packed_raw_set_desc(vr, idx + 2, vv_virt_to_phys(status), 1, 0,
                               VRING_PACKED_DESC_F_WRITE);
     __sync_synchronize();
 

@@ -36,9 +36,8 @@ static test_result_t test_balloon_page_report_misaligned(struct virtio_dev *dev,
 
     /* Two contiguous pages so a 4097 byte range stays inside our buffer */
     void *page = vv_alloc_pages(2);
-    uint64_t phys = vv_virt_to_phys(page);
 
-    vring_raw_set_desc(&rq, 0, phys, 4097, 0, 0);
+    vring_raw_set_desc(&rq, 0, vv_virt_to_phys(page), 4097, 0, 0);
     vring_raw_set_avail(&rq, 0, 0);
     vring_raw_set_avail_idx(&rq, 1);
 

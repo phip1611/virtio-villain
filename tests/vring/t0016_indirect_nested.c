@@ -22,28 +22,24 @@ static test_result_t test_indirect_nested(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
     uint64_t indirect_phys = vv_virt_to_phys(indirect);
-    uint64_t nested_phys = vv_virt_to_phys(nested);
 
     /* Nested indirect table (should never be followed) */
-    nested[0].addr = data_phys;
+    nested[0].addr = vv_virt_to_phys(data);
     nested[0].len = 512;
     nested[0].flags = VRING_DESC_F_NEXT | VRING_DESC_F_WRITE;
     nested[0].next = 1;
-    nested[1].addr = status_phys;
+    nested[1].addr = vv_virt_to_phys(status);
     nested[1].len = 1;
     nested[1].flags = VRING_DESC_F_WRITE;
     nested[1].next = 0;
 
     /* Indirect table: first entry is header, second is INDIRECT (illegal) */
-    indirect[0].addr = hdr_phys;
+    indirect[0].addr = vv_virt_to_phys(hdr);
     indirect[0].len = sizeof(*hdr);
     indirect[0].flags = VRING_DESC_F_NEXT;
     indirect[0].next = 1;
-    indirect[1].addr = nested_phys;
+    indirect[1].addr = vv_virt_to_phys(nested);
     indirect[1].len = 2 * sizeof(struct vring_desc);
     indirect[1].flags = VRING_DESC_F_INDIRECT; /* ILLEGAL nested indirect */
     indirect[1].next = 0;

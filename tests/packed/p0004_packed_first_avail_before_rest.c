@@ -22,15 +22,11 @@ static test_result_t test_packed_first_avail_before_rest(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Make desc[0] available FIRST (with AVAIL bit set),
      * but leave desc[1] and desc[2] as all-zeros initially.
      */
-    vring_packed_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0,
+    vring_packed_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0,
                           VRING_PACKED_DESC_F_NEXT);
     vring_packed_advance(vr);
     __sync_synchronize();
@@ -40,10 +36,10 @@ static test_result_t test_packed_first_avail_before_rest(struct virtio_dev *dev,
 
     /* Now write the remaining descriptors (too late) */
     usleep(1000); /* small delay to widen the race window */
-    vring_packed_set_desc(vr, 1, data_phys, 512, 1,
+    vring_packed_set_desc(vr, 1, vv_virt_to_phys(data), 512, 1,
                           VRING_PACKED_DESC_F_NEXT | VRING_PACKED_DESC_F_WRITE);
     vring_packed_advance(vr);
-    vring_packed_set_desc(vr, 2, status_phys, 1, 2,
+    vring_packed_set_desc(vr, 2, vv_virt_to_phys(status), 1, 2,
                           VRING_PACKED_DESC_F_WRITE);
     vring_packed_advance(vr);
     __sync_synchronize();
