@@ -377,6 +377,21 @@ static inline test_result_t vv_kick_and_wait_packed(struct virtio_dev *dev,
     return TEST_REJECT;
 }
 
+/*
+ * Allocate a blk request header with the given type and sector. The
+ * remaining fields are zero. Many non blk tests use blk requests as
+ * their vehicle, so this lives here and not in a blk helper header.
+ */
+static inline struct virtio_blk_outhdr *blk_hdr(uint32_t type,
+                                                uint64_t sector)
+{
+    struct virtio_blk_outhdr *hdr = vv_alloc_pages(1);
+
+    hdr->type = type;
+    hdr->sector = sector;
+    return hdr;
+}
+
 /* Linker-defined boundaries for the test registry section. */
 extern struct test_entry __start_test_registry;
 extern struct test_entry __stop_test_registry;
