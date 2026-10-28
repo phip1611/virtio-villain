@@ -16,6 +16,15 @@
 #include "../lib/vring_packed.h"
 #include "../tests/test.h"
 
+/*
+ * The ring tests back ring headers that end in a flexible array with a
+ * fixed array placed right after them. GNU C allows this, but Clang
+ * warns about it by default.
+ */
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wgnu-variable-sized-type-not-at-end"
+#endif
+
 static int tests_run;
 static int tests_passed;
 static const char *c_pass = "";
