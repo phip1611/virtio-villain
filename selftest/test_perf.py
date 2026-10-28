@@ -11,6 +11,10 @@ import uuid
 from unittest import mock
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MIB = 1024 * 1024
+RAW_DISK_SIZE_MIB = 1
+VHD_DISK_SIZE_MIB = 64
+SMALL_DISK_SIZE_MIB = 4
 
 
 def load_module():
@@ -723,14 +727,22 @@ def main():
                                                "cap_net_admin")
     with tempfile.TemporaryDirectory() as temp_dir:
         raw_path = os.path.join(temp_dir, "disk.raw")
-        module.create_disk_image(raw_path, "raw", 1)
-        assert os.path.getsize(raw_path) == 1024 * 1024
+        module.create_disk_image(raw_path, "raw", RAW_DISK_SIZE_MIB)
+        assert os.path.getsize(raw_path) == RAW_DISK_SIZE_MIB * MIB
     with mock.patch.object(module.subprocess, "run") as create_image:
-        module.create_disk_image("disk.vhd", "vhd", 64)
+        module.create_disk_image("disk.vhd", "vhd", VHD_DISK_SIZE_MIB)
     create_image.assert_called_once_with(
         ["qemu-img", "create", "-f", "vpc", "-o", "subformat=fixed",
-         "disk.vhd", str(64 * 1024 * 1024)],
+         "disk.vhd", str(VHD_DISK_SIZE_MIB * MIB)],
         check=True, capture_output=True)
+    with mock.patch.object(module.images, "create") as create_image:
+        module.create_disk_image("disk.qcow2", "qcow2", SMALL_DISK_SIZE_MIB)
+    create_image.assert_called_once_with(
+        "disk.qcow2", SMALL_DISK_SIZE_MIB * MIB, image_format="qcow2")
+    with mock.patch.object(module.images, "create", side_effect=FileNotFoundError("Missing tool")):
+        expect_runtime_error(
+            lambda: module.create_disk_image("disk.vhd", "vhd", SMALL_DISK_SIZE_MIB),
+            "Cannot create vhd performance disk: Missing tool")
     queue_args = module.parse_args(
         ["-m", "vmm", "--device", "blk", "--device-queues", "4"])
     with mock.patch.object(module, "run_vmm", return_value=samples):
