@@ -28,19 +28,15 @@ static test_result_t test_net_rx_mixed_rw(struct virtio_dev *dev,
     uint8_t *buf1 = vv_alloc_pages(1);
     uint8_t *buf2 = vv_alloc_pages(1);
 
-    uint64_t b0_phys = vv_virt_to_phys(buf0);
-    uint64_t b1_phys = vv_virt_to_phys(buf1);
-    uint64_t b2_phys = vv_virt_to_phys(buf2);
-
     /*
      * Chain: [0] writable 512B -> [1] READABLE 512B -> [2] writable 512B
      * Descriptor 1 is wrong direction for an RX queue.
      */
-    vring_raw_set_desc(&rxvr, 0, b0_phys, 512,
+    vring_raw_set_desc(&rxvr, 0, vv_virt_to_phys(buf0), 512,
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&rxvr, 1, b1_phys, 512,
+    vring_raw_set_desc(&rxvr, 1, vv_virt_to_phys(buf1), 512,
                        VRING_DESC_F_NEXT, 2); /* READABLE - wrong! */
-    vring_raw_set_desc(&rxvr, 2, b2_phys, 512,
+    vring_raw_set_desc(&rxvr, 2, vv_virt_to_phys(buf2), 512,
                        VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&rxvr, 0, 0);

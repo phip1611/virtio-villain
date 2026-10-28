@@ -29,9 +29,6 @@ static test_result_t test_scsi_desc_addr_pci_bar(struct virtio_dev *dev,
 
     resp->response = 0xFF;
 
-    uint64_t req_phys = vv_virt_to_phys(req);
-    uint64_t resp_phys = vv_virt_to_phys(resp);
-
     /*
      * Data-in buffer points at the device's own common configuration
      * in PCI BAR MMIO space, not guest RAM. A completing READ that
@@ -40,9 +37,9 @@ static test_result_t test_scsi_desc_addr_pci_bar(struct virtio_dev *dev,
      */
     uint64_t bar_addr = dev->common_phys;
 
-    vring_raw_set_desc(vr, 0, req_phys, sizeof(*req),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, resp_phys, sizeof(*resp),
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vring_raw_set_desc(vr, 2, bar_addr, 512,
                        VRING_DESC_F_WRITE, 0);

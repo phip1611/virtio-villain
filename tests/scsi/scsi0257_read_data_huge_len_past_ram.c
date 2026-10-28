@@ -32,9 +32,6 @@ static test_result_t test_scsi_read_huge_len_past_ram(struct virtio_dev *dev,
 
     resp->response = 0xFF;
 
-    uint64_t req_phys = vv_virt_to_phys(req);
-    uint64_t resp_phys = vv_virt_to_phys(resp);
-
     uint64_t data_phys;
     if (!vv_alloc_page_near_ram_top(ram_top, &data_phys))
         return TEST_SKIP;
@@ -44,9 +41,9 @@ static test_result_t test_scsi_read_huge_len_past_ram(struct virtio_dev *dev,
         overshoot = 0xFFFFFFFFULL;
     uint32_t len = (uint32_t)overshoot;
 
-    vring_raw_set_desc(vr, 0, req_phys, sizeof(*req),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(req), sizeof(*req),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, resp_phys, sizeof(*resp),
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(resp), sizeof(*resp),
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
     vring_raw_set_desc(vr, 2, data_phys, len,
                        VRING_DESC_F_WRITE, 0);

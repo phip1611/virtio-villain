@@ -49,15 +49,11 @@ static test_result_t test_net_ctrl_mac_table_set(struct virtio_dev *dev,
 
     *ack = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t payload_phys = vv_virt_to_phys(payload);
-    uint64_t ack_phys = vv_virt_to_phys(ack);
-
-    vring_raw_set_desc(&ctrl_vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(&ctrl_vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(&ctrl_vr, 1, payload_phys, total_payload,
+    vring_raw_set_desc(&ctrl_vr, 1, vv_virt_to_phys(payload), total_payload,
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(&ctrl_vr, 2, ack_phys, 1,
+    vring_raw_set_desc(&ctrl_vr, 2, vv_virt_to_phys(ack), 1,
                        VRING_DESC_F_WRITE, 0);
 
     vring_raw_set_avail(&ctrl_vr, 0, 0);

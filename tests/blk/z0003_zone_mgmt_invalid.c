@@ -19,14 +19,11 @@ static test_result_t test_blk_zone_mgmt_invalid(struct virtio_dev *dev,
     hdr->sector = 7; /* unlikely to be zone-aligned */
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /* header (device-readable) */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
     /* status (device-writable) */
-    vring_raw_set_desc(vr, 1, status_phys, 1,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

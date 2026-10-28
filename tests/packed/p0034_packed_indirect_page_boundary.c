@@ -45,12 +45,11 @@ static test_result_t test_packed_indirect_page_boundary(struct virtio_dev *dev,
     indirect[0].flags = VRING_PACKED_DESC_F_NEXT;
     /* entries [1] and [2] are in unmapped memory */
 
-    uint64_t indirect_phys = vv_virt_to_phys(indirect);
     uint8_t wrap = vr->wrap_counter;
     uint16_t check_idx = vr->next_avail;
 
     /* Submit indirect claiming 3 entries, only 1 is accessible */
-    vring_packed_set_desc(vr, vr->next_avail, indirect_phys,
+    vring_packed_set_desc(vr, vr->next_avail, vv_virt_to_phys(indirect),
                           3 * sizeof(struct vring_packed_desc), 0,
                           VRING_PACKED_DESC_F_INDIRECT);
     vring_packed_advance(vr);

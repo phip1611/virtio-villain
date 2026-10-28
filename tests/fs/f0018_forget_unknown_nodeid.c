@@ -66,10 +66,8 @@ static test_result_t test_fs_forget_unknown(struct virtio_dev *dev,
     hdr->nodeid = 0xCAFEBABE00000001ULL; /* never opened */
     forget->nlookup = 1;
 
-    uint64_t phys = vv_virt_to_phys(page);
-
     /* FORGET has no response; hiprio queue, read only chain */
-    vring_raw_set_desc(&hiprio, 0, phys, hdr->len, 0, 0);
+    vring_raw_set_desc(&hiprio, 0, vv_virt_to_phys(page), hdr->len, 0, 0);
     vring_raw_set_avail(&hiprio, 0, 0);
     vring_raw_set_avail_idx(&hiprio, 1);
 

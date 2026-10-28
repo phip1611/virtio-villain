@@ -20,9 +20,8 @@ static test_result_t test_balloon_deflate_unbacked(struct virtio_dev *dev,
     uint32_t *pfns = vv_alloc_pages(1);
     uint64_t base = vv_virt_to_phys(vv_alloc_pages(1));
     pfns[0] = (uint32_t)(base >> VIRTIO_BALLOON_PFN_SHIFT);
-    uint64_t p = vv_virt_to_phys(pfns);
 
-    vring_raw_set_desc(&deflate_vr, 0, p, 4, 0, 0);
+    vring_raw_set_desc(&deflate_vr, 0, vv_virt_to_phys(pfns), 4, 0, 0);
     vring_raw_set_avail(&deflate_vr, 0, 0);
     vring_raw_set_avail_idx(&deflate_vr, 1);
 

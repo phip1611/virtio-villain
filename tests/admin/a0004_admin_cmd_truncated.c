@@ -18,14 +18,11 @@ static test_result_t test_admin_cmd_truncated(struct virtio_dev *dev,
     cmd[0] = 0x01; /* partial opcode */
     cmd[1] = 0x00;
 
-    uint64_t cmd_phys = vv_virt_to_phys(cmd);
-    uint64_t result_phys = vv_virt_to_phys(result);
-
     /* Truncated command header: only 2 bytes instead of full header */
-    vring_raw_set_desc(vr, 0, cmd_phys, 2,
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(cmd), 2,
                        VRING_DESC_F_NEXT, 1);
     /* result buffer (device-writable) */
-    vring_raw_set_desc(vr, 1, result_phys, 64,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(result), 64,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

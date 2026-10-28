@@ -30,15 +30,12 @@ static test_result_t test_desc_addr_other_queue_used(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /* Data descriptor writes 512 bytes into queue 1's used ring. */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, vr2.used_phys, 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, status_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

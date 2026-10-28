@@ -22,7 +22,6 @@ static test_result_t test_blk_header_split(struct virtio_dev *dev,
     *status = 0xFF;
 
     uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
     uint64_t status_phys = vv_virt_to_phys(status);
 
     /*
@@ -34,7 +33,7 @@ static test_result_t test_blk_header_split(struct virtio_dev *dev,
      */
     vring_raw_set_desc(vr, 0, hdr_phys, 8, VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, hdr_phys + 8, 8, VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, data_phys, 512,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(data), 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 3);
     vring_raw_set_desc(vr, 3, status_phys, 1, VRING_DESC_F_WRITE, 0);
 

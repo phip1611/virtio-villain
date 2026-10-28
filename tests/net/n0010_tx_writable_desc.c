@@ -23,13 +23,10 @@ static test_result_t test_net_tx_writable_desc(struct virtio_dev *dev,
 
     memset(frame, 0x42, 64);
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t frame_phys = vv_virt_to_phys(frame);
-
     /* TX descriptors with WRITE flag - wrong direction */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, frame_phys, 64,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(frame), 64,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

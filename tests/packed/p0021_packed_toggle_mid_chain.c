@@ -21,10 +21,6 @@ static test_result_t test_packed_toggle_mid_chain(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Desc 0: available (correct flags), NEXT set
      * Desc 1: WRONG avail flag (inverted), NEXT set
@@ -36,12 +32,12 @@ static test_result_t test_packed_toggle_mid_chain(struct virtio_dev *dev,
     uint16_t wrong_used = vr->wrap_counter ? (1 << 15) : 0;
 
     /* Desc 0: header - properly available */
-    vr->desc[0].addr = hdr_phys;
+    vr->desc[0].addr = vv_virt_to_phys(hdr);
     vr->desc[0].len = sizeof(*hdr);
     vr->desc[0].id = 0;
 
     /* Desc 1: data - WRONG avail/used bits */
-    vr->desc[1].addr = data_phys;
+    vr->desc[1].addr = vv_virt_to_phys(data);
     vr->desc[1].len = 512;
     vr->desc[1].id = 1;
     vr->desc[1].flags = VRING_PACKED_DESC_F_NEXT |
@@ -49,7 +45,7 @@ static test_result_t test_packed_toggle_mid_chain(struct virtio_dev *dev,
                          wrong_avail | wrong_used;
 
     /* Desc 2: status - properly available */
-    vr->desc[2].addr = status_phys;
+    vr->desc[2].addr = vv_virt_to_phys(status);
     vr->desc[2].len = 1;
     vr->desc[2].id = 2;
     vr->desc[2].flags = VRING_PACKED_DESC_F_WRITE | avail_flag | used_flag;

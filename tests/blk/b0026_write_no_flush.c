@@ -32,27 +32,20 @@ static test_result_t test_blk_write_no_flush(struct virtio_dev *dev,
     hdr_r->sector = 0;
     *status_r = 0xFF;
 
-    uint64_t hdr_w_phys = vv_virt_to_phys(hdr_w);
-    uint64_t wdata_phys = vv_virt_to_phys(wdata);
-    uint64_t status_w_phys = vv_virt_to_phys(status_w);
-    uint64_t hdr_r_phys = vv_virt_to_phys(hdr_r);
-    uint64_t rdata_phys = vv_virt_to_phys(rdata);
-    uint64_t status_r_phys = vv_virt_to_phys(status_r);
-
     /* Request 1 (write): descs 0-2 */
-    vring_raw_set_desc(vr, 0, hdr_w_phys, sizeof(*hdr_w),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr_w), sizeof(*hdr_w),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, wdata_phys, 512,
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(wdata), 512,
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, status_w_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status_w), 1,
                        VRING_DESC_F_WRITE, 0);
 
     /* Request 2 (read): descs 3-5 */
-    vring_raw_set_desc(vr, 3, hdr_r_phys, sizeof(*hdr_r),
+    vring_raw_set_desc(vr, 3, vv_virt_to_phys(hdr_r), sizeof(*hdr_r),
                        VRING_DESC_F_NEXT, 4);
-    vring_raw_set_desc(vr, 4, rdata_phys, 512,
+    vring_raw_set_desc(vr, 4, vv_virt_to_phys(rdata), 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 5);
-    vring_raw_set_desc(vr, 5, status_r_phys, 1,
+    vring_raw_set_desc(vr, 5, vv_virt_to_phys(status_r), 1,
                        VRING_DESC_F_WRITE, 0);
 
     /* Both in avail ring */

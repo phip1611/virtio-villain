@@ -27,12 +27,9 @@ static test_result_t test_vsock_unknown_stream(struct virtio_dev *dev,
 
     memset(payload, 0xDD, 64);
 
-    uint64_t pkt_phys = vv_virt_to_phys(pkt);
-    uint64_t payload_phys = vv_virt_to_phys(payload);
-
-    vring_raw_set_desc(vr, 0, pkt_phys, sizeof(*pkt),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pkt), sizeof(*pkt),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, payload_phys, 64, 0, 0);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(payload), 64, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

@@ -20,7 +20,6 @@ static test_result_t test_desc_chain_too_long(struct virtio_dev *dev, struct vri
     hdr->sector = 0;
     memset(data, 0, 512);
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
     uint64_t data_phys = vv_virt_to_phys(data);
 
     uint16_t qsz = vr->size;
@@ -35,7 +34,7 @@ static test_result_t test_desc_chain_too_long(struct virtio_dev *dev, struct vri
      *
      * A safe VMM must cap the walk at qsz entries.
      */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
 
     for (uint16_t i = 1; i < qsz - 1; i++) {

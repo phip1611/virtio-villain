@@ -21,10 +21,6 @@ static test_result_t test_packed_event_suppress_desc(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Set driver event suppression to DESC mode: notify only when
      * descriptor at index 1 (with current wrap) is used.
@@ -35,11 +31,11 @@ static test_result_t test_packed_event_suppress_desc(struct virtio_dev *dev,
     __sync_synchronize();
 
     /* Submit first request at index 0 */
-    vring_packed_set_desc(vr, 0, hdr_phys, sizeof(*hdr), 0,
+    vring_packed_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr), 0,
                           VRING_PACKED_DESC_F_NEXT);
-    vring_packed_set_desc(vr, 1, data_phys, 512, 0,
+    vring_packed_set_desc(vr, 1, vv_virt_to_phys(data), 512, 0,
                           VRING_PACKED_DESC_F_NEXT | VRING_PACKED_DESC_F_WRITE);
-    vring_packed_set_desc(vr, 2, status_phys, 1, 0,
+    vring_packed_set_desc(vr, 2, vv_virt_to_phys(status), 1, 0,
                           VRING_PACKED_DESC_F_WRITE);
 
     uint8_t check_wrap = vr->wrap_counter;

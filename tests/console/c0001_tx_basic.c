@@ -17,10 +17,8 @@ static test_result_t test_console_tx_basic(struct virtio_dev *dev,
     char *buf = (char *)vv_alloc_pages(1);
     memcpy(buf, "vv\n", 3);
 
-    uint64_t buf_phys = vv_virt_to_phys(buf);
-
     /* TX descriptor: read-only payload sent from guest to device */
-    vring_raw_set_desc(vr, 0, buf_phys, 3, 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 3, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

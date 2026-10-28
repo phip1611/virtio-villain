@@ -21,20 +21,17 @@ static test_result_t test_desc_addr_zero(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /*
      * Descriptor chain:
      *   [0] valid header (readable)
      *   [1] data buffer at GPA 0x0 (writable)
      *   [2] status byte (writable, valid)
      */
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, 0x0ULL, 512,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);
-    vring_raw_set_desc(vr, 2, status_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

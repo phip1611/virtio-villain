@@ -26,7 +26,6 @@ static test_result_t test_blk_read_huge_len_past_ram(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
     uint64_t status_phys = vv_virt_to_phys(status);
 
     uint64_t data_phys;
@@ -38,7 +37,7 @@ static test_result_t test_blk_read_huge_len_past_ram(struct virtio_dev *dev,
         overshoot = 0xFFFFFFFFULL;
     uint32_t len = (uint32_t)overshoot;
 
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, data_phys, len,
                        VRING_DESC_F_NEXT | VRING_DESC_F_WRITE, 2);

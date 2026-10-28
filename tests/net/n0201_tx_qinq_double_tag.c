@@ -39,10 +39,9 @@ static test_result_t test_net_tx_qinq_double_tag(struct virtio_dev *dev,
     uint32_t frame_len = (uint32_t)(p - frame);
 
     uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t frame_phys = vv_virt_to_phys(frame);
 
     vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr), VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, frame_phys, frame_len, 0, 0);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(frame), frame_len, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }

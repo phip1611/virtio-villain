@@ -16,10 +16,8 @@ static test_result_t test_balloon_inflate_odd_len(struct virtio_dev *dev,
     uint64_t base = vv_virt_to_phys(vv_alloc_pages(1));
     pfns[0] = (uint32_t)(base >> VIRTIO_BALLOON_PFN_SHIFT);
 
-    uint64_t pfns_phys = vv_virt_to_phys(pfns);
-
     /* 5 bytes instead of 4 — not aligned to PFN entry size */
-    vring_raw_set_desc(vr, 0, pfns_phys, 5, 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(pfns), 5, 0, 0);
     return vv_submit_and_wait(dev, vr, 0);
 }
 

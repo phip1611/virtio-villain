@@ -20,7 +20,6 @@ static test_result_t test_rtc_resp_huge_len_past_ram(struct virtio_dev *dev,
     memset(buf, 0, 256);
     struct rtc_req_read *req = (void *)buf;
     req->msg_type = VIRTIO_RTC_REQ_READ;
-    uint64_t base = vv_virt_to_phys(buf);
     uint64_t resp_phys;
     if (!vv_alloc_page_near_ram_top(ram_top, &resp_phys))
         return TEST_SKIP;
@@ -30,7 +29,7 @@ static test_result_t test_rtc_resp_huge_len_past_ram(struct virtio_dev *dev,
         overshoot = 0xFFFFFFFFULL;
     uint32_t len = (uint32_t)overshoot;
 
-    vring_raw_set_desc(vr, 0, base, sizeof(*req),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), sizeof(*req),
                        VRING_DESC_F_NEXT, 1);
     vring_raw_set_desc(vr, 1, resp_phys, len,
                        VRING_DESC_F_WRITE, 0);

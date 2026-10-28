@@ -21,24 +21,20 @@ static test_result_t test_indirect_chained(struct virtio_dev *dev,
     hdr->sector = 0;
     *status = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t data_phys = vv_virt_to_phys(data);
-    uint64_t status_phys = vv_virt_to_phys(status);
-
     /* First indirect table: just the header descriptor */
     struct vring_desc *indirect1 = vv_alloc_pages(1);
-    indirect1[0].addr = hdr_phys;
+    indirect1[0].addr = vv_virt_to_phys(hdr);
     indirect1[0].len = sizeof(*hdr);
     indirect1[0].flags = 0;
     indirect1[0].next = 0;
 
     /* Second indirect table: data + status */
     struct vring_desc *indirect2 = vv_alloc_pages(1);
-    indirect2[0].addr = data_phys;
+    indirect2[0].addr = vv_virt_to_phys(data);
     indirect2[0].len = 512;
     indirect2[0].flags = VRING_DESC_F_NEXT | VRING_DESC_F_WRITE;
     indirect2[0].next = 1;
-    indirect2[1].addr = status_phys;
+    indirect2[1].addr = vv_virt_to_phys(status);
     indirect2[1].len = 1;
     indirect2[1].flags = VRING_DESC_F_WRITE;
     indirect2[1].next = 0;

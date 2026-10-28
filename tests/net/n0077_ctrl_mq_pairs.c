@@ -24,15 +24,11 @@ static test_result_t test_net_ctrl_mq_pairs(struct virtio_dev *dev,
     mq->virtqueue_pairs = 1;  /* Set to 1 pair (minimum valid) */
     *ack = 0xFF;
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t mq_phys = vv_virt_to_phys(mq);
-    uint64_t ack_phys = vv_virt_to_phys(ack);
-
-    vring_raw_set_desc(vr, 0, hdr_phys, sizeof(*hdr),
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, mq_phys, sizeof(*mq),
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(mq), sizeof(*mq),
                        VRING_DESC_F_NEXT, 2);
-    vring_raw_set_desc(vr, 2, ack_phys, 1,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(ack), 1,
                        VRING_DESC_F_WRITE, 0);
 
     test_result_t r = vv_submit_and_wait(dev, vr, 0);

@@ -27,8 +27,6 @@ static test_result_t test_net_notf_coal_vq_get(struct virtio_dev *dev,
     *status = 0xFF;
 
     uint64_t ctrl_phys = vv_virt_to_phys(ctrl);
-    uint64_t resp_phys = vv_virt_to_phys(resp_page);
-    uint64_t status_phys = vv_virt_to_phys(status);
 
     /* Header + request data (device readable) */
     vring_raw_set_desc(vr, 0, ctrl_phys, sizeof(*ctrl),
@@ -36,11 +34,11 @@ static test_result_t test_net_notf_coal_vq_get(struct virtio_dev *dev,
     vring_raw_set_desc(vr, 1, ctrl_phys + sizeof(*ctrl), sizeof(*req),
                        VRING_DESC_F_NEXT, 2);
     /* Response (device writable) */
-    vring_raw_set_desc(vr, 2, resp_phys,
+    vring_raw_set_desc(vr, 2, vv_virt_to_phys(resp_page),
                        sizeof(struct virtio_net_ctrl_coal_vq_get_resp),
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 3);
     /* Status (device writable) */
-    vring_raw_set_desc(vr, 3, status_phys, 1,
+    vring_raw_set_desc(vr, 3, vv_virt_to_phys(status), 1,
                        VRING_DESC_F_WRITE, 0);
 
     return vv_submit_and_wait(dev, vr, 0);

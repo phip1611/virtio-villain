@@ -34,12 +34,9 @@ static test_result_t test_net_tx_mrg_no_feature(struct virtio_dev *dev,
     frame[12] = 0x08; frame[13] = 0x00;
     memset(frame + 14, 0x41, 46);
 
-    uint64_t hdr_phys = vv_virt_to_phys(hdr);
-    uint64_t frame_phys = vv_virt_to_phys(frame);
-
     /* Use 12-byte header size (mergeable) in descriptor */
-    vring_raw_set_desc(vr, 0, hdr_phys, 12, VRING_DESC_F_NEXT, 1);
-    vring_raw_set_desc(vr, 1, frame_phys, 60, 0, 0);
+    vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), 12, VRING_DESC_F_NEXT, 1);
+    vring_raw_set_desc(vr, 1, vv_virt_to_phys(frame), 60, 0, 0);
 
     return vv_submit_and_wait(dev, vr, 0);
 }
