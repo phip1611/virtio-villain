@@ -6,12 +6,6 @@
  * The device must not overflow internal length calculations.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring_packed.h"
-#include "lib/virtio_pci.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_packed_max_len(struct virtio_dev *dev,
                                          struct vring_packed *vr)

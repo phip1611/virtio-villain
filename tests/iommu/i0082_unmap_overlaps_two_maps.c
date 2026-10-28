@@ -11,13 +11,7 @@
  * then UNMAP [0x1800..0x2800) which straddles A and B.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t submit_chain(struct virtio_dev *dev, struct vring *vr,
                                   uint8_t *req_page, size_t in_len,

@@ -12,13 +12,7 @@
  * property type code is NONE (empty) or RESV_MEM.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define VIRTIO_IOMMU_PROBE_T_NONE     0
 #define VIRTIO_IOMMU_PROBE_T_RESV_MEM 1

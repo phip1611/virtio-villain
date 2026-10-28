@@ -14,12 +14,6 @@
  * status OK and the device stays alive.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <unistd.h>
 
 /* The harness allocates a 16 entry ring; 5 chains use 15 descriptors. */
 #define BATCH 5

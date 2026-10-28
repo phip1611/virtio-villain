@@ -12,10 +12,6 @@
  * the non RAM source cleanly.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t test_balloon_pfn_in_bar(struct virtio_dev *dev,
                                              struct vring *vr)

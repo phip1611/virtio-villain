@@ -8,7 +8,6 @@
  * verify guest_cid is in the legal driver range.
  */
 #include "tests/test.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {

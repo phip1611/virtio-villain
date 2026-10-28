@@ -8,12 +8,6 @@
  * Submit ZONE_RESET_ALL with sector = 0xDEAD to violate this.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_zone_reset_all_nonzero(struct virtio_dev *dev,
                                                  struct vring *vr)

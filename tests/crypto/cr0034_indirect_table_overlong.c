@@ -13,12 +13,6 @@
  * advertised, and when indirect descriptors are not negotiated.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 #define INDIRECT_OVERLONG_ENTRIES 64
 

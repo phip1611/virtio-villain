@@ -12,12 +12,6 @@
  * library.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static uint64_t make_cipher_session(struct virtio_dev *dev, struct vring *cvr,
                                     uint16_t slot, uint32_t op,

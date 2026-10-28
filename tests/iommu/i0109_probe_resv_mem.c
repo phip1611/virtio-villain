@@ -11,13 +11,7 @@
  * MSI, the range is non-empty, and the entry fits in probe_size.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define PROBE_T_MASK          0x0fff
 #define PROBE_T_NONE          0

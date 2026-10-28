@@ -8,8 +8,6 @@
  */
 #include "tests/scsi/scsi_util.h"
 
-#include <unistd.h>
-
 static test_result_t test_scsi_eventq_buffer(struct virtio_dev *dev,
                                              struct vring *vr)
 {

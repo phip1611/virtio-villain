@@ -7,12 +7,6 @@
  * Read it and verify it is in a sane range (68..65535).
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <unistd.h>
 
 #define NET_CFG_MTU_OFFSET 10
 

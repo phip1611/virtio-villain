@@ -9,11 +9,6 @@
  * The device must not crash; it may ignore the writes.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_queue_before_ack(struct virtio_dev *dev,
                                            struct vring *vr)

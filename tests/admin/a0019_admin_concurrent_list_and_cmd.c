@@ -7,13 +7,6 @@
  * are in flight concurrently on the same admin queue.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define ADMIN_OPCODE_LIST_USE 0x0000
 #define ADMIN_OPCODE_LIST_QUERY 0x0001

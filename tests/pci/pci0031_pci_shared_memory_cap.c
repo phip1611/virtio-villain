@@ -7,14 +7,7 @@
  * fields. If not present, simply pass (not all devices expose SHM).
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/pci.h"
-
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 static test_result_t test_shared_memory_cap(struct virtio_dev *dev,
                                             struct vring *vr)

@@ -7,14 +7,7 @@
  * enable legacy MSI. The VMM must handle this conflict gracefully.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/pci.h"
-
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 #define MSIX_CTRL_ENABLE  0x8000  /* Bit 15 of MSI-X Message Control */
 

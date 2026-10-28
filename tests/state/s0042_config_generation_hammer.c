@@ -10,11 +10,6 @@
  * alive. This catches VMMs that touch device state on every read.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_config_generation_hammer(struct virtio_dev *dev,
                                                    struct vring *vr)

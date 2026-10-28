@@ -12,12 +12,6 @@
  * shape and reject the malformed order.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_admin_status_before_data(struct virtio_dev *dev,
                                                    struct vring *vr)

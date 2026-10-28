@@ -8,14 +8,6 @@
  * not be confused by pre-existing used flags on other slots.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/vring_packed.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_packed_all_used_before_kick(struct virtio_dev *dev,
                                                      struct vring_packed *vr)

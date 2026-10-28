@@ -8,11 +8,6 @@
  * both heads become used.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static int submit(struct virtio_dev *dev, struct vring_packed *vr,
                   uint64_t sector, uint16_t *head_out, uint8_t *wrap_out)

@@ -9,13 +9,6 @@
  * back with VQ_GET and verify the device returns the same values.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define COAL_MAX_PACKETS 16
 #define COAL_MAX_USECS   250

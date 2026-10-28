@@ -7,13 +7,6 @@
  * to handle concurrent I/O on all queues at once.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define MAX_QUEUES 16
 

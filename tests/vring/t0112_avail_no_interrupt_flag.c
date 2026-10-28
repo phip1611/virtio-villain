@@ -9,13 +9,6 @@
  * interrupt suppression (no IRQ handler) but exercises the flag path.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define VRING_AVAIL_F_NO_INTERRUPT 1
 

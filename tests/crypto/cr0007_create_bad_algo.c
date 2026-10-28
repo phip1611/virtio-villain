@@ -10,12 +10,6 @@
  * is not offered; passes under QEMU.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 #define BOGUS_CIPHER_ALGO 0x7fffffffu
 

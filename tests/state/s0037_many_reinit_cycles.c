@@ -10,13 +10,6 @@
  * valid I/O confirms the device is still usable.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define REINIT_CYCLES 50
 

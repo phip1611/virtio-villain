@@ -9,12 +9,6 @@
  * Submit WRITE_ZEROES with flags = 0xFFFFFFFF (unmap + unknown bits).
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_blk_wz_unknown_flags_all(struct virtio_dev *dev,
                                                    struct vring *vr)

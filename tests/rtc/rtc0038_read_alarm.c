@@ -10,13 +10,6 @@
  * alive, without asserting a particular alarm value.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <stdint.h>
 
 /* READ_ALARM request. Header followed by the clock id, matching
  * the layout used by the other clock selecting requests. */

@@ -9,8 +9,6 @@
  */
 #include "tests/test.h"
 #include "lib/pci.h"
-#include "lib/util.h"
-#include "lib/virtio_spec.h"
 
 #include <errno.h>
 

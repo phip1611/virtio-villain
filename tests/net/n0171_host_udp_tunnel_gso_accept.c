@@ -10,10 +10,6 @@
  * does not offer the feature, as CH does not.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t test_net_host_udp_tunnel_gso_accept(
     struct virtio_dev *dev, struct vring *vr)

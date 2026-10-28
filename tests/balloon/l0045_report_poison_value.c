@@ -12,12 +12,6 @@
  * Skips when the device does not offer both features.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 #define BALLOON_CFG_POISON_VAL_OFFSET 12
 #define FILL_PATTERN 0xA5A5A5A5u

@@ -7,11 +7,6 @@
  * queue_select may write to an out-of-bounds queue array slot.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_pci_queue_select_oob(struct virtio_dev *dev,
                                                struct vring *vr)

@@ -7,12 +7,6 @@
  * must detect the cycle rather than walk the chain forever.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_watchdog_self_loop(struct virtio_dev *dev,
                                              struct vring *vr)

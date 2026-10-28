@@ -8,12 +8,6 @@
  * Submit WRITE_ZEROES with data length = 8 (half a segment struct).
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_blk_wz_data_not_16(struct virtio_dev *dev,
                                              struct vring *vr)

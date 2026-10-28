@@ -7,13 +7,6 @@
  * handling of full-capacity discard batches.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 /* max_discard_seg offset in virtio_blk_config: byte 44 (uint32) */
 #define CFG_MAX_DISCARD_SEG_OFF  44

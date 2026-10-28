@@ -6,12 +6,6 @@
  * read/write. Submit a WRITE with 513 bytes of data.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_blk_write_513_bytes(struct virtio_dev *dev,
                                               struct vring *vr)

@@ -10,13 +10,6 @@
  * confusing status with data or scribbling on the data buffer.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_blk_write_status_before_data(struct virtio_dev *dev,
                                                        struct vring *vr)

@@ -6,13 +6,7 @@
  * Read vendor ID from PCI config offset 0 and verify.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 #include "lib/pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_pci_vendor_id(struct virtio_dev *dev,
                                         struct vring *vr)

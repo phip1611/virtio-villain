@@ -8,13 +8,6 @@
  * of the descriptor size, so the device must refuse it without harm.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_net_tx_indirect_unaligned(struct virtio_dev *dev,
                                                     struct vring *vr)

@@ -8,12 +8,6 @@
  * duplex is 0x00 (half), 0x01 (full), or 0xff (unknown).
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <unistd.h>
 
 static test_result_t test_net_speed_duplex_valid(struct virtio_dev *dev,
                                                  struct vring *vr)

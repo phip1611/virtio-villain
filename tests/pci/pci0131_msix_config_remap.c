@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 #include "msix_helpers.h"
-#include "lib/util.h"
 
 static test_result_t capacity(struct msix_test *ctx, uint64_t *value,
                                uint8_t *generation)

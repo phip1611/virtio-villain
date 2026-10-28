@@ -5,11 +5,6 @@
  * Set queue_used to an address not aligned to 4 bytes.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_queue_used_unaligned(struct virtio_dev *dev,
                                                struct vring *vr)

@@ -7,12 +7,6 @@
  * up the queue, and issue a single FLUSH.
  */
 #include "tests/test.h"
-#include "lib/virtio_spec.h"
-#include "lib/util.h"
-
-#include <string.h>
-#include <unistd.h>
-
 
 static test_result_t test_pmem_reset_flush(struct virtio_dev *dev,
                                            struct vring *vr)

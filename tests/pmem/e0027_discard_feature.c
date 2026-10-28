@@ -8,12 +8,6 @@
  * completion.
  */
 #include "tests/test.h"
-#include "lib/virtio_spec.h"
-#include "lib/util.h"
-
-#include <string.h>
-
-
 
 static test_result_t test_pmem_discard(struct virtio_dev *dev,
                                        struct vring *vr)

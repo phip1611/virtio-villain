@@ -7,7 +7,6 @@
  * MMIO location. Verify it is non zero for a discovered device.
  */
 #include "tests/test.h"
-#include "lib/virtio_mmio.h"
 
 static test_result_t do_test(struct virtio_mmio_dev *dev)
 {

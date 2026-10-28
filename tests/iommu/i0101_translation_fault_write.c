@@ -5,10 +5,7 @@
  * v1.4 5.13.6.3: MAP with flags = READ permits reads only.
  */
 #include "tests/test.h"
-#include "lib/util.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
 
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {

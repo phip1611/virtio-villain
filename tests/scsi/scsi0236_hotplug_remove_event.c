@@ -11,8 +11,6 @@
  */
 #include "tests/scsi/scsi_util.h"
 
-#include <unistd.h>
-
 #define NBUF 4
 
 static test_result_t test_scsi_unplug_event(struct virtio_dev *dev,

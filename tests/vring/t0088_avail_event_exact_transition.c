@@ -7,13 +7,6 @@
  * the device MUST be notified. Tests the exact boundary condition.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_avail_event_exact(struct virtio_dev *dev,
                                             struct vring *vr)

@@ -10,14 +10,6 @@
  * affects whether a notification is raised, not whether work runs.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/vring_packed.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static int submit_one(struct virtio_dev *dev, struct vring_packed *vr,
                       uint64_t sector)

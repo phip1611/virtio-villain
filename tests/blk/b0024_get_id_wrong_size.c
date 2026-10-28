@@ -7,13 +7,6 @@
  * Spec 5.2.6.1: device uses 20 bytes for serial number.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_blk_get_id_wrong_size(struct virtio_dev *dev,
                                                 struct vring *vr)

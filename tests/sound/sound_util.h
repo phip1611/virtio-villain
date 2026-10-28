@@ -3,12 +3,7 @@
 #define VV_SOUND_UTIL_H
 
 #include "tests/test.h"
-#include "lib/util.h"
 #include "lib/virtio_snd.h"
-
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
 
 #define SND_JACK_INFO_SIZE   24
 #define SND_PCM_INFO_SIZE    32

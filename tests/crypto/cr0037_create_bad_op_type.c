@@ -12,12 +12,6 @@
  * Cloud Hypervisor and when the cipher service is not advertised.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 #define BOGUS_SYM_OP_TYPE 0xdeadu
 

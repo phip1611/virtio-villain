@@ -11,13 +11,6 @@
  * status bytes report OK.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static int build_read(struct vring *vr, uint64_t sector, uint8_t **st_out)
 {

@@ -11,13 +11,6 @@
  * zero coalesced packets is invalid.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_net_rsc_ext_rx_header(struct virtio_dev *dev,
                                                 struct vring *vr)
