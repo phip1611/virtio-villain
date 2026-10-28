@@ -3,7 +3,7 @@
 
 import argparse
 from collections import Counter
-from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field as dataclass_field
 import hashlib
 import importlib.util
@@ -19,7 +19,7 @@ import threading
 import time
 from typing import Optional
 import uuid
-from villain import reporting
+from villain import execution, reporting
 from villain.build import BuildSpec
 from villain.cli import canonicalize_tests
 from villain.console import FileFollower
@@ -474,22 +474,14 @@ def launch(suite, args, selected, descriptions=None):
         else:
             with ThreadPoolExecutor(max_workers=jobs) as pool:
                 progress("starting...")
-                pending = {}
+                work = execution.CompletionQueue(
+                    pool, lambda task: run_one(*task[1]), tasks, limit=jobs, stop=stopped)
                 try:
                     while True:
                         try:
-                            while not stopped.is_set() and len(pending) < jobs:
-                                task = next(tasks, None)
-                                if task is None:
-                                    break
-                                index, (iteration, test) = task
-                                pending[pool.submit(run_one, iteration, test)] = index
-                            if not pending:
-                                break
-                            done, _ = wait(pending, return_when=FIRST_COMPLETED)
-                            for future in done:
-                                outcome = future.result()
-                                record(pending.pop(future), outcome)
+                            for (index, _), future in work:
+                                record(index, future.result())
+                            break
                         except KeyboardInterrupt:
                             report["interrupted"] = True
                             stopped.set()

@@ -9,6 +9,7 @@ and exit codes, prints a summary.
 
 import argparse
 from collections import Counter
+from contextlib import ExitStack
 import fnmatch
 import json
 import hashlib
@@ -22,23 +23,22 @@ import stat
 import subprocess
 import sys
 import fcntl
-import pty
 import shutil
 import tempfile
 import threading
 import platform
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_SCRIPT_DIR, "lib", "python"))
-from villain import images, reporting  # noqa: E402
+from villain import execution, images, process, reporting  # noqa: E402
 from villain.cli import (  # noqa: E402
     ShortFirstHelpFormatter, print_banner, normalize_memory as _normalize_mem,
     canonicalize_tests as _canonicalize_tests,
 )
 from villain.console import (  # noqa: E402
-    ctty_preexec as _ctty_preexec, merge_streams as _merge_streams,
+    merge_streams as _merge_streams,
     restore_terminal as _restore_term, save_terminal as _save_term,
     drain_stream,
 )
@@ -47,7 +47,6 @@ from villain.host import enable_sysconfigs  # noqa: E402
 from villain.process import (  # noqa: E402
     install_termination_as_interrupt as _install_termination_as_interrupt,
     kill_all_processes as _kill_all_live_procs, kill_process as _kill_proc,
-    register_process as _register_proc, unregister_process as _unregister_proc,
 )
 from villain.vmm import (  # noqa: E402
     DEFAULT_VMM_TRACE_FILE, CloudHypervisor, Qemu, QemuMicrovm,
@@ -289,10 +288,7 @@ def _mmio_boots(backend, kernel, initramfs):
                 kernel, initramfs, disk,
                 f"console={backend.console_device} vv.test=list")
             try:
-                result = subprocess.run(
-                    command, stdin=subprocess.DEVNULL,
-                    capture_output=True, timeout=2,
-                    start_new_session=True)
+                result = process.capture(command, timeout=2)
                 return result.stdout
             except subprocess.TimeoutExpired as error:
                 return error.stdout or b""
@@ -523,7 +519,7 @@ def _load_sidecar(path):
 
 
 def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
-             disk_format="raw", opts=None):
+             disk_format="raw", opts=None, stop=None):
     """Run one or more tests in a fresh VM.
 
     test_name is a single test ID string or a list of IDs. When a
@@ -535,6 +531,8 @@ def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
 
     Returns a list of (name, status, output) tuples.
     """
+    if stop is not None and stop.is_set():
+        raise KeyboardInterrupt
     if isinstance(test_name, str):
         test_names = [test_name]
     else:
@@ -705,6 +703,8 @@ def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
     saved_term = _save_term() if console else None
     proc = None
     openvmm_master = None
+    processes = ExitStack()
+    timer = None
     sidecar_thread = None
     sidecar_state = {"err": None, "skip": None}
     sidecar_stop = threading.Event()
@@ -727,36 +727,9 @@ def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
         old_sigint = None
         if console:
             old_sigint = signal.signal(signal.SIGINT, signal.SIG_IGN)
-        # OpenVMM's interactive REPL needs a controlling terminal, so give
-        # it a private pty on stdin. The verdict markers still ride the
-        # stdout pipe, so the reader loop below is unchanged. Other
-        # backends keep stdin closed and start their own session.
-        stdin_arg = subprocess.DEVNULL
-        preexec = None
-        new_session = not console
-        if backend.name == "openvmm":
-            openvmm_master, slave_fd = pty.openpty()
-            stdin_arg = slave_fd
-            preexec = _ctty_preexec(os.ttyname(slave_fd).encode())
-            # setsid happens in the preexec, so do not ask Popen for it too
-            # (a second setsid would fail in the child and abort the spawn).
-            new_session = False
-        try:
-            proc = subprocess.Popen(
-                cmd,
-                stdin=stdin_arg,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                start_new_session=new_session,
-                preexec_fn=preexec,
-            )
-        finally:
-            # The child now holds the slave; the parent keeps only the
-            # master, which it never reads (the guest sends no console
-            # input). Closing the slave here avoids leaking a descriptor.
-            if openvmm_master is not None:
-                os.close(slave_fd)
-        _register_proc(proc)
+        proc, openvmm_master = processes.enter_context(process.spawn(
+            cmd, terminal=backend.name == "openvmm", start_new_session=not console,
+            stop=stop, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
         if proc.stderr is not None:
             err_thread = threading.Thread(
                 target=drain_stream,
@@ -940,36 +913,12 @@ def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
         output = str(e)
         status = "FAIL"
     finally:
-        # Defensive: under any exit path make sure the VMM is gone
-        # before we let the worker thread return. Otherwise an
-        # unexpected exception above can leak CH instances that get
-        # reparented to init when run exits.
+        if timer is not None:
+            timer.cancel()
+            if timer.ident is not None:
+                timer.join()
         if proc and proc.poll() is None:
-            try:
-                if console:
-                    proc.kill()
-                else:
-                    _kill_proc(proc)
-            except OSError:
-                pass
-            try:
-                proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                try:
-                    proc.kill()
-                except OSError:
-                    pass
-                try:
-                    proc.wait(timeout=2)
-                except subprocess.TimeoutExpired:
-                    pass
-        if proc:
-            _unregister_proc(proc)
-        if openvmm_master is not None:
-            try:
-                os.close(openvmm_master)
-            except OSError:
-                pass
+            _kill_proc(proc, process_group=not console or backend.name == "openvmm")
         if err_thread is not None and err_thread.is_alive():
             err_thread.join(timeout=5)
         sidecar_stop.set()
@@ -1002,6 +951,7 @@ def run_test(backend, kernel, test_name, timeout, verbose=0, console=False,
             output += extra
         if sidecar_tmpdir:
             shutil.rmtree(sidecar_tmpdir, ignore_errors=True)
+        processes.close()
         _restore_term(saved_term)
         if console:
             signal.signal(signal.SIGINT, signal.default_int_handler)
@@ -1813,26 +1763,8 @@ def main():
                 probe_cmd = probe_backend.build_cmd(
                     probe_kernel, args.initramfs, probe_disk,
                     probe_cmdline, probe_opts)
-                master_fd = slave_fd = None
-                launch_opts = {"stdin": subprocess.DEVNULL,
-                               "start_new_session": True}
-                if probe_backend.name == "openvmm":
-                    master_fd, slave_fd = pty.openpty()
-                    launch_opts = {
-                        "stdin": slave_fd,
-                        "start_new_session": False,
-                        "preexec_fn": _ctty_preexec(
-                            os.ttyname(slave_fd).encode()),
-                    }
-                try:
-                    result = subprocess.run(
-                        probe_cmd, capture_output=True, timeout=args.timeout,
-                        **launch_opts)
-                finally:
-                    if slave_fd is not None:
-                        os.close(slave_fd)
-                    if master_fd is not None:
-                        os.close(master_fd)
+                result = process.capture(
+                    probe_cmd, timeout=args.timeout, terminal=probe_backend.name == "openvmm")
                 cleaned = _clean_result_output(
                     result.stdout.decode(errors="replace"))
                 if "PROBE\t" not in cleaned:
@@ -1988,6 +1920,7 @@ def main():
         _report(name, status, output)
 
     pool = None
+    stopped = threading.Event()
     # Reorder tests according to --test-order.
     if args.order == "fast":
         _sidecar_re = re.compile(r'[A-Z]+0[23]\d\d', re.IGNORECASE)
@@ -2056,39 +1989,39 @@ def main():
     else:
         work_items = [[t] for t in tests]
 
+    def run_item(item):
+        return run_test(
+            backend, kernel, item if len(item) > 1 else item[0],
+            args.timeout, args.verbose, args.console, args.disk_type, vm_opts, stopped)
+
+    def finish_results(batch_results):
+        if batch_size > 1:
+            batch_results = _retry_wedged(
+                batch_results, backend, kernel, args.timeout, args.verbose,
+                args.disk_type, vm_opts)
+        if args.retries > 0:
+            batch_results = _apply_retries(
+                batch_results, args.retries, backend, kernel, args.timeout,
+                args.verbose, args.disk_type, vm_opts, batch_size > 1)
+        return batch_results
+
     try:
         if args.jobs > 1 and not args.console:
             pool = ThreadPoolExecutor(max_workers=args.jobs)
-            futures = {
-                pool.submit(
-                    run_test, backend, kernel,
-                    item if len(item) > 1 else item[0],
-                    args.timeout, args.verbose, False,
-                    args.disk_type, vm_opts
-                ): item for item in work_items
-            }
+            work = execution.CompletionQueue(
+                pool, run_item, work_items, limit=max(args.jobs, len(work_items)), stop=stopped)
             done = len(skipped_mmio)
             _progress(done, total_tests, "starting...")
             try:
-                for future in as_completed(futures):
-                    batch_results = future.result()
-                    if batch_size > 1:
-                        batch_results = _retry_wedged(
-                            batch_results, backend, kernel,
-                            args.timeout, args.verbose,
-                            args.disk_type, vm_opts)
-                    if args.retries > 0:
-                        batch_results = _apply_retries(
-                            batch_results, args.retries,
-                            backend, kernel,
-                            args.timeout, args.verbose,
-                            args.disk_type, vm_opts, batch_size > 1)
+                for _, future in work:
+                    batch_results = finish_results(future.result())
                     for name, status, output in batch_results:
                         done += 1
                         with _print_lock:
                             _report(name, status, output)
                             _progress(done, total_tests)
             except KeyboardInterrupt:
+                stopped.set()
                 _clear_progress()
                 print("\n\nInterrupted. Killing live VMMs...")
                 # Drop unstarted work and SIGKILL everything still
@@ -2102,7 +2035,7 @@ def main():
                 _kill_all_live_procs()
                 # Now drain whatever finishes naturally. Don't propagate
                 # exceptions from cancelled futures.
-                for fut in futures:
+                for fut in work.pending:
                     if fut.cancelled():
                         continue
                     try:
@@ -2121,28 +2054,13 @@ def main():
                 done = len(skipped_mmio)
                 for item in work_items:
                     _progress(done, total_tests, item[0])
-                    batch_results = run_test(
-                        backend, kernel,
-                        item if len(item) > 1 else item[0],
-                        args.timeout, args.verbose, args.console,
-                        args.disk_type, vm_opts
-                    )
-                    if batch_size > 1:
-                        batch_results = _retry_wedged(
-                            batch_results, backend, kernel,
-                            args.timeout, args.verbose,
-                            args.disk_type, vm_opts)
-                    if args.retries > 0:
-                        batch_results = _apply_retries(
-                            batch_results, args.retries,
-                            backend, kernel,
-                            args.timeout, args.verbose,
-                            args.disk_type, vm_opts, batch_size > 1)
+                    batch_results = finish_results(run_item(item))
                     for name, status, output in batch_results:
                         done += 1
                         _report(name, status, output)
                         _progress(done, total_tests)
             except KeyboardInterrupt:
+                stopped.set()
                 _clear_progress()
                 print("\n\nInterrupted. Killing live VMMs...")
                 _kill_all_live_procs()

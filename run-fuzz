@@ -13,7 +13,6 @@ import functools
 import glob
 import hashlib
 import os
-import pty
 import random
 import re
 import shutil
@@ -24,9 +23,7 @@ import sys
 import tempfile
 import threading
 import time
-from concurrent.futures import (
-    ThreadPoolExecutor, FIRST_COMPLETED, wait
-)
+from concurrent.futures import ThreadPoolExecutor
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _fuzz_vsock_cid = 3
@@ -34,9 +31,8 @@ _fuzz_vsock_cid_lock = threading.Lock()
 
 
 sys.path.insert(0, os.path.join(_SCRIPT_DIR, "lib", "python"))
-from villain import host, images, initramfs, vmm
+from villain import execution, host, images, initramfs, process, vmm
 from villain.cli import ShortFirstHelpFormatter, normalize_memory, print_banner
-from villain.console import ctty_preexec
 from villain.diagnostics import (
     CORRUPTION_MARKERS as _CORRUPTION_MARKERS, SECURITY_ORDER as _SECURITY_ORDER,
     is_sanitizer_noise_line as _is_sanitizer_noise_line,
@@ -1482,7 +1478,7 @@ def _detect_backend(vmm_path):
 
 def run_vmm(vmm_path, initramfs_path, profraw_dir, timeout=3,
             kernel_path=None, disk_path=None, cpus=2, memory="128M",
-            fuzz_device=None):
+            fuzz_device=None, stop=None):
     """Boot the VMM with the fuzz initramfs.
 
     Returns (exit_code, crashed, output, timed_out). A timeout under
@@ -1534,24 +1530,9 @@ def run_vmm(vmm_path, initramfs_path, profraw_dir, timeout=3,
                 "fuzz_device": fuzz_device, "exit_on_guest_end": True}
         cmd = backend.build_cmd(kernel, initramfs_path, disk, cmdline, opts)
 
-    # OpenVMM always runs an interactive REPL that needs a controlling
-    # terminal; give it a private pty on stdin, as the runner does.
-    spawn = {"timeout": timeout, "capture_output": True, "env": env}
-    master_fd = slave_fd = None
-    if backend.name == "openvmm":
-        master_fd, slave_fd = pty.openpty()
-        spawn["stdin"] = slave_fd
-        spawn["preexec_fn"] = ctty_preexec(
-            os.ttyname(slave_fd).encode())
-    else:
-        # QEMU -nographic muxes the serial console onto stdio and puts the
-        # inherited stdin into raw mode, then never restores it when a VM
-        # is killed on timeout, leaving the caller's terminal broken. Hand
-        # it /dev/null so it never touches the controlling terminal.
-        spawn["stdin"] = subprocess.DEVNULL
-
     try:
-        result = subprocess.run(cmd, **spawn)
+        result = process.capture(
+            cmd, timeout=timeout, env=env, terminal=backend.name == "openvmm", stop=stop)
         # Merge both streams: VMM logs, sanitizer reports and panics land
         # on stderr, but the guest serial console (the FUZZ: marker and
         # any guest side panic) lands on stdout under QEMU -nographic.
@@ -1571,17 +1552,13 @@ def run_vmm(vmm_path, initramfs_path, profraw_dir, timeout=3,
         # Keep whatever the VMM printed before the kill so triage and
         # replay can see how far the guest got (a FUZZ: marker means the
         # guest ran and the VMM hung after; its absence means an earlier
-        # hang). subprocess populates these on capture_output timeouts.
+        # hang).
         partial = b""
         if e.stderr:
             partial += e.stderr
         if e.stdout:
             partial += e.stdout
         return -1, True, partial.decode(errors="replace"), True
-    finally:
-        if slave_fd is not None:
-            os.close(slave_fd)
-            os.close(master_fd)
 
 
 # --- Main Loop ---
@@ -2886,7 +2863,7 @@ def cmd_fuzz(args):
         exit_code, crashed, vmm_output, timed_out = run_vmm(
             args.vmm, w["initramfs"], w["dir"], args.timeout,
             kernel_path=kernel, disk_path=w["disk"],
-            cpus=args.cpus, memory=args.memory, fuzz_device=args.device
+            cpus=args.cpus, memory=args.memory, fuzz_device=args.device, stop=stop
         )
 
         # A timeout under parallel load is usually a scheduling stall,
@@ -2896,7 +2873,7 @@ def cmd_fuzz(args):
             exit_code, crashed, vmm_output, timed_out = run_vmm(
                 args.vmm, w["initramfs"], w["dir"], confirm_timeout,
                 kernel_path=kernel, disk_path=w["disk"],
-                cpus=args.cpus, memory=args.memory, fuzz_device=args.device
+                cpus=args.cpus, memory=args.memory, fuzz_device=args.device, stop=stop
             )
         tm["boot"] = time.perf_counter() - t
 
@@ -2986,43 +2963,29 @@ def cmd_fuzz(args):
                 if stop.is_set():
                     return None
                 slot = slot_queue.get()
+                finished = False
                 try:
-                    return _worker(iteration, slot)
+                    result = _worker(iteration, slot)
+                    finished = True
+                    return result
                 finally:
+                    if not finished:
+                        stop.set()
                     slot_queue.put(slot)
 
             pool = ThreadPoolExecutor(max_workers=jobs)
-            # Keep only a bounded window of work in flight. Submitting all
-            # iterations up front would pin every result (blob plus its
-            # edge set) in memory until the run ended, growing without
-            # bound on a long run.
-            max_outstanding = jobs * 2
             try:
-                pending = set()
-                next_i = 0
-                while (next_i < args.iterations
-                       and len(pending) < max_outstanding
-                       and not stop.is_set()):
-                    pending.add(pool.submit(_parallel_worker, next_i))
-                    next_i += 1
-
-                while pending:
-                    done_set, pending = wait(
-                        pending, return_when=FIRST_COMPLETED)
-                    for future in done_set:
-                        result = future.result()
-                        if result is not None:
-                            _record_result(result)
-                        if (next_i < args.iterations
-                                and not stop.is_set()):
-                            pending.add(
-                                pool.submit(_parallel_worker, next_i))
-                            next_i += 1
+                work = execution.CompletionQueue(
+                    pool, _parallel_worker, range(args.iterations), limit=jobs * 2, stop=stop)
+                for _, future in work:
+                    result = future.result()
+                    if result is not None:
+                        _record_result(result)
             finally:
-                # Never block on a running VM boot when interrupted.
-                # Drop queued work and let live children die on the
-                # shared SIGINT or their own timeout.
+                stop.set()
                 pool.shutdown(wait=False, cancel_futures=True)
+                process.kill_all_processes()
+                pool.shutdown(wait=True)
 
     except KeyboardInterrupt:
         stop.set()

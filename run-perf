@@ -8,9 +8,7 @@ import json
 import math
 import os
 import platform
-import pty
 import re
-import signal
 import shutil
 import socket
 import statistics
@@ -23,7 +21,7 @@ import uuid
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(ROOT, "lib", "python"))
-from villain import console, host, images, vmm  # noqa: E402
+from villain import host, images, process, vmm  # noqa: E402
 
 DEVICE_INITCALL = {
     "blk": "virtio_blk_init",
@@ -589,21 +587,12 @@ def build_guest():
 
 def run_vmm(cmd, spawn, rounds):
     spawn = dict(spawn)
-    timeout = spawn.pop("timeout", None)
-    if spawn.pop("capture_output", False):
-        spawn["stdout"] = subprocess.PIPE
-        spawn["stderr"] = subprocess.PIPE
-    if "preexec_fn" not in spawn:
-        spawn["start_new_session"] = True
-    process = subprocess.Popen(cmd, **spawn)
+    spawn.pop("capture_output", None)
     try:
-        stdout, stderr = process.communicate(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except (ProcessLookupError, PermissionError, OSError):
-            process.kill()
-        stdout, stderr = process.communicate()
+        result = process.capture(cmd, **spawn)
+        stdout, stderr = result.stdout, result.stderr
+    except subprocess.TimeoutExpired as error:
+        stdout, stderr = error.stdout, error.stderr
     raw_output = (stdout or b"") + (stderr or b"")
     output = raw_output.decode(errors="replace")
     samples = parse_results(output)
@@ -705,16 +694,7 @@ def run_guest(args, runner=vmm):
         if args.strace_profile:
             cmd = ["strace", "-f", "-c", "-o",
                    os.path.abspath(args.strace_profile), "--", *cmd]
-        spawn = {"capture_output": True, "timeout": args.timeout}
-        master_fd = None
-        slave_fd = None
-        if backend.name == "openvmm":
-            master_fd, slave_fd = pty.openpty()
-            spawn["stdin"] = slave_fd
-            spawn["preexec_fn"] = console.ctty_preexec(
-                os.ttyname(slave_fd).encode())
-        else:
-            spawn["stdin"] = subprocess.DEVNULL
+        spawn = {"timeout": args.timeout, "terminal": backend.name == "openvmm"}
         vsock_listener = None
         if args.device == "vsock" and backend.name == "qemu":
             vsock_listener = VsockListener(5678)
@@ -742,10 +722,6 @@ def run_guest(args, runner=vmm):
                 network_sender.stop()
             if vsock_listener is not None:
                 vsock_listener.stop()
-            if master_fd is not None:
-                os.close(master_fd)
-            if slave_fd is not None:
-                os.close(slave_fd)
     return backend, samples, kernel
 
 
