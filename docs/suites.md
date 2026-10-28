@@ -39,6 +39,7 @@ Shared host helpers are available in these modules:
 | `villain.host` | Capability inspection and explicitly requested host tuning |
 | `villain.artifacts` | GitHub release assets with published SHA256 verification and cache reuse |
 | `villain.build` | Suite build metadata and shared build dispatch |
+| `villain.images` | Raw, qcow2, fixed VHD and VHDX image creation |
 
 Importing these modules does not launch a VM or apply host tuning.
 The artifact helper checks the latest release by default.
@@ -54,6 +55,11 @@ a memory size such as `512M`. Optional boot fields are `kernel`, `initramfs`,
 syntax. Backend options remain explicit keyword arguments. Unsupported boot
 modes raise an error. Add device arguments separately. Building a command
 does not start a process or apply host tuning.
+
+`villain.images.create(path, size, image_format="raw")` creates a disk image.
+Sizes are specified in bytes. Container capacity alignment follows
+`qemu-img`. `create_raw(path, size, exclusive=True)` refuses existing paths.
+These helpers do not choose a partition layout or bootloader.
 
 The existing `build_cmd(...)` methods describe virtio test environments.
 Neither interface establishes the privileges required by another suite.
