@@ -33,7 +33,7 @@ Shared host helpers are available in these modules:
 | --- | --- |
 | `villain.cli` | Banner, help formatter and memory argument normalization |
 | `villain.console` | Separate diagnostic capture, terminal handling and stream merging |
-| `villain.process` | Process tracking and termination helpers |
+| `villain.process` | Supervised process launch, separate stream capture and termination |
 | `villain.vmm` | Portable launch settings, VMM backends, virtio fixtures and guest kernel selection |
 | `villain.diagnostics` | VMM output classification shared by tests and fuzzing |
 | `villain.host` | Capability inspection and explicitly requested host tuning |
@@ -60,6 +60,11 @@ does not start a process or apply host tuning.
 Sizes are specified in bytes. Container capacity alignment follows
 `qemu-img`. `create_raw(path, size, exclusive=True)` refuses existing paths.
 These helpers do not choose a partition layout or bootloader.
+
+`villain.process.capture(argv, timeout=seconds)` returns a `CompletedProcess`
+with separate byte streams. A timeout raises `TimeoutExpired` with captured
+output after terminating the process group. `terminal=True` supplies a private
+controlling terminal without changing the caller's terminal.
 
 The existing `build_cmd(...)` methods describe virtio test environments.
 Neither interface establishes the privileges required by another suite.
