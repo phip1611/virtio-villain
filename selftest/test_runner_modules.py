@@ -3,6 +3,7 @@
 """Shared runner primitives without VM or device prerequisites."""
 
 import io
+from concurrent.futures import Future, ThreadPoolExecutor
 import json
 import os
 from pathlib import Path
@@ -18,7 +19,7 @@ from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "lib/python"))
-from villain import cli, console, images, process, vmm  # noqa: E402
+from villain import cli, console, execution, images, process, vmm  # noqa: E402
 
 TEST_IMAGE_SIZE = 16 * 1024 * 1024
 
@@ -29,17 +30,19 @@ class ModuleTests(unittest.TestCase):
             "import runpy, sys\n"
             "from unittest.mock import patch\n"
             "entry = runpy.run_path(sys.argv[1], run_name='runner_import_test')\n"
-            "from villain import cli, console, images, initramfs, vmm\n"
+            "from villain import cli, console, execution, images, initramfs, process, vmm\n"
             "assert not any(name.startswith('vv_run') for name in sys.modules)\n"
             "assert entry['images'] is images\n"
+            "assert entry['process'] is process\n"
             "if sys.argv[1].endswith('/run'):\n"
             "    assert entry['detect_vmm'] is vmm.detect_vmm\n"
             "    assert entry['print_banner'] is cli.print_banner\n"
             "    assert entry['_canonicalize_tests'] is cli.canonicalize_tests\n"
             "    assert entry['drain_stream'] is console.drain_stream\n"
+            "    assert entry['execution'] is execution\n"
             "elif sys.argv[1].endswith('/run-fuzz'):\n"
             "    assert entry['print_banner'] is cli.print_banner\n"
-            "    assert entry['ctty_preexec'] is console.ctty_preexec\n"
+            "    assert entry['execution'] is execution\n"
             "    with patch.object(initramfs, 'build') as build:\n"
             "        entry['build_initramfs']('fuzz', 'archive')\n"
             "        build.assert_called_once_with('fuzz', 'archive', "
@@ -461,6 +464,151 @@ class ConsoleTests(unittest.TestCase):
 
 
 class ProcessTests(unittest.TestCase):
+    def test_capture_preserves_streams_exit_status_and_an_isolated_session(self):
+        command = [
+            sys.executable, "-c",
+            "import os\n"
+            "os.write(1, b'guest\\xff\\n' * 20000)\n"
+            "os.write(2, b'diagnostic\\xfe\\n' * 20000)\n"
+            "print(os.getsid(0) == os.getpid(), flush=True)\n"
+            "raise SystemExit(3)\n"]
+        result = process.capture(command, timeout=5)
+        self.assertEqual(result.args, command)
+        self.assertEqual(result.returncode, 3)
+        self.assertEqual(result.stdout, b"guest\xff\n" * 20000 + b"True\n")
+        self.assertEqual(result.stderr, b"diagnostic\xfe\n" * 20000)
+
+    def test_capture_timeout_retains_both_streams_and_reaps_the_process_group(self):
+        script = (
+            "import ctypes, os, signal, subprocess, sys\n"
+            "from villain import process\n"
+            "PR_SET_CHILD_SUBREAPER = 36\n"
+            "assert ctypes.CDLL(None, use_errno=True).prctl("
+            "PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) == 0\n"
+            "code = (\n"
+            "    'import os, signal, subprocess, sys\\n'\n"
+            "    'child = subprocess.Popen([sys.executable, \"-c\", '\n"
+            "    '\"import signal\\\\nsignal.pause()\\\\n\"])\\n'\n"
+            "    'print(child.pid, flush=True)\\n'\n"
+            "    'os.write(2, b\"diagnostic before timeout\\\\n\")\\n'\n"
+            "    'signal.pause()\\n')\n"
+            "try:\n"
+            "    process.capture([sys.executable, '-u', '-c', code], timeout=1)\n"
+            "except subprocess.TimeoutExpired as error:\n"
+            "    pid = int(error.stdout)\n"
+            "    assert error.stderr == b'diagnostic before timeout\\n'\n"
+            "    reaped, status = os.waitpid(pid, 0)\n"
+            "    assert reaped == pid and os.waitstatus_to_exitcode(status) == -signal.SIGKILL\n"
+            "    assert not process._live_procs\n"
+            "else:\n"
+            "    raise AssertionError('The deadline was ignored')\n")
+        environment = dict(os.environ, PYTHONPATH=str(ROOT / "lib/python"))
+        result = subprocess.run(
+            [sys.executable, "-c", script], env=environment,
+            capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_private_terminal_is_owned_by_the_child_and_parent_descriptors_close(self):
+        descriptors = []
+        openpty = process.pty.openpty
+
+        def terminal():
+            pair = openpty()
+            descriptors.extend(pair)
+            return pair
+
+        command = [
+            sys.executable, "-c",
+            "import os\n"
+            "with open('/dev/tty', 'rb') as terminal:\n"
+            "    print(os.isatty(0), os.isatty(terminal.fileno()))\n"]
+        with patch.object(process.pty, "openpty", side_effect=terminal):
+            result = process.capture(command, terminal=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, b"True True\n")
+        self.assertEqual(len(descriptors), 2)
+        for descriptor in descriptors:
+            with self.assertRaises(OSError):
+                os.fstat(descriptor)
+
+    def test_spawn_failure_closes_private_terminal_descriptors(self):
+        descriptors = []
+        openpty = process.pty.openpty
+
+        def terminal():
+            pair = openpty()
+            descriptors.extend(pair)
+            return pair
+
+        with patch.object(process.pty, "openpty", side_effect=terminal), \
+             self.assertRaises(FileNotFoundError):
+            process.capture(["/nonexistent-villain-executable"], terminal=True)
+        self.assertEqual(len(descriptors), 2)
+        for descriptor in descriptors:
+            with self.assertRaises(OSError):
+                os.fstat(descriptor)
+
+    def test_capture_interrupt_and_read_error_kill_and_unregister_the_child(self):
+        popen = subprocess.Popen
+        for error in (KeyboardInterrupt(), OSError("Capture failed")):
+            children = []
+
+            def launch(*args, **kwargs):
+                child = popen(*args, **kwargs)
+                children.append(child)
+                return child
+
+            with self.subTest(error=type(error).__name__), \
+                 patch.object(process.subprocess, "Popen", side_effect=launch), \
+                 patch.object(popen, "communicate", side_effect=error), \
+                 self.assertRaises(type(error)):
+                process.capture([sys.executable, "-c", "import signal\nsignal.pause()\n"])
+            self.assertEqual(len(children), 1)
+            child = children[0]
+            self.assertEqual(child.poll(), -signal.SIGKILL)
+            self.assertNotIn(child, process._live_procs)
+            self.assertTrue(child.stdout.closed)
+            self.assertTrue(child.stderr.closed)
+
+    def test_stopped_work_never_spawns_a_process_or_terminal(self):
+        stop = threading.Event()
+        stop.set()
+        with patch.object(process.subprocess, "Popen") as popen, \
+             patch.object(process.pty, "openpty") as openpty, \
+             self.assertRaises(KeyboardInterrupt):
+            process.capture(["unused"], terminal=True, stop=stop)
+        popen.assert_not_called()
+        openpty.assert_not_called()
+
+    def test_stop_during_spawn_reaps_the_child_before_yielding(self):
+        stop = threading.Event()
+        children = []
+        register = process.register_process
+
+        def registered(child, **kwargs):
+            register(child, **kwargs)
+            children.append(child)
+            stop.set()
+
+        with patch.object(process, "register_process", side_effect=registered), \
+             self.assertRaises(KeyboardInterrupt):
+            process.capture(
+                [sys.executable, "-c", "import signal\nsignal.pause()\n"], stop=stop)
+        self.assertEqual(len(children), 1)
+        self.assertEqual(children[0].poll(), -signal.SIGKILL)
+        self.assertNotIn(children[0], process._live_procs)
+
+    def test_inherited_session_cleanup_never_signals_the_parent_process_group(self):
+        with patch.object(process.os, "killpg") as killpg:
+            with process.spawn(
+                    [sys.executable, "-c", "import signal\nsignal.pause()\n"],
+                    start_new_session=False) as (child, master):
+                self.assertIsNone(master)
+                process.kill_all_processes()
+                self.assertEqual(child.poll(), -signal.SIGKILL)
+            killpg.assert_not_called()
+        self.assertNotIn(child, process._live_procs)
+
     def test_registered_processes_are_killed_and_reaped(self):
         child = subprocess.Popen(
             [sys.executable, "-c", "import time; time.sleep(60)"],
@@ -484,6 +632,101 @@ class ProcessTests(unittest.TestCase):
         child.wait(timeout=5)
         process.kill_process(child)
         self.assertEqual(child.returncode, 0)
+
+
+class CompletionQueueTests(unittest.TestCase):
+    def test_lazy_submission_has_an_exact_bound_and_releases_consumed_results(self):
+        pool = Mock()
+        consumed = []
+
+        def items():
+            for value in range(10):
+                consumed.append(value)
+                yield value
+
+        def submit(function, item):
+            future = Future()
+            future.set_result(function(item))
+            return future
+
+        pool.submit.side_effect = submit
+        work = execution.CompletionQueue(pool, lambda item: item * 2, items(), limit=3)
+        self.assertEqual(consumed, [])
+        results = []
+        for item, future in work:
+            results.append((item, future.result()))
+            if len(results) == 1:
+                self.assertEqual(len(consumed), 3)
+            self.assertLessEqual(len(work.pending), 2)
+            self.assertNotIn(future, work.pending)
+            self.assertLessEqual(len(consumed) - len(results), 2)
+        self.assertEqual(sorted(results), [(value, value * 2) for value in range(10)])
+        self.assertEqual(pool.submit.call_count, 10)
+        self.assertEqual(work.pending, {})
+
+    def test_completion_order_does_not_wait_for_submission_order(self):
+        release = threading.Event()
+
+        def run(item):
+            if item == 0:
+                if not release.wait(timeout=5):
+                    raise RuntimeError("The completed result was not delivered")
+            return item
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            work = execution.CompletionQueue(pool, run, range(2), limit=2)
+            try:
+                item, future = next(work)
+                self.assertEqual((item, future.result()), (1, 1))
+            finally:
+                release.set()
+            self.assertEqual([(item, future.result()) for item, future in work], [(0, 0)])
+
+    def test_stop_drains_submitted_work_without_consuming_new_items(self):
+        stop = threading.Event()
+        consumed = []
+
+        def items():
+            for item in range(8):
+                consumed.append(item)
+                yield item
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            work = execution.CompletionQueue(pool, lambda item: item, items(), limit=2, stop=stop)
+            first = next(work)
+            stop.set()
+            results = [first, *work]
+        self.assertEqual(consumed, [0, 1])
+        self.assertEqual(sorted(future.result() for _, future in results), [0, 1])
+        self.assertEqual(work.pending, {})
+
+    def test_interrupted_wait_can_resume_and_drain_for_the_callers_recovery_policy(self):
+        stop = threading.Event()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            work = execution.CompletionQueue(pool, lambda item: item, range(8), limit=2, stop=stop)
+            with patch.object(execution, "wait", side_effect=KeyboardInterrupt), \
+                 self.assertRaises(KeyboardInterrupt):
+                next(work)
+            self.assertEqual(len(work.pending), 2)
+            stop.set()
+            self.assertEqual(sorted(future.result() for _, future in work), [0, 1])
+
+    def test_worker_errors_remain_on_the_future_without_inventing_a_result(self):
+        def run(_):
+            raise RuntimeError("Worker failed")
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            work = execution.CompletionQueue(pool, run, [None], limit=1)
+            item, future = next(work)
+            self.assertIsNone(item)
+            with self.assertRaisesRegex(RuntimeError, "Worker failed"):
+                future.result()
+            self.assertEqual(list(work), [])
+
+    def test_invalid_limits_fail_before_submitting_work(self):
+        for limit in (0, -1, True, 1.5, None):
+            with self.subTest(limit=limit), self.assertRaises(ValueError):
+                execution.CompletionQueue(Mock(), lambda item: item, [], limit=limit)
 
 
 if __name__ == "__main__":
