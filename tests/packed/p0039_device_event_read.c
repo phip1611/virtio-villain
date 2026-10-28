@@ -9,12 +9,6 @@
  * between every read, and that the device stays alive.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/vring_packed.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_packed_device_event_read(struct virtio_dev *dev,
                                                    struct vring_packed *vr)

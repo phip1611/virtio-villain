@@ -6,13 +6,6 @@
  * the device sets SUSPEND to 0 once it resumes running.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_suspend_resume(struct virtio_dev *dev,
                                          struct vring *vr)

@@ -8,12 +8,6 @@
  * load where no inter-ping delay exists.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define BURST_COUNT 8
 

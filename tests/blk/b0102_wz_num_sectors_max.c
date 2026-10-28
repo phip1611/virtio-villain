@@ -8,13 +8,6 @@
  * Submit with num_sectors = UINT32_MAX which likely exceeds the limit.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <stdint.h>
 
 static test_result_t test_blk_wz_num_sectors_max(struct virtio_dev *dev,
                                                  struct vring *vr)

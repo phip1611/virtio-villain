@@ -10,8 +10,6 @@
  */
 #include "tests/test.h"
 
-#include <unistd.h>
-
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {
     (void)vr;

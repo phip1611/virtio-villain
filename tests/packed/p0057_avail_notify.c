@@ -7,10 +7,6 @@
  * the device processes it.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/virtio_spec.h"
-
-#include <unistd.h>
 
 static test_result_t test(struct virtio_dev *dev, struct vring_packed *vr)
 {

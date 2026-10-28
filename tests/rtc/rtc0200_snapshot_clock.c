@@ -9,12 +9,7 @@
  * guest watches device_status across the window.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "tests/mmio/mmio_helpers.h"
-
-#include <unistd.h>
 
 static test_result_t test_rtc_survives_snapshot(struct virtio_dev *dev,
                                                 struct vring *vr)

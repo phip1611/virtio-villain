@@ -7,14 +7,6 @@
  * process a single-descriptor indirect request correctly.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/vring_packed.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_packed_qsize_one_indirect(struct virtio_dev *dev,
                                                     struct vring_packed *vr)

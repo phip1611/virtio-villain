@@ -11,13 +11,7 @@
  * Skips when the device does not offer the feature.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 #include "lib/pci.h"
-
-#include <unistd.h>
 
 #define PCIE_EXT_CAP_START     0x100
 #define PCIE_EXT_CAP_ID_SRIOV  0x0010

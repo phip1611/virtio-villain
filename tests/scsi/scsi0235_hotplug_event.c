@@ -12,8 +12,6 @@
  */
 #include "tests/scsi/scsi_util.h"
 
-#include <unistd.h>
-
 static test_result_t test_scsi_hotplug_event(struct virtio_dev *dev,
                                              struct vring *vr)
 {

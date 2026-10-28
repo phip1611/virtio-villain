@@ -11,13 +11,6 @@
  * own used ring with no duplicates and no leaks across queues.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static void plant_read(struct vring *vr, uint16_t base,
                        uint16_t avail_slot, uint64_t sector)

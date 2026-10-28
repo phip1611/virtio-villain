@@ -10,8 +10,6 @@
  */
 #include "tests/test.h"
 
-#include <unistd.h>
-
 static test_result_t do_test(struct virtio_mmio_dev *dev)
 {
     if (virtio_mmio_init(dev) < 0)

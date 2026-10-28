@@ -12,11 +12,6 @@
  * the driver before DRIVER_OK."
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_kick_before_driver_ok(struct virtio_dev *dev,
                                                 struct vring *vr)

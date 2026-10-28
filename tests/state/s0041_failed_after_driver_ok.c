@@ -9,13 +9,6 @@
  * post DRIVER_OK fail path which is rare in normal driver flow.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_failed_after_driver_ok(struct virtio_dev *dev,
                                                  struct vring *vr)

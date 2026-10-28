@@ -10,13 +10,7 @@
  * Spec 2.7.5.3 (descriptor chains), 5.13.6.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_iommu_split_input(struct virtio_dev *dev,
                                             struct vring *vr)

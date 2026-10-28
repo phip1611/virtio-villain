@@ -6,13 +6,6 @@
  * (sizeof virtio_blk_outhdr). The device cannot parse a truncated header.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_blk_header_too_short(struct virtio_dev *dev,
                                                struct vring *vr)

@@ -12,12 +12,6 @@
  * with a crypto library.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 /* AES-128-CBC known answer vector (single block, no padding). */
 static const uint8_t kat_key[16] = {

@@ -8,14 +8,8 @@
  * suppression or pending interrupt delivery after unmasking.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 #include "lib/pci.h"
 
-#include <string.h>
-#include <unistd.h>
 #include <errno.h>
 
 #define MSIX_ENABLE        (1u << 31)

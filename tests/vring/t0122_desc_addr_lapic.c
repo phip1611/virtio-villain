@@ -9,12 +9,6 @@
  * hang or timeout is a guest triggered host denial of service.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_desc_addr_lapic(struct virtio_dev *dev,
                                           struct vring *vr)

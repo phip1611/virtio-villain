@@ -12,7 +12,6 @@
  * word and verify the device still consumes the descriptor.
  */
 #include "tests/test.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t do_test(struct virtio_mmio_dev *dev)
 {

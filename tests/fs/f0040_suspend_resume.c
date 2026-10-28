@@ -7,10 +7,7 @@
  * a FUSE init completes (baseline).
  */
 #include "tests/test.h"
-#include "lib/util.h"
 #include "lib/fuse.h"
-
-#include <string.h>
 
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {

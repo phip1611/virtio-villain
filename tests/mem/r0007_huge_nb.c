@@ -7,12 +7,6 @@
  * ERROR rather than corrupt internal state.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_mem_huge_nb(struct virtio_dev *dev,
                                       struct vring *vr)

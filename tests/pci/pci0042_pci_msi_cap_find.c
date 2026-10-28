@@ -7,14 +7,7 @@
  * 64-bit and per-vector masking support.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/pci.h"
-
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 static test_result_t test_pci_msi_cap_find(struct virtio_dev *dev,
                                            struct vring *vr)

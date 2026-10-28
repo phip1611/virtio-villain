@@ -7,9 +7,6 @@
  * admin virtqueue(s) when the device supports admin commands.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 
 static test_result_t test_pci_admin_queue_index(struct virtio_dev *dev,
                                                 struct vring *vr)

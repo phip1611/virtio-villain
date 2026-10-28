@@ -7,13 +7,6 @@
  * for a given group type before sending LIST_USE with the correct list.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 /* Use an arbitrary group-scoped opcode without prior LIST_USE */
 #define ADMIN_CMD_ARBITRARY 0x0010

@@ -7,14 +7,6 @@
  * admin queues when VIRTIO_F_RING_PACKED is negotiated.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/vring_packed.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_pci_admin_packed(struct virtio_dev *dev,
                                            struct vring *vr)

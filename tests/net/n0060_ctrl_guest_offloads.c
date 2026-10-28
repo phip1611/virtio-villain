@@ -6,13 +6,6 @@
  * VIRTIO_NET_F_CTRL_GUEST_OFFLOADS.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_ctrl_guest_offloads(struct virtio_dev *dev,
                                               struct vring *vr)

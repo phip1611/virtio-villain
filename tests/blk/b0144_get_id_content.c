@@ -10,12 +10,6 @@
  * the request with status OK but never touch the buffer.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_blk_get_id_content(struct virtio_dev *dev,
                                              struct vring *vr)

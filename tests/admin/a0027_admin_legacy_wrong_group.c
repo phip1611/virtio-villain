@@ -6,13 +6,6 @@
  * Spec v1.3 2.13: only valid group types should be accepted.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_admin_legacy_wrong_group(struct virtio_dev *dev,
                                                    struct vring *vr)

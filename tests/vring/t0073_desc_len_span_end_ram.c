@@ -7,13 +7,6 @@
  * is valid but tests whether the device's range check is off-by-one.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 /* Assume 512 MiB RAM */
 #define RAM_END 0x20000000ULL

@@ -6,13 +6,6 @@
  * Spec 5.10.6: src_cid MUST be the guest's CID.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_vsock_wrong_src_cid(struct virtio_dev *dev,
                                               struct vring *vr)

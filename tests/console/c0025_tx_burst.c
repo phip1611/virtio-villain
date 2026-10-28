@@ -8,12 +8,6 @@
  * verify each one completes before submitting the next.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_console_tx_burst(struct virtio_dev *dev,
                                            struct vring *vr)

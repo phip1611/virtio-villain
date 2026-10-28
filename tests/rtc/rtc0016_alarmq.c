@@ -8,12 +8,6 @@
  * does not exist and the test will be skipped by the harness.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <string.h>
-#include <stdint.h>
 
 static test_result_t test_rtc_alarmq(struct virtio_dev *dev,
                                      struct vring *vr)

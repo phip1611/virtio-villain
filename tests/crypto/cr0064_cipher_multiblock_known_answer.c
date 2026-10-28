@@ -11,12 +11,6 @@
  * passes under a QEMU with a crypto library.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 #define KAT_LEN 32
 

@@ -6,14 +6,6 @@
  * negotiating VIRTIO_NET_F_HOST_ECN. The device should reject.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
-
 
 static test_result_t test_net_tx_ecn_no_feature(struct virtio_dev *dev,
                                                 struct vring *vr)

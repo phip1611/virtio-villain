@@ -9,10 +9,6 @@
  * code must indicate mixed.
  */
 #include "tests/test.h"
-#include "lib/virtio_spec.h"
-#include "lib/util.h"
-
-#include <string.h>
 
 static test_result_t one(struct virtio_dev *dev, struct vring *vr,
                          uint16_t slot, struct virtio_mem_req *req,

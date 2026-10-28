@@ -7,11 +7,6 @@
  * by zero when allocating queue structures.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_pci_write_zero_queue_size(struct virtio_dev *dev,
                                                     struct vring *vr)

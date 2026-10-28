@@ -13,12 +13,6 @@
  * Cloud Hypervisor and when the cipher service is not advertised.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_crypto_dstlen_short(struct virtio_dev *dev,
                                               struct vring *vr)

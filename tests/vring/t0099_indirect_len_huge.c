@@ -8,12 +8,6 @@
  * the chain rather than reading megabytes of fanout.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_vring_indirect_huge(struct virtio_dev *dev,
                                               struct vring *vr)

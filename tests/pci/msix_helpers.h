@@ -4,7 +4,6 @@
 
 #include "tests/test.h"
 #include "lib/irq.h"
-#include "lib/virtio_spec.h"
 
 struct msix_test {
     struct virtio_dev *dev;

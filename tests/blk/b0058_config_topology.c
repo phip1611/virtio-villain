@@ -7,13 +7,6 @@
  * Verify they are accessible and consistent.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 /* Offsets in virtio_blk_config for topology fields */
 #define CFG_CAPACITY_OFF       0   /* uint64 */

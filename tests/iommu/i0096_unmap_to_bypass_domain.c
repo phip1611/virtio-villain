@@ -6,10 +6,7 @@
  * mappings) must be rejected or no op.
  */
 #include "tests/test.h"
-#include "lib/util.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
 
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {

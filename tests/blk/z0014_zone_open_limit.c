@@ -7,13 +7,6 @@
  * reject opens beyond the limit.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define ZONE_SIZE_SECTORS 524288  /* 256 MiB zone at 512 bytes/sector */
 #define NUM_OPENS 64              /* try to open 64 zones */

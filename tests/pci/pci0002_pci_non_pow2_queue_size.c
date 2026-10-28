@@ -7,11 +7,6 @@
  * Different from T41 which uses 17 - this uses a smaller odd value.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_pci_non_pow2_queue_size(struct virtio_dev *dev,
                                                   struct vring *vr)

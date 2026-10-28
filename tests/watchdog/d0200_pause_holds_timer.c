@@ -8,11 +8,6 @@
  * not raise FAILED or NEEDS_RESET and that DRIVER_OK remains set.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_watchdog_survives_pause(struct virtio_dev *dev,
                                                   struct vring *vr)

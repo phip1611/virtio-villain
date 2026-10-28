@@ -8,13 +8,6 @@
  * guest's mapping or crash the VMM.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_watchdog_huge_len_past_ram(struct virtio_dev *dev,
                                                      struct vring *vr)

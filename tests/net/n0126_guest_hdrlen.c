@@ -9,7 +9,6 @@
  * cannot read.
  */
 #include "tests/test.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {

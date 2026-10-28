@@ -6,12 +6,6 @@
  * Read at sector capacity-1 with 1024 bytes (2 sectors) of data.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_blk_read_straddle_end(struct virtio_dev *dev,
                                                 struct vring *vr)

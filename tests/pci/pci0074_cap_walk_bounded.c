@@ -8,13 +8,7 @@
  * terminated by a zero pointer.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/pci.h"
-
-#include <fcntl.h>
-#include <unistd.h>
 
 static test_result_t test_pci_cap_walk_bounded(struct virtio_dev *dev,
                                                struct vring *vr)

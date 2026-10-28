@@ -7,12 +7,6 @@
  * for host), or 0xFFFFFFFF (VMADDR_CID_ANY). Read it and validate.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <unistd.h>
 
 static test_result_t test_vsock_config_cid(struct virtio_dev *dev,
                                            struct vring *vr)

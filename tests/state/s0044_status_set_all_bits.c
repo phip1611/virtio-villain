@@ -9,11 +9,6 @@
  * that latch reserved bits or wedge on undefined values.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_status_set_all_bits(struct virtio_dev *dev,
                                               struct vring *vr)

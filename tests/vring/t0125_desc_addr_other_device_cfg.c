@@ -13,14 +13,7 @@
  * when no second virtio device or its common config cap is found.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
 #include "lib/pci.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define PCI_CAP_ID_VNDR        0x09
 #define VIRTIO_PCI_CAP_COMMON  1

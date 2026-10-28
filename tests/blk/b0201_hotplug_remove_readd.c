@@ -13,17 +13,9 @@
  * discovery and removal so the final check runs only after readd.
  */
 #include "tests/test.h"
-#include "lib/util.h"
 #include "lib/pci.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 
 #include <dirent.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
 
 static int trigger_pci_rescan(void)
 {

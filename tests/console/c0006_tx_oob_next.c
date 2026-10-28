@@ -7,13 +7,6 @@
  * reject the chain rather than dereference an out-of-bounds slot.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_console_tx_oob_next(struct virtio_dev *dev,
                                               struct vring *vr)

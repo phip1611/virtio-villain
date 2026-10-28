@@ -7,14 +7,7 @@
  * Exercise the MSI-X table directly through the BAR mapping.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/pci.h"
-
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 /* MSI-X table entry layout */
 static test_result_t test_pci_msix_table_write(struct virtio_dev *dev,

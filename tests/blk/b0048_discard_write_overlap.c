@@ -7,13 +7,6 @@
  * conflicting operations to overlapping regions in a single batch.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_blk_discard_write_overlap(struct virtio_dev *dev,
                                                     struct vring *vr)

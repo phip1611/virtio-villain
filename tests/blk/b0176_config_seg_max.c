@@ -8,12 +8,6 @@
  * least one segment per request).
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <unistd.h>
 
 /* seg_max at offset 12 (after capacity[8]+size_max[4]) */
 #define BLK_CFG_SEG_MAX_OFFSET 12

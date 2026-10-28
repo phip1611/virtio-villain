@@ -7,13 +7,6 @@
  * not crash on an empty frame body.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_net_tx_zero_data(struct virtio_dev *dev,
                                            struct vring *vr)

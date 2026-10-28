@@ -3,8 +3,6 @@
 #define VV_BLK_MMIO_HELPERS_H
 
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/virtio_spec.h"
 #include "tests/mmio/mmio_helpers.h"
 
 static inline test_result_t blk_mmio_attach(struct virtio_mmio_dev *dev,
