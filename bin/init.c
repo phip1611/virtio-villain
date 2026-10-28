@@ -211,6 +211,9 @@ static int run_test(struct test_entry *t)
     } else if (t->flags & TEST_FLAG_DUAL_Q) {
         test_dual_q_fn fn = (test_dual_q_fn)t->fn;
         result = fn(&dev, &queues[test_q], &queues[nq - 1]);
+    } else if (t->flags & TEST_FLAG_DEV_ONLY) {
+        test_dev_fn fn = (test_dev_fn)t->fn;
+        result = fn(&dev);
     } else {
         test_fn fn = (test_fn)t->fn;
         result = fn(&dev, &queues[test_q]);

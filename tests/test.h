@@ -92,6 +92,7 @@ typedef test_result_t (*test_dual_q_fn)(struct virtio_dev *dev,
 typedef test_result_t (*test_packed_fn)(struct virtio_dev *dev,
                                        struct vring_packed *vr);
 typedef test_result_t (*test_mmio_fn)(struct virtio_mmio_dev *dev);
+typedef test_result_t (*test_dev_fn)(struct virtio_dev *dev);
 
 struct mmio_test_variant {
     const char *name;
@@ -111,6 +112,7 @@ struct mmio_test_variant {
 #define TEST_FLAG_NEEDS_CFG 16
 #define TEST_FLAG_DUAL_Q    32
 #define TEST_FLAG_CONTROL_Q 64
+#define TEST_FLAG_DEV_ONLY  128
 /*
  * Expected-fail marker. A test with this flag inverts its verdict:
  * a non-PASS outcome (FAIL/REJECT/WEDGED) becomes XFAIL (counted as
@@ -225,6 +227,24 @@ struct test_entry {
     static struct test_entry _test_##tname = { \
         #tname, description, specver, sect, dev_id, (void *)(func), \
         0, 0, (minq), (features), {0} \
+    }
+
+/*
+ * Same as REGISTER_TEST and REGISTER_TEST_REQUIRES for a test that
+ * drives no queue. func is a test_dev_fn, which the conditional checks
+ * at compile time. The runner still sets up the queues as usual.
+ */
+#define REGISTER_TEST_DEV(tname, dev_id, func, description, specver, sect) \
+    REGISTER_TEST_DEV_REQUIRES(tname, dev_id, func, description, specver, \
+                               sect, 0, 0)
+
+#define REGISTER_TEST_DEV_REQUIRES(tname, dev_id, func, description, \
+                                   specver, sect, features, minq) \
+    __attribute__((section("test_registry"), used, aligned(128))) \
+    static struct test_entry _test_##tname = { \
+        #tname, description, specver, sect, dev_id, \
+        (void *)(1 ? (func) : (test_dev_fn)0), TEST_FLAG_DEV_ONLY, 0, \
+        (minq), (features), {0} \
     }
 
 #define REGISTER_TEST_FLAGS(tname, dev_id, func, description, specver, \
