@@ -3,6 +3,7 @@
 #define VV_UTIL_H
 
 #include <stdint.h>
+#include <stdckdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,11 +24,15 @@
 /* Allocate a page aligned, locked, zeroed buffer. */
 static inline void *vv_alloc_pages(size_t n)
 {
-    void *p = mmap(NULL, n * PAGE_SIZE, PROT_READ | PROT_WRITE,
+    size_t bytes;
+    if (ckd_mul(&bytes, n, PAGE_SIZE))
+        vv_die("page allocation size overflow: %zu pages", n);
+
+    void *p = mmap(NULL, bytes, PROT_READ | PROT_WRITE,
                    MAP_PRIVATE | MAP_ANONYMOUS | MAP_LOCKED, -1, 0);
     if (p == MAP_FAILED)
         vv_die("mmap %zu pages failed", n);
-    memset(p, 0, n * PAGE_SIZE);
+    memset(p, 0, bytes);
     return p;
 }
 
