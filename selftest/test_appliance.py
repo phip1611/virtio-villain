@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import shlex
 import shutil
+import signal
 import struct
 import subprocess
 import sys
@@ -383,6 +384,119 @@ class SuiteExecutionTests(unittest.TestCase):
             self.assertEqual(status, 0, captured.getvalue())
             runs = json.loads((root / "results/results.json").read_text())["runs"]
             self.assertEqual([run["status"] for run in runs], [0, 0])
+
+
+class ProcessCleanupTests(unittest.TestCase):
+    def check_cleanup(self, mode, jobs):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            image = root / "image"
+            image.write_bytes(b"image")
+            binary = root / "init"
+            binary.write_text(
+                f"#!{sys.executable}\n"
+                "print('EX001\\tfirst test\\nEX002\\tsecond test\\nEX003\\tthird test')\n")
+            binary.chmod(0o755)
+            plugin = root / "suite.py"
+            plugin.write_text(
+                "import json, os, signal, subprocess, sys\n"
+                "from pathlib import Path\n"
+                "from villain.appliance import Suite\n"
+                f"root = Path({str(root)!r})\n"
+                f"mode = {mode!r}\n"
+                "class Example(Suite):\n"
+                "    def build_command(self, args, selected, token):\n"
+                "        return self.execution_command([selected[0], token])\n"
+                "    def execute(self, argv):\n"
+                "        name, token = argv\n"
+                "        child = subprocess.Popen([\n"
+                "            sys.executable, '-c', 'import signal; signal.pause()'],\n"
+                "            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,\n"
+                "            stderr=subprocess.DEVNULL)\n"
+                "        (root / (name + '.json')).write_text(json.dumps(\n"
+                "            {'launcher': os.getpid(), 'child': child.pid}))\n"
+                "        (root / (name + '.ready')).touch()\n"
+                "        if mode in ('exit', 'shutdown'):\n"
+                f"            text = {output()!r}.replace('token', token).replace('EX001', name)\n"
+                "            if mode == 'exit':\n"
+                "                os.execvp(sys.executable, [sys.executable, '-c',\n"
+                "                    'print(' + repr(text) + ', end=\"\", flush=True)'])\n"
+                "            print(text + 'vv-appliance-stop ' + token, flush=True)\n"
+                "        signal.pause()\n"
+                "def create_suite():\n"
+                "    return Example('example', 'example-v1', root / 'init', root / 'image',\n"
+                "                   host_shutdown=mode == 'shutdown')\n")
+            script = (
+                "import ctypes, json, os, signal, subprocess, sys, time\n"
+                "from pathlib import Path\n"
+                "assert ctypes.CDLL(None, use_errno=True).prctl(36, 1, 0, 0, 0) == 0\n"
+                f"root = Path({str(root)!r})\n"
+                f"mode, jobs = {mode!r}, {jobs}\n"
+                "interrupted = isinstance(mode, int)\n"
+                "selected = ['EX001', 'EX002', 'EX003'] if interrupted else ['EX001', 'EX002']\n"
+                f"command = [sys.executable, {str(ROOT / 'run')!r}, '--suite',\n"
+                "           str(root / 'suite.py'), '--kernel', str(root / 'image'),\n"
+                "           '--output', str(root / 'results'), '--jobs', str(jobs),\n"
+                "           '--timeout', '2' if mode == 'timeout' else '10', *selected]\n"
+                "runner = subprocess.Popen(command, stdout=subprocess.PIPE,\n"
+                "                          stderr=subprocess.PIPE, text=True)\n"
+                "try:\n"
+                "    if interrupted:\n"
+                "        deadline = time.monotonic() + 5\n"
+                "        while len(list(root.glob('*.ready'))) < jobs:\n"
+                "            assert time.monotonic() < deadline, 'Launchers did not start'\n"
+                "            assert runner.poll() is None, 'Runner exited before interruption'\n"
+                "            time.sleep(0.01)\n"
+                "        runner.send_signal(mode)\n"
+                "    stdout, stderr = runner.communicate(timeout=15)\n"
+                "    expected = 2 if interrupted or mode == 'timeout' else 0\n"
+                "    assert runner.returncode == expected, (runner.returncode, stdout, stderr)\n"
+                "    report = json.loads((root / 'results/results.json').read_text())\n"
+                "    assert report['status'] == expected, report\n"
+                "    if interrupted:\n"
+                "        assert report['interrupted'], report\n"
+                "        assert len(report['runs']) == jobs, report\n"
+                "        assert all(run['interrupted'] for run in report['runs']), report\n"
+                "        assert not (root / 'EX003.ready').exists()\n"
+                "    elif mode == 'timeout':\n"
+                "        assert all(run['timed_out'] for run in report['runs']), report\n"
+                "    elif mode == 'shutdown':\n"
+                "        assert all(run['host_shutdown'] for run in report['runs']), report\n"
+                "    for path in root.glob('*.json'):\n"
+                "        pid = json.loads(path.read_text())['child']\n"
+                "        deadline = time.monotonic() + 2\n"
+                "        while True:\n"
+                "            reaped, status = os.waitpid(pid, os.WNOHANG)\n"
+                "            if reaped:\n"
+                "                assert os.waitstatus_to_exitcode(status) == -signal.SIGKILL\n"
+                "                break\n"
+                "            assert time.monotonic() < deadline, 'Preparation child survived'\n"
+                "            time.sleep(0.01)\n"
+                "finally:\n"
+                "    if runner.poll() is None:\n"
+                "        runner.kill()\n"
+                "    runner.communicate(timeout=5)\n"
+                "    for path in root.glob('*.json'):\n"
+                "        for pid in json.loads(path.read_text()).values():\n"
+                "            try: os.kill(pid, signal.SIGKILL)\n"
+                "            except ProcessLookupError: pass\n"
+                "            try: os.waitpid(pid, 0)\n"
+                "            except ChildProcessError: pass\n")
+            result = subprocess.run(
+                [sys.executable, "-c", script], capture_output=True, text=True, timeout=25)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_termination_signals_stop_and_report_serial_and_parallel_runs(self):
+        for sig in (signal.SIGTERM, signal.SIGHUP):
+            for jobs in (1, 2):
+                with self.subTest(signal=sig, jobs=jobs):
+                    self.check_cleanup(int(sig), jobs)
+
+    def test_cleanup_stops_preparation_children_after_timeout_exit_and_host_shutdown(self):
+        for mode in ("timeout", "exit", "shutdown"):
+            for jobs in (1, 2):
+                with self.subTest(mode=mode, jobs=jobs):
+                    self.check_cleanup(mode, jobs)
 
 
 class WorkspaceTests(unittest.TestCase):
@@ -1386,6 +1500,36 @@ class HumanOutputTests(unittest.TestCase):
 
 
 class ControlTests(unittest.TestCase):
+    def test_group_cleanup_failure_recovers_and_stops_new_boots(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            image = root / "image"
+            image.write_bytes(b"image")
+            boots = []
+
+            class ExampleSuite(appliance.Suite):
+                def build_command(self, args, selected, token):
+                    boots.append(selected[0])
+                    script = f"print({output()!r}.replace('token', {token!r}), end='')"
+                    return [sys.executable, "-c", script]
+
+            suite = ExampleSuite("example", "example-v1", root / "init", image)
+            args = appliance.parse_args(suite, [
+                "--kernel", str(image), "--control", sys.executable,
+                "--output", str(root / "results")])
+            with patch.object(appliance.process, "kill_process",
+                              side_effect=OSError("Group cleanup failed")), \
+                 patch.object(appliance, "control") as control, \
+                 contextlib.redirect_stdout(io.StringIO()) as captured:
+                status = appliance.launch(suite, args, ["EX001", "EX002"])
+            self.assertEqual(status, 2)
+            self.assertEqual(boots, ["EX001"])
+            report = json.loads((root / "results/results.json").read_text())
+            self.assertEqual(report["runs"][0]["termination_error"], "Group cleanup failed")
+            self.assertIn("Group cleanup failed", captured.getvalue())
+            self.assertEqual([call.args[1] for call in control.call_args_list],
+                             ["arm", "recover", "disarm"])
+
     def test_each_case_has_its_own_boot_and_continues_after_guest_failure(self):
         class ExampleSuite(appliance.Suite):
             def build_command(self, args, selected, token):
