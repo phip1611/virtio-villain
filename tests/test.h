@@ -7,6 +7,12 @@
 #include <string.h>
 #include <unistd.h>
 
+/*
+ * Tests include only this header plus any device helper header. It
+ * provides the libc basics, the transports, both ring layouts, the
+ * spec constants and the page allocator.
+ */
+#include "../lib/util.h"
 #include "../lib/virtio_pci.h"
 #include "../lib/virtio_mmio.h"
 #include "../lib/vring.h"
