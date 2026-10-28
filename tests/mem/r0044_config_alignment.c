@@ -16,11 +16,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_mem_config_alignment(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_mem_config_alignment(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!dev->device_cfg ||
         dev->device_cfg_length < sizeof(struct virtio_mem_config))
         return TEST_SKIP;
@@ -54,6 +51,6 @@ static test_result_t test_mem_config_alignment(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(R0044, VIRTIO_PCI_DEVICE_MEM, test_mem_config_alignment,
-              "Validate mem config block_size and plugged alignment",
-              VIRTIO_SPEC_V1_2, "5.15.4");
+REGISTER_TEST_DEV(R0044, VIRTIO_PCI_DEVICE_MEM, test_mem_config_alignment,
+                  "Validate mem config block_size and plugged alignment",
+                  VIRTIO_SPEC_V1_2, "5.15.4");

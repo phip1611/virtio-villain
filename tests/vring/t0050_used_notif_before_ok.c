@@ -14,11 +14,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_used_notif_before_ok(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_used_notif_before_ok(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /* Reset device */
     virtio_pci_reset(dev);
 
@@ -65,6 +62,6 @@ static test_result_t test_used_notif_before_ok(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(T0050, VIRTIO_PCI_DEVICE_BLK, test_used_notif_before_ok,
-              "Used ring notification before DRIVER_OK",
-              VIRTIO_SPEC_V1_2, "3.1.1");
+REGISTER_TEST_DEV(T0050, VIRTIO_PCI_DEVICE_BLK, test_used_notif_before_ok,
+                  "Used ring notification before DRIVER_OK",
+                  VIRTIO_SPEC_V1_2, "3.1.1");

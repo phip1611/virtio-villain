@@ -16,12 +16,9 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_balloon_free_page_hint(struct virtio_dev *dev,
-                                                 struct vring *vr)
+static test_result_t test_balloon_free_page_hint(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_FREE_PAGE_HINT))
         return TEST_SKIP;
@@ -59,8 +56,8 @@ static test_result_t test_balloon_free_page_hint(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &fpq, 2, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST_REQUIRES(L0035, VIRTIO_PCI_DEVICE_BALLOON,
-              test_balloon_free_page_hint,
-              "Free page hint on hint virtqueue",
-              VIRTIO_SPEC_V1_2, "5.5.6.3",
-              (1ULL << VIRTIO_BALLOON_F_FREE_PAGE_HINT), 0);
+REGISTER_TEST_DEV_REQUIRES(L0035, VIRTIO_PCI_DEVICE_BALLOON,
+                  test_balloon_free_page_hint,
+                  "Free page hint on hint virtqueue",
+                  VIRTIO_SPEC_V1_2, "5.5.6.3",
+                  (1ULL << VIRTIO_BALLOON_F_FREE_PAGE_HINT), 0);

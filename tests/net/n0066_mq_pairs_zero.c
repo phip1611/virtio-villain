@@ -16,10 +16,8 @@
 
 #include <string.h>
 
-static test_result_t test_mq_pairs_zero(struct virtio_dev *dev,
-                                        struct vring *vr)
+static test_result_t test_mq_pairs_zero(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     uint16_t nq = cfg->num_queues;
     if (nq < 5)
@@ -56,7 +54,7 @@ static test_result_t test_mq_pairs_zero(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &cvr, ctrl_q, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST_REQUIRES(N0066, VIRTIO_PCI_DEVICE_NET, test_mq_pairs_zero,
-              "CTRL_MQ VQ_PAIRS_SET with virtqueue_pairs=0 (violates min)",
-              VIRTIO_SPEC_V1_2, "5.1.6.5.6",
-              (1ULL << VIRTIO_NET_F_MQ), 0);
+REGISTER_TEST_DEV_REQUIRES(N0066, VIRTIO_PCI_DEVICE_NET, test_mq_pairs_zero,
+                  "CTRL_MQ VQ_PAIRS_SET with virtqueue_pairs=0 (violates min)",
+                  VIRTIO_SPEC_V1_2, "5.1.6.5.6",
+                  (1ULL << VIRTIO_NET_F_MQ), 0);

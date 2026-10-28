@@ -16,11 +16,8 @@
 
 #define NET_CFG_MTU_OFFSET 10
 
-static test_result_t test_net_config_mtu(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_net_config_mtu(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_MTU))
         return TEST_SKIP;
 
@@ -39,7 +36,7 @@ static test_result_t test_net_config_mtu(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(N0136, VIRTIO_PCI_DEVICE_NET, test_net_config_mtu,
-              "Read MTU from device config and validate range",
-              VIRTIO_SPEC_V1_2, "5.1.4",
-              (1ULL << VIRTIO_NET_F_MTU), 0);
+REGISTER_TEST_DEV_REQUIRES(N0136, VIRTIO_PCI_DEVICE_NET, test_net_config_mtu,
+                  "Read MTU from device config and validate range",
+                  VIRTIO_SPEC_V1_2, "5.1.4",
+                  (1ULL << VIRTIO_NET_F_MTU), 0);

@@ -12,11 +12,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_accept_unoffered_feature(struct virtio_dev *dev,
-                                                   struct vring *vr)
+static test_result_t test_accept_unoffered_feature(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /* Reset and re-init with bogus features */
     virtio_pci_reset(dev);
 
@@ -76,6 +73,6 @@ static test_result_t test_accept_unoffered_feature(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(T0037, VIRTIO_PCI_DEVICE_BLK, test_accept_unoffered_feature,
-              "Accept feature bits device did not offer",
-              VIRTIO_SPEC_V1_2, "2.2");
+REGISTER_TEST_DEV(T0037, VIRTIO_PCI_DEVICE_BLK, test_accept_unoffered_feature,
+                  "Accept feature bits device did not offer",
+                  VIRTIO_SPEC_V1_2, "2.2");

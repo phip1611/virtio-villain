@@ -16,12 +16,9 @@
 
 #include <unistd.h>
 
-static test_result_t test_reinit_without_reset(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_reinit_without_reset(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Verify we are in DRIVER_OK from init */
     uint8_t old = cfg->device_status;
@@ -52,6 +49,6 @@ static test_result_t test_reinit_without_reset(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0086, VIRTIO_PCI_DEVICE_BLK, test_reinit_without_reset,
-              "Restart init sequence without prior reset",
-              VIRTIO_SPEC_V1_2, "3.1.1");
+REGISTER_TEST_DEV(S0086, VIRTIO_PCI_DEVICE_BLK, test_reinit_without_reset,
+                  "Restart init sequence without prior reset",
+                  VIRTIO_SPEC_V1_2, "3.1.1");

@@ -13,10 +13,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_pci_qmsix_oob(struct virtio_dev *dev,
-                                        struct vring *vr)
+static test_result_t test_pci_qmsix_oob(struct virtio_dev *dev)
 {
-    (void)vr;
     dev->common->queue_select = 0;
     __sync_synchronize();
     dev->common->queue_msix_vector = 0xF000;
@@ -28,6 +26,6 @@ static test_result_t test_pci_qmsix_oob(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0064, 0, test_pci_qmsix_oob,
-              "queue_msix_vector beyond table size",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(PCI0064, 0, test_pci_qmsix_oob,
+                  "queue_msix_vector beyond table size",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

@@ -13,10 +13,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_pci_status_failed(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_pci_status_failed(struct virtio_dev *dev)
 {
-    (void)vr;
     dev->common->device_status |= VIRTIO_STATUS_FAILED;
     __sync_synchronize();
     usleep(5000);
@@ -28,6 +26,6 @@ static test_result_t test_pci_status_failed(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0057, 0, test_pci_status_failed,
-              "device_status FAILED bit",
-              VIRTIO_SPEC_V1_2, "2.1");
+REGISTER_TEST_DEV(PCI0057, 0, test_pci_status_failed,
+                  "device_status FAILED bit",
+                  VIRTIO_SPEC_V1_2, "2.1");

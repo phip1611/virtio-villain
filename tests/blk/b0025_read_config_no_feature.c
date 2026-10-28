@@ -16,11 +16,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_blk_read_config_no_feature(struct virtio_dev *dev,
-                                                     struct vring *vr)
+static test_result_t test_blk_read_config_no_feature(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /*
      * Read common_cfg fields that are normally only meaningful after
      * feature negotiation: config_generation, queue_notify_off, etc.
@@ -46,6 +43,6 @@ static test_result_t test_blk_read_config_no_feature(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(B0025, VIRTIO_PCI_DEVICE_BLK, test_blk_read_config_no_feature,
-              "Read config fields gated by un-negotiated features",
-              VIRTIO_SPEC_V1_2, "5.2.5.1");
+REGISTER_TEST_DEV(B0025, VIRTIO_PCI_DEVICE_BLK, test_blk_read_config_no_feature,
+                  "Read config fields gated by un-negotiated features",
+                  VIRTIO_SPEC_V1_2, "5.2.5.1");

@@ -9,11 +9,8 @@
 #include "lib/virtio_pci.h"
 #include "lib/virtio_spec.h"
 
-static test_result_t test_access_platform_omitted(struct virtio_dev *dev,
-                                                 struct vring *vr)
+static test_result_t test_access_platform_omitted(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!virtio_pci_feature_offered(dev, VIRTIO_F_ACCESS_PLATFORM))
         TSKIP("ACCESS_PLATFORM not offered");
 
@@ -39,8 +36,8 @@ static test_result_t test_access_platform_omitted(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(S0097, VIRTIO_PCI_DEVICE_BLK,
-                      test_access_platform_omitted,
-                      "Decline offered ACCESS_PLATFORM during negotiation",
-                      VIRTIO_SPEC_V1_2, "6.2",
-                      (1ULL << VIRTIO_F_ACCESS_PLATFORM), 0);
+REGISTER_TEST_DEV_REQUIRES(S0097, VIRTIO_PCI_DEVICE_BLK,
+                          test_access_platform_omitted,
+                          "Decline offered ACCESS_PLATFORM during negotiation",
+                          VIRTIO_SPEC_V1_2, "6.2",
+                          (1ULL << VIRTIO_F_ACCESS_PLATFORM), 0);

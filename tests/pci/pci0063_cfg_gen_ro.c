@@ -11,10 +11,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_pci_cfg_gen_ro(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_pci_cfg_gen_ro(struct virtio_dev *dev)
 {
-    (void)vr;
     uint8_t before = dev->common->config_generation;
     dev->common->config_generation = (uint8_t)(before + 1);
     __sync_synchronize();
@@ -24,6 +22,6 @@ static test_result_t test_pci_cfg_gen_ro(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0063, 0, test_pci_cfg_gen_ro,
-              "config_generation is read-only",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(PCI0063, 0, test_pci_cfg_gen_ro,
+                  "config_generation is read-only",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

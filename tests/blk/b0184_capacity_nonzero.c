@@ -14,11 +14,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_blk_capacity_nonzero(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_blk_capacity_nonzero(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!dev->device_cfg || dev->device_cfg_length < 8)
         return TEST_SKIP;
 
@@ -33,6 +30,6 @@ static test_result_t test_blk_capacity_nonzero(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(B0184, VIRTIO_PCI_DEVICE_BLK, test_blk_capacity_nonzero,
-              "Capacity config field is non zero",
-              VIRTIO_SPEC_V1_2, "5.2.4");
+REGISTER_TEST_DEV(B0184, VIRTIO_PCI_DEVICE_BLK, test_blk_capacity_nonzero,
+                  "Capacity config field is non zero",
+                  VIRTIO_SPEC_V1_2, "5.2.4");

@@ -15,11 +15,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_net_config_mac(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_net_config_mac(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_MAC))
         return TEST_SKIP;
 
@@ -45,7 +42,7 @@ static test_result_t test_net_config_mac(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(N0133, VIRTIO_PCI_DEVICE_NET, test_net_config_mac,
-              "Read MAC address from device config",
-              VIRTIO_SPEC_V1_2, "5.1.4",
-              (1ULL << VIRTIO_NET_F_MAC), 0);
+REGISTER_TEST_DEV_REQUIRES(N0133, VIRTIO_PCI_DEVICE_NET, test_net_config_mac,
+                  "Read MAC address from device config",
+                  VIRTIO_SPEC_V1_2, "5.1.4",
+                  (1ULL << VIRTIO_NET_F_MAC), 0);

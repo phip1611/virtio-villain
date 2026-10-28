@@ -14,10 +14,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_admin_after_reset(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_admin_after_reset(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Reset the device */
@@ -70,6 +68,6 @@ static test_result_t test_admin_after_reset(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &avr, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(A0012, VIRTIO_PCI_DEVICE_BLK, test_admin_after_reset,
-              "Admin command submitted after device reset cycle",
-              VIRTIO_SPEC_V1_3, "2.13");
+REGISTER_TEST_DEV(A0012, VIRTIO_PCI_DEVICE_BLK, test_admin_after_reset,
+                  "Admin command submitted after device reset cycle",
+                  VIRTIO_SPEC_V1_3, "2.13");

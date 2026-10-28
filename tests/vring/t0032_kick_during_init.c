@@ -12,11 +12,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_kick_during_init(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_kick_during_init(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /* Reset and set only ACKNOWLEDGE */
     virtio_pci_reset(dev);
 
@@ -47,6 +44,6 @@ static test_result_t test_kick_during_init(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(T0032, VIRTIO_PCI_DEVICE_BLK, test_kick_during_init,
-              "Queue kick during ACKNOWLEDGE-only state",
-              VIRTIO_SPEC_V1_2, "3.1");
+REGISTER_TEST_DEV(T0032, VIRTIO_PCI_DEVICE_BLK, test_kick_during_init,
+                  "Queue kick during ACKNOWLEDGE-only state",
+                  VIRTIO_SPEC_V1_2, "3.1");

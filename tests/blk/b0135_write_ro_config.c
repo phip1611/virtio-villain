@@ -13,10 +13,8 @@
 
 #include <string.h>
 
-static test_result_t test_blk_write_ro_config(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_blk_write_ro_config(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile uint8_t *cfg_space = (volatile uint8_t *)dev->device_cfg;
 
     /* Read original capacity (first 8 bytes of block config) */
@@ -39,6 +37,6 @@ static test_result_t test_blk_write_ro_config(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(B0135, VIRTIO_PCI_DEVICE_BLK, test_blk_write_ro_config,
-              "Write to read-only config fields",
-              VIRTIO_SPEC_V1_2, "5.2.4");
+REGISTER_TEST_DEV(B0135, VIRTIO_PCI_DEVICE_BLK, test_blk_write_ro_config,
+                  "Write to read-only config fields",
+                  VIRTIO_SPEC_V1_2, "5.2.4");

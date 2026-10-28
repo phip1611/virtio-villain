@@ -14,11 +14,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_admin_reserved_nonzero(struct virtio_dev *dev,
-                                                 struct vring *vr)
+static test_result_t test_admin_reserved_nonzero(struct virtio_dev *dev)
 {
-    (void)vr;
-
     struct vring avr;
     vring_alloc(&avr, 16);
     vring_attach(dev, &avr, 0);
@@ -46,6 +43,6 @@ static test_result_t test_admin_reserved_nonzero(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &avr, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(A0016, VIRTIO_PCI_DEVICE_BLK, test_admin_reserved_nonzero,
-              "Admin command with all reserved header bytes set to 0xFF",
-              VIRTIO_SPEC_V1_3, "2.13");
+REGISTER_TEST_DEV(A0016, VIRTIO_PCI_DEVICE_BLK, test_admin_reserved_nonzero,
+                  "Admin command with all reserved header bytes set to 0xFF",
+                  VIRTIO_SPEC_V1_3, "2.13");

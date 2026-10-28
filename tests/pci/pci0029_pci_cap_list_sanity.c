@@ -16,11 +16,8 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-static test_result_t test_pci_cap_list_sanity(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_pci_cap_list_sanity(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /* Verify we found key capability regions */
     if (!dev->common)
         TFAIL("!dev->common");
@@ -53,6 +50,6 @@ static test_result_t test_pci_cap_list_sanity(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0029, VIRTIO_PCI_DEVICE_BLK, test_pci_cap_list_sanity,
-              "PCI capability regions have valid sizes and pointers",
-              VIRTIO_SPEC_V1_2, "4.1.4");
+REGISTER_TEST_DEV(PCI0029, VIRTIO_PCI_DEVICE_BLK, test_pci_cap_list_sanity,
+                  "PCI capability regions have valid sizes and pointers",
+                  VIRTIO_SPEC_V1_2, "4.1.4");

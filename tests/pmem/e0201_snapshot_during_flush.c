@@ -16,10 +16,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_pmem_survives_snapshot(struct virtio_dev *dev,
-                                                 struct vring *vr)
+static test_result_t test_pmem_survives_snapshot(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     if (!(cfg->device_status & VIRTIO_STATUS_DRIVER_OK))
         return TEST_SKIP;
@@ -39,7 +37,7 @@ static test_result_t test_pmem_survives_snapshot(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(E0201, VIRTIO_PCI_DEVICE_PMEM,
-              test_pmem_survives_snapshot,
-              "virtio-pmem survives a host triggered snapshot",
-              VIRTIO_SPEC_V1_2, "2.6");
+REGISTER_TEST_DEV(E0201, VIRTIO_PCI_DEVICE_PMEM,
+                  test_pmem_survives_snapshot,
+                  "virtio-pmem survives a host triggered snapshot",
+                  VIRTIO_SPEC_V1_2, "2.6");

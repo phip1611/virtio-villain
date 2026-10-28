@@ -17,11 +17,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_console_config_no_size(struct virtio_dev *dev,
-                                                 struct vring *vr)
+static test_result_t test_console_config_no_size(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!dev->device_cfg || dev->device_cfg_length < 4)
         return TEST_SKIP;
 
@@ -43,6 +40,6 @@ static test_result_t test_console_config_no_size(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(C0024, VIRTIO_PCI_DEVICE_CONSOLE, test_console_config_no_size,
-              "Console config readable without F_SIZE",
-              VIRTIO_SPEC_V1_2, "5.3.4");
+REGISTER_TEST_DEV(C0024, VIRTIO_PCI_DEVICE_CONSOLE, test_console_config_no_size,
+                  "Console config readable without F_SIZE",
+                  VIRTIO_SPEC_V1_2, "5.3.4");

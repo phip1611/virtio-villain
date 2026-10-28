@@ -18,12 +18,9 @@
 #include <unistd.h>
 
 
-static test_result_t test_balloon_reporting_no_feature(struct virtio_dev *dev,
-                                                      struct vring *vr)
+static test_result_t test_balloon_reporting_no_feature(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_REPORTING))
         return TEST_SKIP;
@@ -43,7 +40,7 @@ static test_result_t test_balloon_reporting_no_feature(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(L0022, VIRTIO_PCI_DEVICE_BALLOON,
-              test_balloon_reporting_no_feature,
-              "Reporting vq absent without PAGE_REPORTING",
-              VIRTIO_SPEC_V1_2, "5.5.5");
+REGISTER_TEST_DEV(L0022, VIRTIO_PCI_DEVICE_BALLOON,
+                  test_balloon_reporting_no_feature,
+                  "Reporting vq absent without PAGE_REPORTING",
+                  VIRTIO_SPEC_V1_2, "5.5.5");

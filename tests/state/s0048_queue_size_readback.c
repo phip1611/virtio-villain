@@ -12,12 +12,9 @@
 #include "lib/vring.h"
 #include "lib/virtio_pci.h"
 
-static test_result_t test_queue_size_readback(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_queue_size_readback(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (virtio_pci_init(dev) != 0)
         TFAIL("Failed to init device");
@@ -47,6 +44,6 @@ static test_result_t test_queue_size_readback(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0048, VIRTIO_PCI_DEVICE_BLK, test_queue_size_readback,
-              "queue_size reads back driver written value",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(S0048, VIRTIO_PCI_DEVICE_BLK, test_queue_size_readback,
+                  "queue_size reads back driver written value",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

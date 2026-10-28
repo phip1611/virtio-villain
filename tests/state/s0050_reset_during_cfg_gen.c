@@ -15,12 +15,9 @@
 
 #include <unistd.h>
 
-static test_result_t test_reset_during_cfg_gen(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_reset_during_cfg_gen(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Spin polling config_generation a bunch of times */
     for (int i = 0; i < 1000; i++)
@@ -41,6 +38,6 @@ static test_result_t test_reset_during_cfg_gen(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0050, VIRTIO_PCI_DEVICE_BLK, test_reset_during_cfg_gen,
-              "reset issued right after config_generation poll burst",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(S0050, VIRTIO_PCI_DEVICE_BLK, test_reset_during_cfg_gen,
+                  "reset issued right after config_generation poll burst",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

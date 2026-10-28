@@ -14,11 +14,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_pci_common_cfg_read_all(struct virtio_dev *dev,
-                                                  struct vring *vr)
+static test_result_t test_pci_common_cfg_read_all(struct virtio_dev *dev)
 {
-    (void)vr;
-
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     __sync_synchronize();
 
@@ -77,6 +74,6 @@ static test_result_t test_pci_common_cfg_read_all(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0040, VIRTIO_PCI_DEVICE_BLK, test_pci_common_cfg_read_all,
-              "Read all common config fields",
-              VIRTIO_SPEC_V1_2, "4.1.4.3");
+REGISTER_TEST_DEV(PCI0040, VIRTIO_PCI_DEVICE_BLK, test_pci_common_cfg_read_all,
+                  "Read all common config fields",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3");

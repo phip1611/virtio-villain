@@ -17,12 +17,9 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_notif_config_data(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_notif_config_data(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Check if device offers NOTIF_CONFIG_DATA */
     if (!virtio_pci_feature_offered(dev, VIRTIO_F_NOTIF_CONFIG_DATA))
@@ -107,7 +104,7 @@ static test_result_t test_notif_config_data(struct virtio_dev *dev,
     return TEST_REJECT;
 }
 
-REGISTER_TEST_REQUIRES(T0110, VIRTIO_PCI_DEVICE_BLK, test_notif_config_data,
-              "NOTIF_CONFIG_DATA uses queue_notify_data in notification",
-              VIRTIO_SPEC_V1_2, "4.1.5.2",
-              (1ULL << VIRTIO_F_NOTIF_CONFIG_DATA), 0);
+REGISTER_TEST_DEV_REQUIRES(T0110, VIRTIO_PCI_DEVICE_BLK, test_notif_config_data,
+                  "NOTIF_CONFIG_DATA uses queue_notify_data in notification",
+                  VIRTIO_SPEC_V1_2, "4.1.5.2",
+                  (1ULL << VIRTIO_F_NOTIF_CONFIG_DATA), 0);

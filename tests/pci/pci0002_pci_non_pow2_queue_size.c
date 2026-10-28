@@ -13,11 +13,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_pci_non_pow2_queue_size(struct virtio_dev *dev,
-                                                  struct vring *vr)
+static test_result_t test_pci_non_pow2_queue_size(struct virtio_dev *dev)
 {
-    (void)vr;
-
     virtio_pci_reset(dev);
 
     dev->common->device_status = VIRTIO_STATUS_ACKNOWLEDGE;
@@ -61,6 +58,6 @@ static test_result_t test_pci_non_pow2_queue_size(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0002, VIRTIO_PCI_DEVICE_BLK, test_pci_non_pow2_queue_size,
-              "Write non-power-of-two (7) to PCI queue_size",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(PCI0002, VIRTIO_PCI_DEVICE_BLK, test_pci_non_pow2_queue_size,
+                  "Write non-power-of-two (7) to PCI queue_size",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

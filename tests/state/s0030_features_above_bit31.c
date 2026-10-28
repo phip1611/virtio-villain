@@ -16,10 +16,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_features_above_bit31(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_features_above_bit31(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Reset */
@@ -84,6 +82,6 @@ static test_result_t test_features_above_bit31(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0030, VIRTIO_PCI_DEVICE_BLK, test_features_above_bit31,
-              "Feature bits in page 1 (bits 32-63) with invalid high bits",
-              VIRTIO_SPEC_V1_2, "3.1.1");
+REGISTER_TEST_DEV(S0030, VIRTIO_PCI_DEVICE_BLK, test_features_above_bit31,
+                  "Feature bits in page 1 (bits 32-63) with invalid high bits",
+                  VIRTIO_SPEC_V1_2, "3.1.1");

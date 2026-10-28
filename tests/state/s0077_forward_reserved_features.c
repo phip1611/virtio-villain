@@ -11,12 +11,9 @@
 #include "lib/vring.h"
 #include "lib/virtio_pci.h"
 
-static test_result_t test_forward_reserved_features(struct virtio_dev *dev,
-                                                    struct vring *vr)
+static test_result_t test_forward_reserved_features(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Write reserved feature bits in page 0 (bits 24-31) */
     cfg->driver_feature_select = 0;
@@ -40,6 +37,6 @@ static test_result_t test_forward_reserved_features(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0077, VIRTIO_PCI_DEVICE_BLK, test_forward_reserved_features,
-              "Set reserved feature bits without crashing",
-              VIRTIO_SPEC_V1_3, "6");
+REGISTER_TEST_DEV(S0077, VIRTIO_PCI_DEVICE_BLK, test_forward_reserved_features,
+                  "Set reserved feature bits without crashing",
+                  VIRTIO_SPEC_V1_3, "6");

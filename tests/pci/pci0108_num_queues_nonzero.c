@@ -13,10 +13,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_pci_num_queues(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_pci_num_queues(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     uint16_t nq = cfg->num_queues;
@@ -26,6 +24,6 @@ static test_result_t test_pci_num_queues(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0108, VIRTIO_PCI_DEVICE_BLK, test_pci_num_queues,
-              "Common config num_queues is non zero",
-              VIRTIO_SPEC_V1_2, "4.1.4.3");
+REGISTER_TEST_DEV(PCI0108, VIRTIO_PCI_DEVICE_BLK, test_pci_num_queues,
+                  "Common config num_queues is non zero",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3");

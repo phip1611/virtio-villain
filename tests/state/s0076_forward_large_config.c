@@ -12,12 +12,9 @@
 #include "lib/vring.h"
 #include "lib/virtio_pci.h"
 
-static test_result_t test_forward_large_config(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_forward_large_config(struct virtio_dev *dev)
 {
     volatile uint8_t *cfg = dev->device_cfg;
-
-    (void)vr;
 
     if (!cfg || dev->device_cfg_length == 0)
         return TEST_SKIP;
@@ -42,6 +39,6 @@ static test_result_t test_forward_large_config(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0076, VIRTIO_PCI_DEVICE_BLK, test_forward_large_config,
-              "Read device config space beyond known size",
-              VIRTIO_SPEC_V1_3, "2.4");
+REGISTER_TEST_DEV(S0076, VIRTIO_PCI_DEVICE_BLK, test_forward_large_config,
+                  "Read device config space beyond known size",
+                  VIRTIO_SPEC_V1_3, "2.4");

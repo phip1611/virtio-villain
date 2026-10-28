@@ -15,12 +15,9 @@
 #include "lib/vring.h"
 #include "lib/virtio_pci.h"
 
-static test_result_t test_pci_notify_off_in_range(struct virtio_dev *dev,
-                                                  struct vring *vr)
+static test_result_t test_pci_notify_off_in_range(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     uint16_t nq = cfg->num_queues;
     if (nq == 0 || nq > 32)
@@ -45,6 +42,6 @@ static test_result_t test_pci_notify_off_in_range(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0069, VIRTIO_PCI_DEVICE_BLK, test_pci_notify_off_in_range,
-              "queue_notify_off times multiplier stays in notify region",
-              VIRTIO_SPEC_V1_2, "4.1.4.4");
+REGISTER_TEST_DEV(PCI0069, VIRTIO_PCI_DEVICE_BLK, test_pci_notify_off_in_range,
+                  "queue_notify_off times multiplier stays in notify region",
+                  VIRTIO_SPEC_V1_2, "4.1.4.4");

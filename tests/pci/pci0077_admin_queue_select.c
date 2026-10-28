@@ -11,12 +11,9 @@
 #include "lib/vring.h"
 #include "lib/virtio_pci.h"
 
-static test_result_t test_pci_admin_queue_select(struct virtio_dev *dev,
-                                                 struct vring *vr)
+static test_result_t test_pci_admin_queue_select(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (dev->common_length < 0x48)
         return TEST_SKIP;
@@ -39,6 +36,6 @@ static test_result_t test_pci_admin_queue_select(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0077, VIRTIO_PCI_DEVICE_BLK, test_pci_admin_queue_select,
-              "Select admin queue and verify non zero queue_size",
-              VIRTIO_SPEC_V1_3, "4.1.4.3.1");
+REGISTER_TEST_DEV(PCI0077, VIRTIO_PCI_DEVICE_BLK, test_pci_admin_queue_select,
+                  "Select admin queue and verify non zero queue_size",
+                  VIRTIO_SPEC_V1_3, "4.1.4.3.1");

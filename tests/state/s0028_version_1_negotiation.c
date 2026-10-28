@@ -15,10 +15,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_version_1_negotiation(struct virtio_dev *dev,
-                                                struct vring *vr)
+static test_result_t test_version_1_negotiation(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Reset */
@@ -83,6 +81,6 @@ static test_result_t test_version_1_negotiation(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0028, VIRTIO_PCI_DEVICE_BLK, test_version_1_negotiation,
-              "VIRTIO_F_VERSION_1 offered and negotiation behavior",
-              VIRTIO_SPEC_V1_2, "6");
+REGISTER_TEST_DEV(S0028, VIRTIO_PCI_DEVICE_BLK, test_version_1_negotiation,
+                  "VIRTIO_F_VERSION_1 offered and negotiation behavior",
+                  VIRTIO_SPEC_V1_2, "6");

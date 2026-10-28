@@ -13,10 +13,8 @@
 
 #include <string.h>
 
-static test_result_t test_blk_num_queues_no_mq(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_blk_num_queues_no_mq(struct virtio_dev *dev)
 {
-    (void)vr;
     /*
      * The num_queues field is at offset 34 in the block device config.
      * Reading it without MQ negotiated: the result should be benign.
@@ -32,6 +30,6 @@ static test_result_t test_blk_num_queues_no_mq(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(B0134, VIRTIO_PCI_DEVICE_BLK, test_blk_num_queues_no_mq,
-              "Read num_queues without MQ feature",
-              VIRTIO_SPEC_V1_2, "5.2.4");
+REGISTER_TEST_DEV(B0134, VIRTIO_PCI_DEVICE_BLK, test_blk_num_queues_no_mq,
+                  "Read num_queues without MQ feature",
+                  VIRTIO_SPEC_V1_2, "5.2.4");

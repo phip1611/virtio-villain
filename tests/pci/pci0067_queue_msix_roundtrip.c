@@ -16,12 +16,9 @@
 #include <unistd.h>
 
 
-static test_result_t test_pci_queue_msix_roundtrip(struct virtio_dev *dev,
-                                                   struct vring *vr)
+static test_result_t test_pci_queue_msix_roundtrip(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Reset so writes to per queue fields cannot disrupt live IO */
     cfg->device_status = 0;
@@ -61,6 +58,6 @@ static test_result_t test_pci_queue_msix_roundtrip(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0067, VIRTIO_PCI_DEVICE_BLK, test_pci_queue_msix_roundtrip,
-              "queue_msix_vector readback equals value or NO_VECTOR",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(PCI0067, VIRTIO_PCI_DEVICE_BLK, test_pci_queue_msix_roundtrip,
+                  "queue_msix_vector readback equals value or NO_VECTOR",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

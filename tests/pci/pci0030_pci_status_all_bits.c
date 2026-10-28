@@ -14,10 +14,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_pci_status_all_bits(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_pci_status_all_bits(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Write 0xFF - sets FAILED, NEEDS_RESET, undefined bits */
@@ -52,6 +50,6 @@ static test_result_t test_pci_status_all_bits(struct virtio_dev *dev,
     TREJECT("!(status & VIRTIO_STATUS_ACKNOWLEDGE)");
 }
 
-REGISTER_TEST(PCI0030, VIRTIO_PCI_DEVICE_BLK, test_pci_status_all_bits,
-              "Write 0xFF to device_status (all bits set)",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.1");
+REGISTER_TEST_DEV(PCI0030, VIRTIO_PCI_DEVICE_BLK, test_pci_status_all_bits,
+                  "Write 0xFF to device_status (all bits set)",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.1");

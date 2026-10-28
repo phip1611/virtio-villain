@@ -15,12 +15,9 @@
 
 #include <unistd.h>
 
-static test_result_t test_clear_features_ok(struct virtio_dev *dev,
-                                            struct vring *vr)
+static test_result_t test_clear_features_ok(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     uint8_t before = cfg->device_status;
     if (!(before & VIRTIO_STATUS_DRIVER_OK))
@@ -37,6 +34,6 @@ static test_result_t test_clear_features_ok(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0058, VIRTIO_PCI_DEVICE_BLK, test_clear_features_ok,
-              "Clear FEATURES_OK while DRIVER_OK is set",
-              VIRTIO_SPEC_V1_2, "2.1");
+REGISTER_TEST_DEV(S0058, VIRTIO_PCI_DEVICE_BLK, test_clear_features_ok,
+                  "Clear FEATURES_OK while DRIVER_OK is set",
+                  VIRTIO_SPEC_V1_2, "2.1");

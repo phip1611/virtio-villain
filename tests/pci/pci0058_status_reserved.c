@@ -13,10 +13,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_pci_status_reserved(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_pci_status_reserved(struct virtio_dev *dev)
 {
-    (void)vr;
     uint8_t s = dev->common->device_status;
     dev->common->device_status = (uint8_t)(s | 0x10);
     __sync_synchronize();
@@ -24,6 +22,6 @@ static test_result_t test_pci_status_reserved(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0058, 0, test_pci_status_reserved,
-              "device_status reserved bit set",
-              VIRTIO_SPEC_V1_2, "2.1");
+REGISTER_TEST_DEV(PCI0058, 0, test_pci_status_reserved,
+                  "device_status reserved bit set",
+                  VIRTIO_SPEC_V1_2, "2.1");

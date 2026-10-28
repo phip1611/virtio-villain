@@ -14,10 +14,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_features_ok_rejected(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_features_ok_rejected(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Reset the device */
@@ -78,6 +76,6 @@ static test_result_t test_features_ok_rejected(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0025, VIRTIO_PCI_DEVICE_BLK, test_features_ok_rejected,
-              "FEATURES_OK rejected when non-offered features set",
-              VIRTIO_SPEC_V1_2, "2.2.2");
+REGISTER_TEST_DEV(S0025, VIRTIO_PCI_DEVICE_BLK, test_features_ok_rejected,
+                  "FEATURES_OK rejected when non-offered features set",
+                  VIRTIO_SPEC_V1_2, "2.2.2");

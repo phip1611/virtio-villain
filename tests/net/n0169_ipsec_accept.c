@@ -14,11 +14,8 @@
 #include "lib/virtio_pci.h"
 #include "lib/virtio_spec.h"
 
-static test_result_t test_net_ipsec_accept(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_net_ipsec_accept(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_IPSEC))
         return TEST_SKIP;
 
@@ -36,7 +33,7 @@ static test_result_t test_net_ipsec_accept(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(N0169, VIRTIO_PCI_DEVICE_NET, test_net_ipsec_accept,
-                       "device accepts IPSEC negotiation",
-                       VIRTIO_SPEC_V1_4, "5.1.3",
-                       VV_FEATURE_BIT(VIRTIO_NET_F_IPSEC), 0);
+REGISTER_TEST_DEV_REQUIRES(N0169, VIRTIO_PCI_DEVICE_NET, test_net_ipsec_accept,
+                           "device accepts IPSEC negotiation",
+                           VIRTIO_SPEC_V1_4, "5.1.3",
+                           VV_FEATURE_BIT(VIRTIO_NET_F_IPSEC), 0);

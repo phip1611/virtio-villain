@@ -19,12 +19,10 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_balloon_reporting_misaligned_len(struct virtio_dev *dev,
-                                                           struct vring *vr)
+static test_result_t test_balloon_reporting_misaligned_len(
+    struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (!virtio_pci_feature_offered(dev, VIRTIO_BALLOON_F_REPORTING))
         return TEST_SKIP;
@@ -54,8 +52,8 @@ static test_result_t test_balloon_reporting_misaligned_len(struct virtio_dev *de
     return vv_kick_and_wait(dev, &rq, 3, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST_REQUIRES(L0046, VIRTIO_PCI_DEVICE_BALLOON,
-              test_balloon_reporting_misaligned_len,
-              "Reporting element with a non page aligned length",
-              VIRTIO_SPEC_V1_2, "5.5.6.4",
-              (1ULL << VIRTIO_BALLOON_F_REPORTING), 0);
+REGISTER_TEST_DEV_REQUIRES(L0046, VIRTIO_PCI_DEVICE_BALLOON,
+                  test_balloon_reporting_misaligned_len,
+                  "Reporting element with a non page aligned length",
+                  VIRTIO_SPEC_V1_2, "5.5.6.4",
+                  (1ULL << VIRTIO_BALLOON_F_REPORTING), 0);

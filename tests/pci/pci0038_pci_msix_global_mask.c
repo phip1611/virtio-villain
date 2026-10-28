@@ -18,11 +18,8 @@
 
 #define MSIX_MSGCTRL_FMASK 0x4000  /* Function Mask bit (bit 14) */
 
-static test_result_t test_pci_msix_global_mask(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_pci_msix_global_mask(struct virtio_dev *dev)
 {
-    (void)vr;
-
     int fd = pci_cfg_open(dev->slot);
     if (fd < 0)
         return TEST_SKIP;
@@ -79,6 +76,6 @@ static test_result_t test_pci_msix_global_mask(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0038, VIRTIO_PCI_DEVICE_BLK, test_pci_msix_global_mask,
-              "MSI-X global function mask toggle",
-              VIRTIO_SPEC_V1_2, "4.1.4.5");
+REGISTER_TEST_DEV(PCI0038, VIRTIO_PCI_DEVICE_BLK, test_pci_msix_global_mask,
+                  "MSI-X global function mask toggle",
+                  VIRTIO_SPEC_V1_2, "4.1.4.5");

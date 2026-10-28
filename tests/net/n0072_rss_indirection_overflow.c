@@ -14,10 +14,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_net_rss_overflow(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_net_rss_overflow(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Need ctrl queue */
@@ -59,7 +57,7 @@ static test_result_t test_net_rss_overflow(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &ctrlvr, 2, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST_REQUIRES(N0072, VIRTIO_PCI_DEVICE_NET, test_net_rss_overflow,
-              "RSS indirection_table_mask beyond table size",
-              VIRTIO_SPEC_V1_2, "5.1.6.5.8",
-              0, 3);
+REGISTER_TEST_DEV_REQUIRES(N0072, VIRTIO_PCI_DEVICE_NET, test_net_rss_overflow,
+                  "RSS indirection_table_mask beyond table size",
+                  VIRTIO_SPEC_V1_2, "5.1.6.5.8",
+                  0, 3);

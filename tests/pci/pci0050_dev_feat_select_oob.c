@@ -14,10 +14,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_pci_dev_feat_select_oob(struct virtio_dev *dev,
-                                                  struct vring *vr)
+static test_result_t test_pci_dev_feat_select_oob(struct virtio_dev *dev)
 {
-    (void)vr;
     for (uint32_t sel = 2; sel < 8; sel++) {
         dev->common->device_feature_select = sel;
         __sync_synchronize();
@@ -27,6 +25,6 @@ static test_result_t test_pci_dev_feat_select_oob(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0050, 0, test_pci_dev_feat_select_oob,
-              "device_feature_select beyond defined slices",
-              VIRTIO_SPEC_V1_2, "4.1.4.3");
+REGISTER_TEST_DEV(PCI0050, 0, test_pci_dev_feat_select_oob,
+                  "device_feature_select beyond defined slices",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3");

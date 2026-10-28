@@ -16,12 +16,9 @@
 
 #include <unistd.h>
 
-static test_result_t test_reinit_after_failed(struct virtio_dev *dev,
-                                              struct vring *vr)
+static test_result_t test_reinit_after_failed(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     /* Set FAILED bit on top of current status */
     cfg->device_status |= VIRTIO_STATUS_FAILED;
@@ -57,6 +54,6 @@ static test_result_t test_reinit_after_failed(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(S0056, VIRTIO_PCI_DEVICE_BLK, test_reinit_after_failed,
-              "reset and reinit succeed after FAILED bit was set",
-              VIRTIO_SPEC_V1_2, "2.1.2");
+REGISTER_TEST_DEV(S0056, VIRTIO_PCI_DEVICE_BLK, test_reinit_after_failed,
+                  "reset and reinit succeed after FAILED bit was set",
+                  VIRTIO_SPEC_V1_2, "2.1.2");

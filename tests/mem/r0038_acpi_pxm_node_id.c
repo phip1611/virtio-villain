@@ -11,11 +11,8 @@
 #include "tests/test.h"
 #include "lib/virtio_spec.h"
 
-static test_result_t test_mem_acpi_pxm(struct virtio_dev *dev,
-                                       struct vring *vr)
+static test_result_t test_mem_acpi_pxm(struct virtio_dev *dev)
 {
-    (void)vr;
-
     if (!virtio_pci_feature_offered(dev, VIRTIO_MEM_F_ACPI_PXM))
         return TEST_SKIP;
 
@@ -29,7 +26,7 @@ static test_result_t test_mem_acpi_pxm(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST_REQUIRES(R0038, VIRTIO_PCI_DEVICE_MEM, test_mem_acpi_pxm,
-              "ACPI_PXM node_id is readable",
-              VIRTIO_SPEC_V1_4, "5.15.3",
-              (1ULL << VIRTIO_MEM_F_ACPI_PXM), 0);
+REGISTER_TEST_DEV_REQUIRES(R0038, VIRTIO_PCI_DEVICE_MEM, test_mem_acpi_pxm,
+                  "ACPI_PXM node_id is readable",
+                  VIRTIO_SPEC_V1_4, "5.15.3",
+                  (1ULL << VIRTIO_MEM_F_ACPI_PXM), 0);

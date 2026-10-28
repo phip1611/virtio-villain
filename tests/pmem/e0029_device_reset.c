@@ -14,10 +14,8 @@
 #include <unistd.h>
 
 
-static test_result_t test_pmem_reset_flush(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_pmem_reset_flush(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     virtio_pci_reset(dev);
@@ -55,6 +53,6 @@ static test_result_t test_pmem_reset_flush(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &tvr, 0, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(E0029, VIRTIO_PCI_DEVICE_PMEM, test_pmem_reset_flush,
-              "pmem FLUSH immediately after device reset",
-              VIRTIO_SPEC_V1_4, "3.1");
+REGISTER_TEST_DEV(E0029, VIRTIO_PCI_DEVICE_PMEM, test_pmem_reset_flush,
+                  "pmem FLUSH immediately after device reset",
+                  VIRTIO_SPEC_V1_4, "3.1");

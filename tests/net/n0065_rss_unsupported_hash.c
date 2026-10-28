@@ -16,10 +16,8 @@
 
 #include <string.h>
 
-static test_result_t test_rss_unsupported_hash(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_rss_unsupported_hash(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     if (!virtio_pci_feature_offered(dev, VIRTIO_NET_F_RSS))
@@ -78,6 +76,6 @@ static test_result_t test_rss_unsupported_hash(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &cvr, ctrl_q, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(N0065, VIRTIO_PCI_DEVICE_NET, test_rss_unsupported_hash,
-              "RSS_CONFIG with all hash_types bits set (unsupported flags)",
-              VIRTIO_SPEC_V1_2, "5.1.6.5.7.2");
+REGISTER_TEST_DEV(N0065, VIRTIO_PCI_DEVICE_NET, test_rss_unsupported_hash,
+                  "RSS_CONFIG with all hash_types bits set (unsupported flags)",
+                  VIRTIO_SPEC_V1_2, "5.1.6.5.7.2");

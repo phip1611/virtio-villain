@@ -17,8 +17,7 @@
 
 #define MAX_QUEUES 16
 
-static test_result_t test_blk_mq_all_blast(struct virtio_dev *dev,
-                                           struct vring *vr)
+static test_result_t test_blk_mq_all_blast(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
     uint16_t nq = cfg->num_queues;
@@ -58,8 +57,6 @@ static test_result_t test_blk_mq_all_blast(struct virtio_dev *dev,
 
     cfg->device_status |= VIRTIO_STATUS_DRIVER_OK;
     __sync_synchronize();
-
-    (void)vr;
 
     /* Submit a read request on each queue */
     for (uint16_t i = 0; i < nq; i++) {
@@ -112,6 +109,6 @@ static test_result_t test_blk_mq_all_blast(struct virtio_dev *dev,
     TREJECT("no device response within timeout");
 }
 
-REGISTER_TEST(B0114, VIRTIO_PCI_DEVICE_BLK, test_blk_mq_all_blast,
-              "Submit requests on all queues simultaneously",
-              VIRTIO_SPEC_V1_2, "5.2.6");
+REGISTER_TEST_DEV(B0114, VIRTIO_PCI_DEVICE_BLK, test_blk_mq_all_blast,
+                  "Submit requests on all queues simultaneously",
+                  VIRTIO_SPEC_V1_2, "5.2.6");

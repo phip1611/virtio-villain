@@ -15,12 +15,9 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_console_ctrl_port_at_max(struct virtio_dev *dev,
-                                                   struct vring *vr)
+static test_result_t test_console_ctrl_port_at_max(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (!virtio_pci_feature_offered(dev, VIRTIO_CONSOLE_F_MULTIPORT))
         return TEST_SKIP;
@@ -55,7 +52,7 @@ static test_result_t test_console_ctrl_port_at_max(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &cq, 2, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(C0038, VIRTIO_PCI_DEVICE_CONSOLE,
-              test_console_ctrl_port_at_max,
-              "PORT_OPEN with port_id equal to max_nr_ports",
-              VIRTIO_SPEC_V1_2, "5.3.4");
+REGISTER_TEST_DEV(C0038, VIRTIO_PCI_DEVICE_CONSOLE,
+                  test_console_ctrl_port_at_max,
+                  "PORT_OPEN with port_id equal to max_nr_ports",
+                  VIRTIO_SPEC_V1_2, "5.3.4");

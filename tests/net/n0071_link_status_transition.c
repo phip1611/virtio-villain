@@ -15,11 +15,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_net_link_status(struct virtio_dev *dev,
-                                          struct vring *vr)
+static test_result_t test_net_link_status(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /* Read link status from device config */
     volatile struct virtio_net_config *netcfg =
         (volatile struct virtio_net_config *)dev->device_cfg;
@@ -53,6 +50,6 @@ static test_result_t test_net_link_status(struct virtio_dev *dev,
     return vv_kick_and_wait(dev, &txvr, 1, VV_TIMEOUT_MS);
 }
 
-REGISTER_TEST(N0071, VIRTIO_PCI_DEVICE_NET, test_net_link_status,
-              "TX after verifying link status is up",
-              VIRTIO_SPEC_V1_2, "5.1.6");
+REGISTER_TEST_DEV(N0071, VIRTIO_PCI_DEVICE_NET, test_net_link_status,
+                  "TX after verifying link status is up",
+                  VIRTIO_SPEC_V1_2, "5.1.6");

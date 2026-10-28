@@ -16,12 +16,9 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_rtc_alarm_zero(struct virtio_dev *dev,
-                                         struct vring *vr)
+static test_result_t test_rtc_alarm_zero(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (cfg->num_queues < 2)
         return TEST_SKIP;
@@ -54,7 +51,7 @@ static test_result_t test_rtc_alarm_zero(struct virtio_dev *dev,
     return r;
 }
 
-REGISTER_TEST_REQUIRES(RTC0020, VIRTIO_PCI_DEVICE_RTC, test_rtc_alarm_zero,
-              "SET_ALARM with time_ns equal to zero",
-              VIRTIO_SPEC_V1_4, "5.23.6",
-              0, 2);
+REGISTER_TEST_DEV_REQUIRES(RTC0020, VIRTIO_PCI_DEVICE_RTC, test_rtc_alarm_zero,
+                  "SET_ALARM with time_ns equal to zero",
+                  VIRTIO_SPEC_V1_4, "5.23.6",
+                  0, 2);

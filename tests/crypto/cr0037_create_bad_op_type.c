@@ -21,10 +21,8 @@
 
 #define BOGUS_SYM_OP_TYPE 0xdeadu
 
-static test_result_t test_crypto_bad_op_type(struct virtio_dev *dev,
-                                             struct vring *vr)
+static test_result_t test_crypto_bad_op_type(struct virtio_dev *dev)
 {
-    (void)vr;
     if (!dev->device_cfg)
         return TEST_SKIP;
     volatile struct virtio_crypto_config *cfg =
@@ -67,7 +65,7 @@ static test_result_t test_crypto_bad_op_type(struct virtio_dev *dev,
     TREJECT("no device response within timeout");
 }
 
-REGISTER_TEST(CR0037, VIRTIO_PCI_DEVICE_CRYPTO,
-              test_crypto_bad_op_type,
-              "An unknown create session op type keeps the host alive",
-              VIRTIO_SPEC_V1_2, "5.9.7");
+REGISTER_TEST_DEV(CR0037, VIRTIO_PCI_DEVICE_CRYPTO,
+                  test_crypto_bad_op_type,
+                  "An unknown create session op type keeps the host alive",
+                  VIRTIO_SPEC_V1_2, "5.9.7");

@@ -9,9 +9,8 @@
 #include "tests/test.h"
 #include "lib/virtio_spec.h"
 
-static test_result_t test_pmem_shmem(struct virtio_dev *dev, struct vring *vr)
+static test_result_t test_pmem_shmem(struct virtio_dev *dev)
 {
-    (void)vr;
     if (dev->shared_memory_length > 0) {
         if (dev->shared_memory_id != 0)
             TFAIL("pmem shared memory region id is not 0");
@@ -30,6 +29,6 @@ static test_result_t test_pmem_shmem(struct virtio_dev *dev, struct vring *vr)
     return TEST_PASS;
 }
 
-REGISTER_TEST(E0028, VIRTIO_PCI_DEVICE_PMEM, test_pmem_shmem,
-              "pmem shared memory region size is non zero",
-              VIRTIO_SPEC_V1_4, "5.19.5");
+REGISTER_TEST_DEV(E0028, VIRTIO_PCI_DEVICE_PMEM, test_pmem_shmem,
+                  "pmem shared memory region size is non zero",
+                  VIRTIO_SPEC_V1_4, "5.19.5");

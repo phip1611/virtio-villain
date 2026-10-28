@@ -15,11 +15,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_pci_double_queue_enable(struct virtio_dev *dev,
-                                                  struct vring *vr)
+static test_result_t test_pci_double_queue_enable(struct virtio_dev *dev)
 {
-    (void)vr;
-
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     /* Queue 0 is already enabled by the harness; enable it again */
@@ -35,6 +32,6 @@ static test_result_t test_pci_double_queue_enable(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0089, VIRTIO_PCI_DEVICE_BLK, test_pci_double_queue_enable,
-              "Enable an already enabled queue",
-              VIRTIO_SPEC_V1_2, "4.1.4.3.2");
+REGISTER_TEST_DEV(PCI0089, VIRTIO_PCI_DEVICE_BLK, test_pci_double_queue_enable,
+                  "Enable an already enabled queue",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3.2");

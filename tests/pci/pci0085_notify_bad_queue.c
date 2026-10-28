@@ -15,11 +15,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_pci_notify_bad_queue(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_pci_notify_bad_queue(struct virtio_dev *dev)
 {
-    (void)vr;
-
     /*
      * Write to the notify BAR with a queue index of 0xFFFF.
      * We use the notify offset for queue 0 but write an invalid
@@ -43,6 +40,6 @@ static test_result_t test_pci_notify_bad_queue(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0085, VIRTIO_PCI_DEVICE_BLK, test_pci_notify_bad_queue,
-              "Queue notify with invalid queue index 0xFFFF",
-              VIRTIO_SPEC_V1_2, "4.1.5.2");
+REGISTER_TEST_DEV(PCI0085, VIRTIO_PCI_DEVICE_BLK, test_pci_notify_bad_queue,
+                  "Queue notify with invalid queue index 0xFFFF",
+                  VIRTIO_SPEC_V1_2, "4.1.5.2");

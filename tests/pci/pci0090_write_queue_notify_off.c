@@ -16,10 +16,8 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_pci_write_queue_notify_off(struct virtio_dev *dev,
-                                                     struct vring *vr)
+static test_result_t test_pci_write_queue_notify_off(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     cfg->queue_select = 0;
@@ -41,7 +39,7 @@ static test_result_t test_pci_write_queue_notify_off(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0090, VIRTIO_PCI_DEVICE_BLK,
-              test_pci_write_queue_notify_off,
-              "Driver write to read only queue_notify_off",
-              VIRTIO_SPEC_V1_2, "4.1.4.3");
+REGISTER_TEST_DEV(PCI0090, VIRTIO_PCI_DEVICE_BLK,
+                  test_pci_write_queue_notify_off,
+                  "Driver write to read only queue_notify_off",
+                  VIRTIO_SPEC_V1_2, "4.1.4.3");

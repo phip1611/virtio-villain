@@ -16,12 +16,9 @@
 #include <string.h>
 #include <unistd.h>
 
-static test_result_t test_notif_data_stale_idx(struct virtio_dev *dev,
-                                               struct vring *vr)
+static test_result_t test_notif_data_stale_idx(struct virtio_dev *dev)
 {
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
-
-    (void)vr;
 
     if (!virtio_pci_feature_offered(dev, VIRTIO_F_NOTIFICATION_DATA))
         return TEST_SKIP;
@@ -103,6 +100,6 @@ static test_result_t test_notif_data_stale_idx(struct virtio_dev *dev,
     TREJECT("no device response within timeout");
 }
 
-REGISTER_TEST(T0102, VIRTIO_PCI_DEVICE_BLK, test_notif_data_stale_idx,
-              "NOTIFICATION_DATA with stale avail index",
-              VIRTIO_SPEC_V1_2, "4.1.5.2");
+REGISTER_TEST_DEV(T0102, VIRTIO_PCI_DEVICE_BLK, test_notif_data_stale_idx,
+                  "NOTIFICATION_DATA with stale avail index",
+                  VIRTIO_SPEC_V1_2, "4.1.5.2");

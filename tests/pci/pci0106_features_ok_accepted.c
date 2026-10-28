@@ -14,10 +14,8 @@
 
 #include <unistd.h>
 
-static test_result_t test_pci_features_ok(struct virtio_dev *dev,
-                                          struct vring *vr)
+static test_result_t test_pci_features_ok(struct virtio_dev *dev)
 {
-    (void)vr;
     volatile struct virtio_pci_common_cfg *cfg = dev->common;
 
     virtio_pci_reset(dev);
@@ -54,6 +52,6 @@ static test_result_t test_pci_features_ok(struct virtio_dev *dev,
     return TEST_PASS;
 }
 
-REGISTER_TEST(PCI0106, VIRTIO_PCI_DEVICE_BLK, test_pci_features_ok,
-              "FEATURES_OK accepted for valid feature set",
-              VIRTIO_SPEC_V1_2, "3.1.1");
+REGISTER_TEST_DEV(PCI0106, VIRTIO_PCI_DEVICE_BLK, test_pci_features_ok,
+                  "FEATURES_OK accepted for valid feature set",
+                  VIRTIO_SPEC_V1_2, "3.1.1");
