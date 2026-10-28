@@ -9,63 +9,8 @@
  * per spec 4.1.4.3.1.
  */
 #include "tests/test.h"
+#include "tests/hotplug.h"
 #include "lib/pci.h"
-
-#include <dirent.h>
-
-static int trigger_pci_rescan(void)
-{
-    int fd = open("/sys/bus/pci/rescan", O_WRONLY);
-    if (fd < 0)
-        return -1;
-    int rc = (int)write(fd, "1", 1);
-    close(fd);
-    return rc < 0 ? -1 : 0;
-}
-
-static int find_other_dev(uint16_t devid, const char *skip_bdf,
-                          char *slot, size_t len)
-{
-    DIR *d = opendir("/sys/bus/pci/devices");
-    if (!d)
-        return -1;
-    int found = -1;
-    struct dirent *ent;
-    while ((ent = readdir(d)) != NULL) {
-        if (ent->d_name[0] == '.')
-            continue;
-        if (skip_bdf && strcmp(ent->d_name, skip_bdf) == 0)
-            continue;
-        char path[512];
-        unsigned v, dev;
-        FILE *f;
-        snprintf(path, sizeof(path),
-                 "/sys/bus/pci/devices/%s/vendor", ent->d_name);
-        f = fopen(path, "r");
-        if (!f) continue;
-        if (fscanf(f, "%x", &v) != 1) { fclose(f); continue; }
-        fclose(f);
-        snprintf(path, sizeof(path),
-                 "/sys/bus/pci/devices/%s/device", ent->d_name);
-        f = fopen(path, "r");
-        if (!f) continue;
-        if (fscanf(f, "%x", &dev) != 1) { fclose(f); continue; }
-        fclose(f);
-        if (v == VIRTIO_PCI_VENDOR && dev == devid) {
-            snprintf(slot, len, "/sys/bus/pci/devices/%s", ent->d_name);
-            found = 0;
-            break;
-        }
-    }
-    closedir(d);
-    return found;
-}
-
-static const char *bdf_of(const char *slot)
-{
-    const char *s = strrchr(slot, '/');
-    return s ? s + 1 : slot;
-}
 
 static test_result_t test_pmem_hotplug_add(struct virtio_dev *dev,
                                            struct vring *vr)
