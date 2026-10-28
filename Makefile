@@ -14,7 +14,13 @@ ifeq ($(origin CC),default)
 CC = musl-gcc
 endif
 CC      ?= musl-gcc
-CFLAGS  ?= -O2 -Wall -Wextra -Werror
+CFLAGS  ?= -O2 -Wall -Wextra -Werror -Wformat=2 \
+           -Wstrict-prototypes -Wmissing-prototypes \
+           -Wvla -Wshadow -Wundef -Wwrite-strings -Wpointer-arith \
+           -Werror=implicit-function-declaration \
+           -Werror=incompatible-pointer-types \
+           -fstack-protector-strong -fstack-clash-protection
+LDFLAGS ?= -Wl,-z,noexecstack
 CSTD     = -std=gnu23
 STATIC_LDFLAGS ?= -static
 STRIP   ?= strip

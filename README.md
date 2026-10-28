@@ -200,6 +200,11 @@ make            # produces ./init (static binary, all tests linked in)
 make initramfs  # packages init into initramfs.cpio.gz
 ```
 
+Default builds enable stack protection, stack-clash protection, format and
+prototype diagnostics, and a non-executable stack. These protect the test
+harness; they do not validate deliberately malformed virtio requests.
+`CFLAGS`, `CPPFLAGS`, and `LDFLAGS` can be overridden for diagnostic builds.
+
 The initramfs contains the single `init` binary with all tests compiled
 in. The test to run is selected via kernel command line:
 

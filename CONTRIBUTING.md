@@ -47,7 +47,8 @@ VMM integration test suites.
 
 ## Coding Style
 
-- C23 with GNU extensions, `-Wall -Wextra -Werror`.
+- C23 with GNU extensions. Keep builds warning-free under the diagnostics
+  enabled in the Makefile.
 - Tests allocate locked, zeroed pages through `vv_alloc_pages`.
 - Static functions per file, no cross-file symbol leakage outside the
   `lib/` API.
