@@ -9,13 +9,7 @@
  * VMM that ties domain state to the first endpoint will trip up.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static int submit_pair(struct vring *vr, uint16_t slot, uint64_t req_phys,
                        size_t in_len, size_t tail_off, uint16_t next_used)

@@ -7,13 +7,6 @@
  * interspersed with writes do not lose or reorder data.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t submit_write(struct virtio_dev *dev, struct vring *vr,
                                   uint16_t *ai, uint64_t sector, uint8_t pat)

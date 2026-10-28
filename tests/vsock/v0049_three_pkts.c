@@ -9,12 +9,6 @@
  * wedging. This catches devices that block after a single packet.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static void fill(struct virtio_vsock_hdr *h, uint16_t op, uint32_t port)
 {

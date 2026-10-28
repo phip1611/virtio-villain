@@ -12,8 +12,6 @@
  */
 #include "tests/scsi/scsi_util.h"
 
-#include <unistd.h>
-
 #define ABORT_TAG 0xABCD1234ULL
 
 static test_result_t test_scsi_abort_inflight(struct virtio_dev *dev,

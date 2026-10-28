@@ -7,14 +7,7 @@
  * then clear it. Verify device survives and interrupts resume.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/pci.h"
-
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 #define MSIX_MSGCTRL_FMASK 0x4000  /* Function Mask bit (bit 14) */
 

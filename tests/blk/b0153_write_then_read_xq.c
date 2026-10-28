@@ -10,13 +10,6 @@
  * queue caches without coherence.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static int wait_used(struct vring *vr)
 {

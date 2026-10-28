@@ -28,15 +28,7 @@
  *   WEDGED - device set NEEDS_RESET, the bug is present.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 #include "lib/virtio_iommu.h"
-
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
 
 /* Domain used to hold the two adjacent mappings for the net endpoint. */
 #define TX_DOMAIN      0x30

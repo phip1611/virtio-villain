@@ -7,9 +7,6 @@
  * be ignored and not cause undefined behavior.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 
 static test_result_t test_forward_reserved_features(struct virtio_dev *dev,
                                                     struct vring *vr)

@@ -10,13 +10,6 @@
  *   queue 0 = receiveq (device writes), queue 1 = transmitq.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_console_tx_basic(struct virtio_dev *dev,
                                            struct vring *vr)

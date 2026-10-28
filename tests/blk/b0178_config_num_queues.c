@@ -7,12 +7,6 @@
  * count (>= 1) and agree with common_cfg.num_queues.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <unistd.h>
 
 /* num_queues at offset 34 in blk device config */
 #define BLK_CFG_NUM_QUEUES_OFFSET 34

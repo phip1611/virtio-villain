@@ -8,13 +8,6 @@
  * we verify the device processes both requests without crash.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_blk_write_no_flush(struct virtio_dev *dev,
                                              struct vring *vr)

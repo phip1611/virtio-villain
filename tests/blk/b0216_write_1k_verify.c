@@ -6,13 +6,6 @@
  * both sectors back, verify all 1024 bytes match.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_blk_1k_rw(struct virtio_dev *dev, struct vring *vr)
 {

@@ -12,11 +12,6 @@
  * impossible used ring base or stay safely idle on the kick.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_state_queue_device_in_bar(struct virtio_dev *dev,
                                                     struct vring *vr)

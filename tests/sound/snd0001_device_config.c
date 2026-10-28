@@ -7,11 +7,7 @@
  * accessible and that the configured topology is usable.
  */
 #include "tests/test.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/virtio_snd.h"
-
-#include <stdint.h>
 
 static test_result_t test_sound_device_config(struct virtio_dev *dev,
                                               struct vring *vr)

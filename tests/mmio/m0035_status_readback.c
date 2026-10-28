@@ -6,7 +6,6 @@
  * it back. The value must reflect the written bits.
  */
 #include "tests/test.h"
-#include "lib/virtio_mmio.h"
 
 static test_result_t do_test(struct virtio_mmio_dev *dev)
 {

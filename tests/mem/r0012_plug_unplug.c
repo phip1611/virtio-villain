@@ -8,12 +8,6 @@
  * Spec 5.15.6.2.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_mem_plug_unplug(struct virtio_dev *dev,
                                           struct vring *vr)

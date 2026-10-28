@@ -6,13 +6,6 @@
  * their sum overflows a 64-bit integer. The device must reject this.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <stdint.h>
 
 static test_result_t test_blk_discard_sector_wrap(struct virtio_dev *dev,
                                                   struct vring *vr)

@@ -11,13 +11,6 @@
  * that was never accepted.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static void fill(struct virtio_vsock_hdr *p, uint16_t op, uint32_t flags)
 {

@@ -14,10 +14,6 @@
  * Skips when the device does not offer GUEST_USO6.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t test_net_guest_uso6_accept(struct virtio_dev *dev,
                                                 struct vring *vr)

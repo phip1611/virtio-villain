@@ -7,11 +7,6 @@
  * the feature.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_suspend_no_feature(struct virtio_dev *dev,
                                              struct vring *vr)

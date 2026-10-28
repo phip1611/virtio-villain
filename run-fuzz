@@ -1863,12 +1863,6 @@ def cmd_gen_test(args):
  * allocated and each descriptor points into it by cumulative offset.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static const uint8_t fuzz_payload[{payload_bytes_total}] = {{
 {payload_block}

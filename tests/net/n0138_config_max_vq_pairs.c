@@ -7,12 +7,6 @@
  * least 1 and not exceed 0x8000.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <unistd.h>
 
 #define NET_CFG_MAX_VQ_PAIRS_OFFSET 8
 

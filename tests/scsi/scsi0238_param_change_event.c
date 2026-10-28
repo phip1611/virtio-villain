@@ -11,8 +11,6 @@
  */
 #include "tests/scsi/scsi_util.h"
 
-#include <unistd.h>
-
 #define NBUF 2
 
 static test_result_t test_scsi_param_change(struct virtio_dev *dev,

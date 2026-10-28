@@ -6,11 +6,6 @@
  * to it must not change its value.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <unistd.h>
 
 static test_result_t test_pci_num_queues_ro(struct virtio_dev *dev,
                                             struct vring *vr)

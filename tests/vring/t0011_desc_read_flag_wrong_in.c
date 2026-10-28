@@ -8,13 +8,6 @@
  * the same class of bug as T09 but explicitly tests the data segment.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_desc_read_flag_wrong_in(struct virtio_dev *dev,
                                                   struct vring *vr)

@@ -10,13 +10,7 @@
  * with status OK.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 #include "tests/blk/blk_mmio_helpers.h"
-
-#include <unistd.h>
 
 static test_result_t do_read(struct virtio_dev *dev, struct vring *vr,
                              uint64_t sector)

@@ -11,10 +11,6 @@
  * CH has no crypto model, so this skips there and runs under QEMU.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t test_crypto_device_config(struct virtio_dev *dev,
                                                struct vring *vr)

@@ -11,12 +11,6 @@
  * Skips when the device does not offer the stats queue.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static test_result_t test_balloon_stats_remaining_tags(struct virtio_dev *dev,
                                                        struct vring *vr)

@@ -8,13 +8,7 @@
  * fail and the first binding must remain usable.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_iommu_two_domains(struct virtio_dev *dev,
                                             struct vring *vr)

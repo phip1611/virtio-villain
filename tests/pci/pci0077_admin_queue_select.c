@@ -7,9 +7,6 @@
  * admin_queue_index should expose a valid queue_size.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 
 static test_result_t test_pci_admin_queue_select(struct virtio_dev *dev,
                                                  struct vring *vr)

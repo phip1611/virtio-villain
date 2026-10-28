@@ -7,14 +7,7 @@
  * verify the value sticks via direct MMIO read.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/pci.h"
-
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 /*
  * The PCI CFG access cap layout at cap_ptr:

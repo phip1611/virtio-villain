@@ -6,13 +6,6 @@
  * format. Basic positive path for packed vring support.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring_packed.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_rtc_packed_read(struct virtio_dev *dev,
                                           struct vring_packed *vr)

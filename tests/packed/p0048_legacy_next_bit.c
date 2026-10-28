@@ -10,12 +10,6 @@
  * than misinterpreting the descriptor as a multi entry chain.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring_packed.h"
-#include "lib/virtio_pci.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define PACKED_DESC_F_NEXT_LEGACY 0x0001u
 

@@ -10,13 +10,6 @@
  * read once into a local and assert.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_isr_queue_bit_after_used(struct virtio_dev *dev,
                                                    struct vring *vr)

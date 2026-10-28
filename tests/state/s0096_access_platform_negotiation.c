@@ -6,8 +6,6 @@
  * FEATURES_OK, even when the caller requests no optional features.
  */
 #include "tests/test.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t test_access_platform_negotiation(struct virtio_dev *dev,
                                                       struct vring *vr)

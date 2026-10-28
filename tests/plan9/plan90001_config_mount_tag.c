@@ -8,8 +8,6 @@
 #include "tests/test.h"
 #include "lib/virtio_9p.h"
 
-#include <string.h>
-
 static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 {
     (void)vr;

@@ -9,7 +9,6 @@
  * feature is offered.
  */
 #include "tests/test.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t test_mem_acpi_pxm(struct virtio_dev *dev,
                                        struct vring *vr)

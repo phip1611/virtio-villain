@@ -10,12 +10,6 @@
  * at or after the regular queues.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <unistd.h>
 
 static test_result_t test_pci_admin_queue_cfg(struct virtio_dev *dev,
                                               struct vring *vr)

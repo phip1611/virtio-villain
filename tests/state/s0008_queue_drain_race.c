@@ -12,13 +12,6 @@
  * path. This stresses the VMM's cleanup of in-flight descriptors.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 #define NUM_REQUESTS 4
 

@@ -7,13 +7,6 @@
  * of concurrent control and data path operations.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_net_ctrl_promisc_during_tx(struct virtio_dev *dev,
                                                      struct vring *vr)

@@ -13,13 +13,7 @@
  * gcrypt.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 #include "tests/crypto/crypto_rsa_key.h"
-
-#include <string.h>
 
 #define SHA1_DIGEST_LEN 20
 

@@ -9,12 +9,6 @@
  * between.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t one_ping(struct virtio_dev *dev, struct vring *vr,
                               uint8_t *resp, uint16_t slot)

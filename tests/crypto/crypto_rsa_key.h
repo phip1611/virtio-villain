@@ -9,12 +9,6 @@
 #define VV_CRYPTO_RSA_KEY_H
 
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 #define RSA_KEY_BYTES 128
 

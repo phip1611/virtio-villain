@@ -6,8 +6,6 @@
  * the device to refuse operation if the driver declines it.
  */
 #include "tests/test.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 
 static test_result_t test_access_platform_omitted(struct virtio_dev *dev,
                                                  struct vring *vr)

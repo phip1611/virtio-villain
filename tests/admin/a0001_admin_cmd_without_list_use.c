@@ -11,13 +11,6 @@
  * we exercise the VMM's handling of unexpected admin-like payloads.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
-#include <unistd.h>
 
 /* A fabricated admin command header per v1.3 spec */
 static test_result_t test_admin_cmd_without_list_use(struct virtio_dev *dev,

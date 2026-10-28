@@ -10,13 +10,7 @@
  * this stresses the code path).
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_iommu_map_orphan_domain(struct virtio_dev *dev,
                                                   struct vring *vr)

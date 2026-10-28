@@ -13,13 +13,7 @@
  * with a crypto library that provides RSA, for example gcrypt.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 #include "tests/crypto/crypto_rsa_key.h"
-
-#include <string.h>
 
 static test_result_t test_crypto_rsa_roundtrip(struct virtio_dev *dev,
                                                struct vring *vr,

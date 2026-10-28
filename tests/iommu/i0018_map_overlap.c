@@ -11,13 +11,7 @@
  * Spec 5.13.5.6.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
 #include "lib/virtio_iommu.h"
-
-#include <string.h>
-#include <unistd.h>
 
 static test_result_t test_iommu_map_overlap(struct virtio_dev *dev,
                                             struct vring *vr)

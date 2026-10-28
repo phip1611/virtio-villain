@@ -7,15 +7,9 @@
 #define VV_SCSI_UTIL_H
 
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
 #include "tests/mmio/mmio_helpers.h"
 
-#include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 static inline void scsi_kick(struct virtio_dev *dev, uint16_t queue)
 {

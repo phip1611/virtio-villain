@@ -3,10 +3,7 @@
 #define VV_PLAN9_UTIL_H
 
 #include "tests/test.h"
-#include "lib/util.h"
 #include "lib/virtio_9p.h"
-
-#include <string.h>
 
 #define PLAN9_TEST_BUFFER_SIZE 8192
 #define PLAN9_RESPONSE_SIZE 256

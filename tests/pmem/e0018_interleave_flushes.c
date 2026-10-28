@@ -9,12 +9,6 @@
  * batch flushes incorrectly when other activity happens.
  */
 #include "tests/test.h"
-#include "lib/util.h"
-#include "lib/vring.h"
-#include "lib/virtio_pci.h"
-#include "lib/virtio_spec.h"
-
-#include <string.h>
 
 static int do_flush(struct virtio_dev *dev, struct vring *vr,
                     uint16_t base, uint16_t avail_slot)
