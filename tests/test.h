@@ -236,6 +236,13 @@ struct test_entry {
         0, (qidx) + 1, (minq), (features), {0} \
     }
 
+/* vring_raw_set_desc() for a descriptor that points at a guest buffer. */
+static inline void vv_desc(struct vring *vr, uint16_t slot, void *buf,
+                           uint32_t len, uint16_t flags, uint16_t next)
+{
+    vring_raw_set_desc(vr, slot, vv_virt_to_phys(buf), len, flags, next);
+}
+
 /*
  * Kick a queue and wait for the device to mark n descriptors used.
  * Returns TEST_PASS once vr->used->idx advances by at least n,
