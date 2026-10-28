@@ -32,7 +32,6 @@ static test_result_t test_blk_write_readonly(struct virtio_dev *dev,
     uint8_t *st = vv_alloc_pages(1);
     uint8_t original[512];
 
-    hdr->ioprio = 0;
     hdr->sector = 0;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

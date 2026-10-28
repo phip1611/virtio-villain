@@ -41,7 +41,6 @@ static test_result_t test_console_driver_sends_port_name(struct virtio_dev *dev,
     __sync_synchronize();
 
     uint8_t *p = vv_alloc_pages(1);
-    memset(p, 0, 4096);
     struct virtio_console_control *msg = (struct virtio_console_control *)p;
     msg->id    = 0;
     msg->event = VIRTIO_CONSOLE_PORT_NAME;

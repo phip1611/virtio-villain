@@ -61,7 +61,6 @@ static test_result_t test_net_vq_coal_readback(struct virtio_dev *dev,
     ctrl->command = VIRTIO_NET_CTRL_NOTF_COAL_VQ_GET;
     req->vq_index = 0;
     req->reserved = 0;
-    memset(resp, 0, sizeof(*resp));
 
     *status = 0xFF;
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(ctrl), sizeof(*ctrl),

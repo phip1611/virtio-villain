@@ -29,7 +29,6 @@ static test_result_t test_mem_plug_after_unplug_all(struct virtio_dev *dev,
     test_result_t rc;
 
     /* First: UNPLUG_ALL */
-    memset(req, 0, sizeof(*req));
     memset(resp, 0xFF, sizeof(*resp));
     req->type = VIRTIO_MEM_REQ_UNPLUG_ALL;
 

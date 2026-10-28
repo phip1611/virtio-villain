@@ -37,9 +37,7 @@ static test_result_t test_crypto_control_unknown_opcode(struct virtio_dev *dev,
 
     struct virtio_crypto_op_ctrl_req *req = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->header.opcode = BOGUS_CTRL_OPCODE;
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(req), sizeof(*req),

@@ -106,7 +106,6 @@ static inline uint64_t crypto_rsa_create_session(struct virtio_dev *dev,
     struct virtio_crypto_op_ctrl_req *req = vv_alloc_pages(1);
     uint8_t *key = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->header.opcode = VIRTIO_CRYPTO_AKCIPHER_CREATE_SESSION;
     req->header.algo = VIRTIO_CRYPTO_AKCIPHER_RSA;
     req->u.akcipher_create.para.algo = VIRTIO_CRYPTO_AKCIPHER_RSA;
@@ -115,7 +114,6 @@ static inline uint64_t crypto_rsa_create_session(struct virtio_dev *dev,
     req->u.akcipher_create.para.rsa.padding_algo = padding;
     req->u.akcipher_create.para.rsa.hash_algo = hash;
     memcpy(key, der, derlen);
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     vring_raw_set_desc(cvr, 0, vv_virt_to_phys(req), sizeof(*req),

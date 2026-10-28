@@ -48,14 +48,12 @@ static test_result_t test_blk_wce_toggle_flush_inflight(struct virtio_dev *dev,
 
     /* WRITE request: sector 0, 512 bytes */
     whdr->type = VIRTIO_BLK_T_OUT;
-    whdr->ioprio = 0;
     whdr->sector = 0;
     memset(wdata, 0x42, 512);
     *wstatus = 0xFF;
 
     /* FLUSH request */
     fhdr->type = VIRTIO_BLK_T_FLUSH;
-    fhdr->ioprio = 0;
     fhdr->sector = 0;
     *fstatus = 0xFF;
 

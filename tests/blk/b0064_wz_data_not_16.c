@@ -23,9 +23,7 @@ static test_result_t test_blk_wz_data_not_16(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_WRITE_ZEROES;
-    hdr->ioprio = 0;
     hdr->sector = 0;
-    memset(data, 0, 8);
     *status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

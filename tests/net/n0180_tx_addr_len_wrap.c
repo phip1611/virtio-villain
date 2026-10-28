@@ -25,7 +25,6 @@ static test_result_t test_net_tx_addr_len_wrap(struct virtio_dev *dev,
                                               struct vring *vr)
 {
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
-    memset(hdr, 0, sizeof(*hdr));
     hdr->gso_type = VIRTIO_NET_HDR_GSO_NONE;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

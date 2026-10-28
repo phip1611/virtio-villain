@@ -21,7 +21,6 @@ static test_result_t test_iommu_map_reserved_flags(struct virtio_dev *dev,
                                                    struct vring *vr)
 {
     struct virtio_iommu_req_map *req = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
 
     req->head.type   = VIRTIO_IOMMU_T_MAP;
     req->domain      = 0;

@@ -36,11 +36,9 @@ static test_result_t test_crypto_wrong_queue_opcode(struct virtio_dev *dev,
 
     struct virtio_crypto_op_ctrl_req *req = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     /* A data queue opcode submitted on the control queue. */
     req->header.opcode = VIRTIO_CRYPTO_CIPHER_ENCRYPT;
     req->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(req), sizeof(*req),

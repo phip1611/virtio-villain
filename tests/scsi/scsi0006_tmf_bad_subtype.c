@@ -21,7 +21,6 @@ static test_result_t test_scsi_tmf_bad_subtype(struct virtio_dev *dev,
     struct virtio_scsi_ctrl_tmf_req *req = vv_alloc_pages(1);
     struct virtio_scsi_ctrl_tmf_resp *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     req->type = VIRTIO_SCSI_T_TMF;
     req->subtype = 0xdead;   /* not a defined TMF subtype */
     req->lun[0] = 1;

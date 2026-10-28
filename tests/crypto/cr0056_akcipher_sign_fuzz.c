@@ -36,13 +36,11 @@ static test_result_t test_crypto_akcipher_sign_fuzz(struct virtio_dev *dev,
     uint8_t *dst = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
 
-    memset(dreq, 0, sizeof(*dreq));
     dreq->header.opcode = VIRTIO_CRYPTO_AKCIPHER_SIGN;
     dreq->header.algo = VIRTIO_CRYPTO_AKCIPHER_RSA;
     dreq->header.session_id = 0;
     dreq->u.akcipher.para.src_data_len = 16;
     dreq->u.akcipher.para.dst_data_len = 16;
-    memset(dst, 0, 16);
     inhdr->status = 0xFF;
 
     /* Request descriptor far shorter than the data request header. */

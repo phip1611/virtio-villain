@@ -30,7 +30,6 @@ static test_result_t rsa_pkcs1_op(struct virtio_dev *dev, struct vring *vr,
 {
     struct virtio_crypto_op_data_req *dreq = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
-    memset(dreq, 0, sizeof(*dreq));
     dreq->header.opcode = opcode;
     dreq->header.algo = VIRTIO_CRYPTO_AKCIPHER_RSA;
     dreq->header.session_id = session_id;

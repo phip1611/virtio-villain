@@ -19,7 +19,6 @@ static test_result_t test_net_tx_self_loop(struct virtio_dev *dev,
                                            struct vring *vr)
 {
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
-    memset(hdr, 0, sizeof(*hdr));
 
     /* next points at descriptor 0, so the chain never terminates. */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

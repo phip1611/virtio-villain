@@ -20,7 +20,6 @@ static int do_one(struct virtio_dev *dev, struct vring *vr,
                   uint16_t base, uint16_t avail_slot, uint64_t *out)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 256);
     struct rtc_req_read *req = (void *)buf;
     req->msg_type = VIRTIO_RTC_REQ_READ;
     uint64_t bphys = vv_virt_to_phys(buf);

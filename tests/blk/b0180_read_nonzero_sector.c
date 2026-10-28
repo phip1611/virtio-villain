@@ -30,7 +30,6 @@ static test_result_t test_blk_read_sector_offset(struct virtio_dev *dev,
     uint8_t *wst = vv_alloc_pages(1);
 
     whdr->type = VIRTIO_BLK_T_OUT;
-    whdr->ioprio = 0;
     whdr->sector = 2;
     for (int i = 0; i < 512; i++)
         wdata[i] = (uint8_t)(i ^ 0x77);
@@ -52,9 +51,7 @@ static test_result_t test_blk_read_sector_offset(struct virtio_dev *dev,
     uint8_t *rst = vv_alloc_pages(1);
 
     rhdr->type = VIRTIO_BLK_T_IN;
-    rhdr->ioprio = 0;
     rhdr->sector = 2;
-    memset(rdata, 0, 512);
     *rst = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(rhdr), sizeof(*rhdr),

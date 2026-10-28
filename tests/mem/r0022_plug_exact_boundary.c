@@ -30,7 +30,6 @@ static test_result_t test_mem_plug_exact_boundary(struct virtio_dev *dev,
     test_result_t rc;
 
     /* Plug last block in usable region */
-    memset(req, 0, sizeof(*req));
     memset(resp, 0xFF, sizeof(*resp));
     req->type = VIRTIO_MEM_REQ_PLUG;
     req->addr = region_addr + usable_size - block_size;

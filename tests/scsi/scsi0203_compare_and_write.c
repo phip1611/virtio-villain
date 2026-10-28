@@ -15,8 +15,6 @@ static test_result_t test_scsi_caw(struct virtio_dev *dev, struct vring *vr)
     uint8_t *zero = vv_alloc_pages(1);
     uint8_t *caw = vv_alloc_pages(1);
 
-    memset(zero, 0, 512);
-    memset(caw, 0, 1024);            /* compare block stays zero */
     for (int i = 0; i < 512; i++)
         caw[512 + i] = (uint8_t)(i + 3);  /* write block */
 

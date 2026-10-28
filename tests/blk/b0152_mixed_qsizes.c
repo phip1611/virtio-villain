@@ -23,7 +23,6 @@ static int submit_read(struct vring *vr, uint64_t sector, uint8_t **st_out)
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *st = vv_alloc_pages(1);
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = sector;
     *st = 0xFF;
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

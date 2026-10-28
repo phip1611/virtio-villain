@@ -20,7 +20,6 @@ static test_result_t test_console_rx_readable(struct virtio_dev *dev,
                                               struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 256);
 
     /* Omit VRING_DESC_F_WRITE intentionally */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 256, 0, 0);

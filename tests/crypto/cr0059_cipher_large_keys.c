@@ -24,14 +24,12 @@ static uint64_t make_session(struct virtio_dev *dev, struct vring *cvr,
 {
     struct virtio_crypto_op_ctrl_req *req = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->header.opcode = VIRTIO_CRYPTO_CIPHER_CREATE_SESSION;
     req->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     req->u.sym_create.para.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     req->u.sym_create.para.keylen = keylen;
     req->u.sym_create.para.op = op;
     req->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     vring_raw_set_desc(cvr, 0, vv_virt_to_phys(req), sizeof(*req),
@@ -69,7 +67,6 @@ static test_result_t cipher_op(struct virtio_dev *dev, struct vring *vr,
 {
     struct virtio_crypto_op_data_req *req = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->header.opcode = opcode;
     req->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     req->header.session_id = session_id;
@@ -125,10 +122,7 @@ static test_result_t roundtrip_keylen(struct virtio_dev *dev, struct vring *cvr,
     uint8_t *plain = vv_alloc_pages(1);
     uint8_t *cipher = vv_alloc_pages(1);
     uint8_t *recovered = vv_alloc_pages(1);
-    memset(iv, 0, 16);
     memset(plain, 0x41, 16);
-    memset(cipher, 0, 16);
-    memset(recovered, 0, 16);
 
     test_result_t r = cipher_op(dev, vr, dseq, VIRTIO_CRYPTO_CIPHER_ENCRYPT,
                                 enc, iv, plain, cipher);

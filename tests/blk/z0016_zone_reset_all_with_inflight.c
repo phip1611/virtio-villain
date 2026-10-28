@@ -26,12 +26,10 @@ static test_result_t test_zone_reset_all_inflight(struct virtio_dev *dev,
     uint8_t *st2 = vv_alloc_pages(1);
 
     h1->type = VIRTIO_BLK_T_ZONE_APPEND;
-    h1->ioprio = 0;
     h1->sector = 0;
     *st1 = 0xFF;
 
     h2->type = VIRTIO_BLK_T_ZONE_RESET_ALL;
-    h2->ioprio = 0;
     h2->sector = 0;
     *st2 = 0xFF;
 

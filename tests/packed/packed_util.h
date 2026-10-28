@@ -55,7 +55,6 @@ static inline test_result_t pk_blk_chain(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = hdr_type;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xFF;
 
@@ -86,7 +85,6 @@ static inline uint64_t pk_indirect_blk_table(void)
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xFF;
 

@@ -25,13 +25,11 @@ static test_result_t test_blk_write_read_same_sector(struct virtio_dev *dev,
     uint8_t *status_r = vv_alloc_pages(1);
 
     hdr_w->type = VIRTIO_BLK_T_OUT;
-    hdr_w->ioprio = 0;
     hdr_w->sector = 0;
     memset(data_w, 0x42, 512);
     *status_w = 0xFF;
 
     hdr_r->type = VIRTIO_BLK_T_IN;
-    hdr_r->ioprio = 0;
     hdr_r->sector = 0;
     *status_r = 0xFF;
 

@@ -21,7 +21,6 @@ static test_result_t test_admin_opcode_max(struct virtio_dev *dev,
     struct virtio_admin_cmd_hdr *cmd = vv_alloc_pages(1);
     uint8_t *result = vv_alloc_pages(1);
 
-    memset(cmd, 0, sizeof(*cmd));
     cmd->opcode = 0xFFFF; /* maximum undefined opcode */
     cmd->group_type = 0;
     cmd->group_member_id = 0;

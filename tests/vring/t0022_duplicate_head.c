@@ -31,7 +31,6 @@ static test_result_t test_duplicate_head(struct virtio_dev *dev, struct vring *v
 
     /* Read sector 0 */
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     memset(data, 0xAA, 512);
     *status = 0xFF;

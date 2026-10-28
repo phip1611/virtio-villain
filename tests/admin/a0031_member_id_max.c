@@ -29,7 +29,6 @@ static test_result_t test_admin_member_id_max(struct virtio_dev *dev,
     struct virtio_admin_cmd_hdr *cmd = vv_alloc_pages(1);
     uint8_t *data   = vv_alloc_pages(1);
     uint8_t *result = vv_alloc_pages(1);
-    memset(cmd, 0, sizeof(*cmd));
     memset(data, 0, 64);
     memset(result, 0xFF, 64);
 

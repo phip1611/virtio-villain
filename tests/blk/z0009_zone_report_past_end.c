@@ -37,7 +37,6 @@ static test_result_t test_zone_report_past_end(struct virtio_dev *dev,
 
     /* Request zone report starting past the end of the device */
     hdr->type = VIRTIO_BLK_T_ZONE_REPORT;
-    hdr->ioprio = 0;
     hdr->sector = capacity + 1000; /* well past end */
     *status = 0xFF;
 

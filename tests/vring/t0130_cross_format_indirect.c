@@ -34,7 +34,6 @@ static test_result_t test_cross_format_indirect(struct virtio_dev *dev,
     struct vring_packed_desc *table = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xFF;
 

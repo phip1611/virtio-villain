@@ -23,7 +23,6 @@ static test_result_t test_fs_resp_in_bar(struct virtio_dev *dev,
                                          struct vring *vr)
 {
     uint8_t *p = vv_alloc_pages(1);
-    memset(p, 0, 4096);
     struct fuse_in_header *h = (struct fuse_in_header *)p;
     struct fuse_init_in   *i = (struct fuse_init_in *)(p + sizeof(*h));
     h->len    = sizeof(*h) + sizeof(*i);

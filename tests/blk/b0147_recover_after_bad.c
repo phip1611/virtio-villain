@@ -26,7 +26,6 @@ static test_result_t test_blk_recover_after_bad(struct virtio_dev *dev,
     /* Phase 1: malformed (no status byte, just a header) */
     struct virtio_blk_outhdr *bad = vv_alloc_pages(1);
     bad->type = 0xDEADBEEF;
-    bad->ioprio = 0;
     bad->sector = ~0ULL;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(bad), sizeof(*bad), 0, 0);
@@ -73,7 +72,6 @@ static test_result_t test_blk_recover_after_bad(struct virtio_dev *dev,
     uint8_t *data = vv_alloc_pages(1);
     uint8_t *st = vv_alloc_pages(1);
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *st = 0xFF;
     vring_raw_set_desc(&nv, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

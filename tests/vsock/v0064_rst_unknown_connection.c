@@ -20,7 +20,6 @@ static test_result_t test_vsock_rst_unknown(struct virtio_dev *dev,
                                             struct vring *vr)
 {
     struct virtio_vsock_hdr *pkt = vv_alloc_pages(1);
-    memset(pkt, 0, sizeof(*pkt));
 
     pkt->src_cid = 3;
     pkt->dst_cid = 2;

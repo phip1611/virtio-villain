@@ -36,7 +36,6 @@ static test_result_t test_net_tx_gso_tcp6(struct virtio_dev *dev,
     hdr->csum_start = 54; /* TCP header start (14+40) */
     hdr->csum_offset = 16;
 
-    memset(frame, 0, 200);
     memset(frame, 0xFF, 6);
     memset(frame + 6, 0x02, 6);
     frame[12] = 0x86; frame[13] = 0xDD; /* IPv6 */

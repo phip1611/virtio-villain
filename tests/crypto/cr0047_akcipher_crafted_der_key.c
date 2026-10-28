@@ -44,7 +44,6 @@ static test_result_t test_crypto_akcipher_crafted_der(struct virtio_dev *dev,
     struct virtio_crypto_op_ctrl_req *req = vv_alloc_pages(1);
     uint8_t *key = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->header.opcode = VIRTIO_CRYPTO_AKCIPHER_CREATE_SESSION;
     req->header.algo = VIRTIO_CRYPTO_AKCIPHER_RSA;
     req->u.akcipher_create.para.algo = VIRTIO_CRYPTO_AKCIPHER_RSA;
@@ -60,7 +59,6 @@ static test_result_t test_crypto_akcipher_crafted_der(struct virtio_dev *dev,
     key[0] = 0x30;
     key[1] = 0x81;
     key[2] = (uint8_t)(DER_KEY_LEN - 3);
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(req), sizeof(*req),

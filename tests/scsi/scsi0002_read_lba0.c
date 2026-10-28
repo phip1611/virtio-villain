@@ -48,7 +48,6 @@ static test_result_t test_scsi_read_lba0(struct virtio_dev *dev,
     struct virtio_scsi_cmd_resp *resp = vv_alloc_pages(1);
     uint8_t *data = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     req->lun[0] = 1;
     req->lun[2] = 0x40;
     req->task_attr = VIRTIO_SCSI_S_SIMPLE;

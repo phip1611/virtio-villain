@@ -27,7 +27,6 @@ static test_result_t test_blk_get_id_content(struct virtio_dev *dev,
     memset(data, 0xAA, VIRTIO_BLK_ID_BYTES);
 
     hdr->type = VIRTIO_BLK_T_GET_ID;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *st = 0xFF;
 

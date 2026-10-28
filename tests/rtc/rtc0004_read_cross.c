@@ -19,7 +19,6 @@ static test_result_t test_rtc_read_cross(struct virtio_dev *dev,
                                          struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 256);
     struct rtc_req_read_cross *req = (void *)buf;
     req->msg_type = VIRTIO_RTC_REQ_READ_CROSS;
     req->hw_counter = VIRTIO_RTC_COUNTER_X86_TSC;

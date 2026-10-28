@@ -26,7 +26,6 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
 
     uint8_t *p = vv_alloc_pages(1);
     uint8_t *o = vv_alloc_pages(1);
-    memset(p, 0, 4096);
     struct fuse_in_header *h = (void *)p;
     struct fuse_init_in   *i = (void *)(p + sizeof(*h));
     h->len = sizeof(*h) + sizeof(*i);

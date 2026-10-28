@@ -60,7 +60,6 @@ static test_result_t test_crypto_multiblock_known_answer(struct virtio_dev *dev,
     struct virtio_crypto_op_ctrl_req *creq = vv_alloc_pages(1);
     uint8_t *key = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(creq, 0, sizeof(*creq));
     creq->header.opcode = VIRTIO_CRYPTO_CIPHER_CREATE_SESSION;
     creq->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     creq->u.sym_create.para.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
@@ -68,7 +67,6 @@ static test_result_t test_crypto_multiblock_known_answer(struct virtio_dev *dev,
     creq->u.sym_create.para.op = VIRTIO_CRYPTO_OP_ENCRYPT;
     creq->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
     memcpy(key, kat_key, 16);
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
     vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(creq), sizeof(*creq),
                        VRING_DESC_F_NEXT, 1);
@@ -91,7 +89,6 @@ static test_result_t test_crypto_multiblock_known_answer(struct virtio_dev *dev,
     uint8_t *src = vv_alloc_pages(1);
     uint8_t *dst = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
-    memset(dreq, 0, sizeof(*dreq));
     dreq->header.opcode = VIRTIO_CRYPTO_CIPHER_ENCRYPT;
     dreq->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     dreq->header.session_id = session_id;

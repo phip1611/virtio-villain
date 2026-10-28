@@ -37,15 +37,12 @@ static test_result_t test_crypto_create_bad_algo(struct virtio_dev *dev,
     struct virtio_crypto_op_ctrl_req *req = vv_alloc_pages(1);
     uint8_t *key = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->header.opcode = VIRTIO_CRYPTO_CIPHER_CREATE_SESSION;
     req->header.algo = BOGUS_CIPHER_ALGO;
     req->u.sym_create.para.algo = BOGUS_CIPHER_ALGO;
     req->u.sym_create.para.keylen = 16;
     req->u.sym_create.para.op = VIRTIO_CRYPTO_OP_ENCRYPT;
     req->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
-    memset(key, 0, 16);
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(req), sizeof(*req),

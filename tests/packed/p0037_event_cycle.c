@@ -27,7 +27,6 @@ static int submit_one(struct virtio_dev *dev, struct vring_packed *vr,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = sector;
     *status = 0xFF;
 

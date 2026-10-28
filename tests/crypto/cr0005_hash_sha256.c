@@ -36,12 +36,10 @@ static test_result_t test_crypto_hash_sha256(struct virtio_dev *dev,
     /* Create a SHA-256 hash session on the control queue. */
     struct virtio_crypto_op_ctrl_req *creq = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(creq, 0, sizeof(*creq));
     creq->header.opcode = VIRTIO_CRYPTO_HASH_CREATE_SESSION;
     creq->header.algo = VIRTIO_CRYPTO_HASH_SHA_256;
     creq->u.hash_create.para.algo = VIRTIO_CRYPTO_HASH_SHA_256;
     creq->u.hash_create.para.hash_result_len = 32;
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     vring_raw_set_desc(&cvr, 0, vv_virt_to_phys(creq), sizeof(*creq),
@@ -65,14 +63,12 @@ static test_result_t test_crypto_hash_sha256(struct virtio_dev *dev,
     uint8_t *src = vv_alloc_pages(1);
     uint8_t *digest = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
-    memset(dreq, 0, sizeof(*dreq));
     dreq->header.opcode = VIRTIO_CRYPTO_HASH;
     dreq->header.algo = VIRTIO_CRYPTO_HASH_SHA_256;
     dreq->header.session_id = session_id;
     dreq->u.hash.para.src_data_len = 16;
     dreq->u.hash.para.hash_result_len = 32;
     memset(src, 0x61, 16);
-    memset(digest, 0, 32);
     inhdr->status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),

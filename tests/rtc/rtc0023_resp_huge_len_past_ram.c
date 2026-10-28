@@ -25,7 +25,6 @@ static test_result_t test_rtc_resp_huge_len_past_ram(struct virtio_dev *dev,
         return TEST_SKIP;
 
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 256);
     struct rtc_req_read *req = (void *)buf;
     req->msg_type = VIRTIO_RTC_REQ_READ;
     uint64_t resp_phys;

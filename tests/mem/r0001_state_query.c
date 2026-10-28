@@ -22,7 +22,6 @@ static test_result_t test_mem_state_query(struct virtio_dev *dev,
     struct virtio_mem_req *req = vv_alloc_pages(1);
     struct virtio_mem_resp *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     req->type = VIRTIO_MEM_REQ_STATE;
     /* Query from device config start address — read from device_cfg */
     volatile uint64_t *cfg = (volatile uint64_t *)dev->device_cfg;

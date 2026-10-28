@@ -23,7 +23,6 @@ static test_result_t test_net_hash_report_rx(struct virtio_dev *dev,
         return TEST_SKIP;
 
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 4096);
 
     /* Post a writable receive buffer large enough for hdr + data */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf),

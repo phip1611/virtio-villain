@@ -23,12 +23,10 @@ static test_result_t test_blk_discard_bad_len(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_DISCARD;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xFF;
 
     /* Fill with something resembling a segment */
-    memset(data, 0, 17);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);

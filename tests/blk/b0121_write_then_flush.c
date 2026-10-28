@@ -24,7 +24,6 @@ static test_result_t test_blk_write_then_flush(struct virtio_dev *dev,
 
     /* First: write one sector */
     hdr->type = VIRTIO_BLK_T_OUT;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     memset(data, 0xAB, 512);
     *status = 0xFF;
@@ -45,7 +44,6 @@ static test_result_t test_blk_write_then_flush(struct virtio_dev *dev,
     uint8_t *flush_status = vv_alloc_pages(1);
 
     flush_hdr->type = VIRTIO_BLK_T_FLUSH;
-    flush_hdr->ioprio = 0;
     flush_hdr->sector = 0;
     *flush_status = 0xFF;
 

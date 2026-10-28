@@ -20,7 +20,6 @@ static test_result_t test_packed_avail_used(struct virtio_dev *dev,
                                             struct vring_packed *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 512);
 
     vr->desc[0].addr = vv_virt_to_phys(buf);
     vr->desc[0].len = 512;

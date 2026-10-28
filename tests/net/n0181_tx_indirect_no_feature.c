@@ -23,7 +23,6 @@ static test_result_t test_net_tx_indirect_no_feature(struct virtio_dev *dev,
     uint8_t *frame = vv_alloc_pages(1);
     struct vring_desc *indirect = vv_alloc_pages(1);
 
-    memset(hdr, 0, sizeof(*hdr));
     memset(frame, 0xAA, 512);
 
     indirect[0].addr = vv_virt_to_phys(hdr);

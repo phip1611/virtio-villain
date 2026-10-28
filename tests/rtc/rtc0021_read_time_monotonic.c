@@ -21,8 +21,6 @@ static test_result_t test_rtc_read_twice(struct virtio_dev *dev,
 {
     uint8_t *buf1 = vv_alloc_pages(1);
     uint8_t *buf2 = vv_alloc_pages(1);
-    memset(buf1, 0, 4096);
-    memset(buf2, 0, 4096);
 
     struct rtc_req_read *req1 = (void *)buf1;
     req1->msg_type = VIRTIO_RTC_REQ_READ;

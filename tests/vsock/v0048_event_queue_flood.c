@@ -40,7 +40,6 @@ static test_result_t test_vsock_event_flood(struct virtio_dev *dev,
     /* Post many event buffers */
     for (int i = 0; i < NUM_EVENT_BUFS; i++) {
         struct virtio_vsock_event *evt = vv_alloc_pages(1);
-        memset(evt, 0, sizeof(*evt));
         vring_raw_set_desc(&evvr, i, vv_virt_to_phys(evt),
                            sizeof(*evt), VRING_DESC_F_WRITE, 0);
         vring_raw_set_avail(&evvr, i, (uint16_t)i);

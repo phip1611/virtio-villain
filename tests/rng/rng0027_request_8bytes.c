@@ -16,7 +16,6 @@
 static test_result_t test_rng_8(struct virtio_dev *dev, struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 8);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 8,
                        VRING_DESC_F_WRITE, 0);

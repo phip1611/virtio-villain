@@ -24,7 +24,6 @@ static test_result_t test_net_mergeable_abuse(struct virtio_dev *dev,
      * it should not try to chain 65535 buffers.
      */
     struct virtio_net_hdr_mrg *buf = vv_alloc_pages(1);
-    memset(buf, 0, PAGE_SIZE);
 
     /* Pre-fill with garbage num_buffers to test device resilience */
     buf->num_buffers = 0xFFFF;

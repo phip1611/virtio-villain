@@ -23,9 +23,7 @@ static test_result_t test_desc_chain_too_long(struct virtio_dev *dev, struct vri
     uint8_t *data = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
-    memset(data, 0, 512);
 
     uint64_t data_phys = vv_virt_to_phys(data);
 

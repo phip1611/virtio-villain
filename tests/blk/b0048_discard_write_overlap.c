@@ -24,7 +24,6 @@ static test_result_t test_blk_discard_write_overlap(struct virtio_dev *dev,
     uint8_t *status1 = vv_alloc_pages(1);
 
     hdr1->type = VIRTIO_BLK_T_DISCARD;
-    hdr1->ioprio = 0;
     hdr1->sector = 0;
     seg1->sector = 0;
     seg1->num_sectors = 8;
@@ -37,7 +36,6 @@ static test_result_t test_blk_discard_write_overlap(struct virtio_dev *dev,
     uint8_t *status2 = vv_alloc_pages(1);
 
     hdr2->type = VIRTIO_BLK_T_OUT;
-    hdr2->ioprio = 0;
     hdr2->sector = 0;
     memset(wdata, 0xAB, 512);
     *status2 = 0xFF;

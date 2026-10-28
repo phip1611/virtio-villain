@@ -24,7 +24,6 @@ static test_result_t test_mem_three_state(struct virtio_dev *dev,
     for (int i = 0; i < 3; i++) {
         struct virtio_mem_req *req = vv_alloc_pages(1);
         struct virtio_mem_resp *resp = vv_alloc_pages(1);
-        memset(req, 0, sizeof(*req));
         memset(resp, 0xFF, sizeof(*resp));
 
         req->type      = VIRTIO_MEM_REQ_STATE;

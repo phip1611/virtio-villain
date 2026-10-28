@@ -21,7 +21,6 @@ static test_result_t test_mem_plug_unplug_same_range(struct virtio_dev *dev,
                                                      struct vring *vr)
 {
     uint8_t *p = vv_alloc_pages(2);
-    memset(p, 0, 8192);
 
     struct virtio_mem_req  *r1 = (void *)p;
     struct virtio_mem_resp_wide *s1 = (void *)(p + 64);

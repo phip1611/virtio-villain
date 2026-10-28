@@ -20,7 +20,6 @@ static test_result_t test_fs_getattr_before_init(struct virtio_dev *dev,
                                                  struct vring *vr)
 {
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     struct fuse_in_header *hdr = (struct fuse_in_header *)page;
     struct fuse_getattr_in *ga = (struct fuse_getattr_in *)(page + sizeof(*hdr));

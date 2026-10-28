@@ -35,10 +35,8 @@ static test_result_t test_blk_get_id_nonzero_queue(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_GET_ID;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xFF;
-    memset(id_buf, 0, 20);
 
     vring_raw_set_desc(&vr1, 0, vv_virt_to_phys(hdr), sizeof(*hdr),
                        VRING_DESC_F_NEXT, 1);

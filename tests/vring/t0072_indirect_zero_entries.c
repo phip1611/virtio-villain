@@ -24,7 +24,6 @@ static test_result_t test_indirect_zero_valid(struct virtio_dev *dev,
      * reject (addr=0 is invalid) or not crash parsing them.
      */
     struct vring_desc *indirect = vv_alloc_pages(1);
-    memset(indirect, 0, 48); /* 3 x 16-byte descs, all zeros */
 
     /* Point main descriptor at the indirect table with INDIRECT flag */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect), 48,

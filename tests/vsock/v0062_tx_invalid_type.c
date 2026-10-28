@@ -19,7 +19,6 @@ static test_result_t test_vsock_tx_invalid_type(struct virtio_dev *dev,
                                                 struct vring *vr)
 {
     struct virtio_vsock_hdr *pkt = vv_alloc_pages(1);
-    memset(pkt, 0, sizeof(*pkt));
 
     /* Read guest CID from config */
     volatile uint64_t *cfg = (volatile uint64_t *)dev->device_cfg;

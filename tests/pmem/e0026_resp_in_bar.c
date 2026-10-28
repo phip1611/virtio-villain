@@ -22,7 +22,6 @@ static test_result_t test_pmem_resp_in_bar(struct virtio_dev *dev,
                                            struct vring *vr)
 {
     struct virtio_pmem_req *req = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->type = VIRTIO_PMEM_REQ_TYPE_FLUSH;
 
     uint64_t mmio_phys = dev->common_phys;

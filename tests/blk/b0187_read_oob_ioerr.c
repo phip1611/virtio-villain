@@ -31,7 +31,6 @@ static test_result_t test_blk_read_oob_status(struct virtio_dev *dev,
     uint8_t *st = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = cap;  /* one past the last valid sector */
     *st = 0xFF;
 

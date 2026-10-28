@@ -39,7 +39,6 @@ static test_result_t test_rtc_read_alarm(struct virtio_dev *dev,
 
     struct rtc_req_read_alarm *req = vv_alloc_pages(1);
     uint8_t *resp = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     memset(resp, 0xFF, 64);
     req->msg_type = VIRTIO_RTC_REQ_READ_ALARM;
     req->clock_id = 0;

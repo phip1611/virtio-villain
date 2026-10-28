@@ -21,7 +21,6 @@ static test_result_t test_rng_after_q_reset(struct virtio_dev *dev,
 {
     /* Submit an initial request */
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 64);
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 64,
                        VRING_DESC_F_WRITE, 0);
     test_result_t r = vv_submit_and_wait(dev, vr, 0);
@@ -38,7 +37,6 @@ static test_result_t test_rng_after_q_reset(struct virtio_dev *dev,
     vring_attach(dev, &vr2, 0);
 
     uint8_t *buf2 = vv_alloc_pages(1);
-    memset(buf2, 0, 64);
     vring_raw_set_desc(&vr2, 0, vv_virt_to_phys(buf2), 64,
                        VRING_DESC_F_WRITE, 0);
     vring_raw_set_avail(&vr2, 0, 0);

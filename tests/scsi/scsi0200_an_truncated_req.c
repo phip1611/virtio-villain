@@ -14,7 +14,6 @@ static test_result_t test_scsi_an_truncated(struct virtio_dev *dev,
     struct virtio_scsi_ctrl_an_req *req = vv_alloc_pages(1);
     struct virtio_scsi_ctrl_an_resp *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     req->type = VIRTIO_SCSI_T_AN_QUERY;
     scsi_set_lun(req->lun, 0, 0);
 

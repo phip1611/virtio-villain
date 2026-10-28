@@ -22,7 +22,6 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
         return TEST_SKIP;
 
     struct virtio_vsock_hdr *h = vv_alloc_pages(1);
-    memset(h, 0, sizeof(*h));
     h->src_cid = 3; h->dst_cid = 2;
     h->src_port = 1; h->dst_port = 2;
     h->type = VIRTIO_VSOCK_TYPE_DGRAM;

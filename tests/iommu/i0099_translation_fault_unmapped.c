@@ -23,7 +23,6 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
         return TEST_SKIP;
 
     struct virtio_iommu_req_probe *p = vv_alloc_pages(1);
-    memset(p, 0, sizeof(*p));
     p->head.type = VIRTIO_IOMMU_T_PROBE;
     p->endpoint = 0;
     p->tail.status = 0xFF;

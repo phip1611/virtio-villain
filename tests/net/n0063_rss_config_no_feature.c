@@ -29,7 +29,6 @@ static test_result_t test_rss_config_no_feature(struct virtio_dev *dev,
     ctrl->class = VIRTIO_NET_CTRL_MQ;
     ctrl->command = VIRTIO_NET_CTRL_MQ_RSS_CONFIG;
 
-    memset(rss, 0, sizeof(*rss));
     rss->hash_types = 0x1; /* some hash type */
     rss->indirection_table_mask = 0;
     rss->unclassified_queue = 0;

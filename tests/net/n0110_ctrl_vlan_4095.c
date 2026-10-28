@@ -24,7 +24,6 @@ static test_result_t test_net_vlan_4095(struct virtio_dev *dev,
         return TEST_SKIP;
 
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     struct virtio_net_ctrl_hdr *ctrl = (void *)page;
     ctrl->class = VIRTIO_NET_CTRL_VLAN;

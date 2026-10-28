@@ -19,7 +19,6 @@ static test_result_t test_rtc_zero_resp_len(struct virtio_dev *dev,
                                             struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 4096);
 
     struct rtc_req_read *req = (void *)buf;
     req->msg_type = VIRTIO_RTC_REQ_READ;

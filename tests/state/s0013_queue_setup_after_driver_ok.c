@@ -67,7 +67,6 @@ static test_result_t test_queue_setup_after_driver_ok(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     *status = 0xFF;
 
@@ -93,7 +92,6 @@ static test_result_t test_queue_setup_after_driver_ok(struct virtio_dev *dev,
     uint8_t *status0 = vv_alloc_pages(1);
 
     hdr0->type = VIRTIO_BLK_T_IN;
-    hdr0->ioprio = 0;
     hdr0->sector = 0;
     *status0 = 0xFF;
 

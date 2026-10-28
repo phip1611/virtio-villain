@@ -22,7 +22,6 @@ static test_result_t test_admin_double_kick(struct virtio_dev *dev,
     struct virtio_admin_cmd_hdr *cmd = vv_alloc_pages(1);
     uint8_t *result = vv_alloc_pages(1);
 
-    memset(cmd, 0, sizeof(*cmd));
     cmd->opcode = VIRTIO_ADMIN_CMD_LIST_USE;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(cmd), sizeof(*cmd),

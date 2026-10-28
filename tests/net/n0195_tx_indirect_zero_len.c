@@ -22,7 +22,6 @@ static test_result_t test_net_tx_indirect_zero_len(struct virtio_dev *dev,
         return TEST_SKIP;
 
     struct vring_desc *indirect = vv_alloc_pages(1);
-    memset(indirect, 0, sizeof(*indirect));
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(indirect), 0,
                        VRING_DESC_F_INDIRECT, 0);

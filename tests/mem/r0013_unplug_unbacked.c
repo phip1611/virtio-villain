@@ -20,7 +20,6 @@ static test_result_t test_mem_unplug_unbacked(struct virtio_dev *dev,
 {
     struct virtio_mem_req *req = vv_alloc_pages(1);
     struct virtio_mem_resp *resp = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->type = VIRTIO_MEM_REQ_UNPLUG;
     req->addr = *(volatile uint64_t *)((uint8_t *)dev->device_cfg + 16);
     req->nb_blocks = 1;

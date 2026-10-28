@@ -64,7 +64,6 @@ static test_result_t test_blk_write_partial_oob(struct virtio_dev *dev,
      * Sector (capacity - 1) is valid, sector (capacity) is OOB.
      */
     hdr->type = VIRTIO_BLK_T_OUT;
-    hdr->ioprio = 0;
     hdr->sector = capacity - 1;
     *status = 0xFF;
     memset(data, 0xAA, 1024);

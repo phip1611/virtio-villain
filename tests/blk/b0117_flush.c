@@ -22,7 +22,6 @@ static test_result_t test_blk_flush(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_FLUSH;
-    hdr->ioprio = 0;
     hdr->sector = 0;  /* sector is ignored for flush */
 
     *status = 0xFF;

@@ -19,7 +19,6 @@ static test_result_t test_net_tx_truncated_hdr(struct virtio_dev *dev,
                                                struct vring *vr)
 {
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 4096);
 
     /* Only 4 bytes of header (truncated) then data */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf), 4,

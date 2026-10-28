@@ -22,7 +22,6 @@ static test_result_t test_packed_indirect_nested(
         struct virtio_dev *dev, struct vring_packed *vr)
 {
     struct vring_packed_desc *itab = vv_alloc_pages(1);
-    memset(itab, 0, sizeof(*itab));
     uint64_t itab_phys = vv_virt_to_phys(itab);
 
     itab[0].addr  = itab_phys;

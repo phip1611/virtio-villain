@@ -22,7 +22,6 @@ static test_result_t test_indirect_chain_loop(struct virtio_dev *dev,
     struct vring_desc *indirect = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
 
     uint64_t indirect_phys = vv_virt_to_phys(indirect);

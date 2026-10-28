@@ -23,7 +23,6 @@ static test_result_t test_fs_readdir_tiny_buffer(struct virtio_dev *dev,
 {
     /* Phase 1: FUSE_INIT to establish session */
     uint8_t *init_page = vv_alloc_pages(1);
-    memset(init_page, 0, 4096);
 
     struct fuse_in_header *ihdr = (struct fuse_in_header *)init_page;
     struct fuse_init_in *init =
@@ -48,7 +47,6 @@ static test_result_t test_fs_readdir_tiny_buffer(struct virtio_dev *dev,
 
     /* Phase 2: READDIR with 1 byte writable buffer */
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     struct fuse_in_header *hdr = (struct fuse_in_header *)page;
     struct fuse_read_in *rd =

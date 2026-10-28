@@ -32,9 +32,7 @@ static test_result_t test_blk_get_id_alt_queue(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_GET_ID;
-    hdr->ioprio = 0;
     hdr->sector = 0;
-    memset(data, 0, 20);
     *status = 0xFF;
 
     vring_raw_set_desc(&q1vr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

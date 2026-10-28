@@ -35,7 +35,6 @@ static test_result_t test_admin_max_data(struct virtio_dev *dev,
     vring_attach(dev, &aq_vr, aq);
 
     struct virtio_admin_cmd_full *cmd = vv_alloc_pages(1);
-    memset(cmd, 0, sizeof(*cmd));
     cmd->opcode = VIRTIO_ADMIN_CMD_LIST_QUERY;
     cmd->data_length = 0xFFFFFFFFFFFFFFFFULL;
 

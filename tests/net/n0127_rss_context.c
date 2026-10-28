@@ -30,7 +30,6 @@ static test_result_t test(struct virtio_dev *dev, struct vring *vr)
     uint8_t *ack = vv_alloc_pages(1);
     h->class = VIRTIO_NET_CTRL_MQ;
     h->command = VIRTIO_NET_CTRL_MQ_RSS_CONFIG;
-    memset(payload, 0, 256);
     *ack = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(h), sizeof(*h),

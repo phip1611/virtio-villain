@@ -20,7 +20,6 @@ static test_result_t test_fs_getattr_zero_resp(struct virtio_dev *dev,
 {
     /* Phase 1: FUSE_INIT */
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     struct fuse_in_header *hdr = (struct fuse_in_header *)page;
     struct fuse_init_in *init = (struct fuse_init_in *)(page + sizeof(*hdr));
@@ -42,7 +41,6 @@ static test_result_t test_fs_getattr_zero_resp(struct virtio_dev *dev,
 
     /* Phase 2: GETATTR on root with zero response buffer */
     uint8_t *page2 = vv_alloc_pages(1);
-    memset(page2, 0, 4096);
 
     struct fuse_in_header *ghdr = (struct fuse_in_header *)page2;
     struct fuse_getattr_in *ga =

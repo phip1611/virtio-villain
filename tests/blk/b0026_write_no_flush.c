@@ -28,14 +28,12 @@ static test_result_t test_blk_write_no_flush(struct virtio_dev *dev,
 
     /* Write request: sector 0 */
     hdr_w->type = VIRTIO_BLK_T_OUT;
-    hdr_w->ioprio = 0;
     hdr_w->sector = 0;
     memset(wdata, 0x42, 512);
     *status_w = 0xFF;
 
     /* Read request: sector 0 (no flush in between) */
     hdr_r->type = VIRTIO_BLK_T_IN;
-    hdr_r->ioprio = 0;
     hdr_r->sector = 0;
     *status_r = 0xFF;
 

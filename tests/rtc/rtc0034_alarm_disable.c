@@ -30,7 +30,6 @@ static test_result_t test_rtc_alarm_disable(struct virtio_dev *dev,
     struct rtc_req_set_alarm_nested *req = vv_alloc_pages(1);
     struct rtc_resp_head *resp = vv_alloc_pages(1);
 
-    memset(req, 0, sizeof(*req));
     req->head.msg_type = VIRTIO_RTC_REQ_SET_ALARM_ENABLED;
     req->clock_id = 0;
     req->flags = 0;  /* disable alarm */

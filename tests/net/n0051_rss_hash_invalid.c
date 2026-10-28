@@ -42,7 +42,6 @@ static test_result_t test_net_rss_hash_invalid(struct virtio_dev *dev,
      * Allocate extra bytes to cover hash_value, hash_report_type.
      */
     uint8_t *rawhdr = vv_alloc_pages(1);
-    memset(rawhdr, 0, 20);
     /* Set hash_report_type (offset 13 in extended header) to invalid */
     rawhdr[13] = 0xFF;
 

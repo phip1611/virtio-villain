@@ -21,7 +21,6 @@ static test_result_t test_fs_lookup_zero_name(struct virtio_dev *dev,
 {
     /* Phase 1: FUSE_INIT to bring the daemon online */
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     struct fuse_in_header *hdr = (struct fuse_in_header *)page;
     struct fuse_init_in *init = (struct fuse_init_in *)(page + sizeof(*hdr));
@@ -43,7 +42,6 @@ static test_result_t test_fs_lookup_zero_name(struct virtio_dev *dev,
 
     /* Phase 2: LOOKUP with empty name (header only, no trailing string) */
     uint8_t *p2 = vv_alloc_pages(1);
-    memset(p2, 0, 4096);
     struct fuse_in_header *hdr2 = (struct fuse_in_header *)p2;
     hdr2->len    = sizeof(*hdr2); /* no name follows */
     hdr2->opcode = FUSE_LOOKUP;

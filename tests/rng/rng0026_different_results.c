@@ -19,8 +19,6 @@ static test_result_t test_rng_different(struct virtio_dev *dev, struct vring *vr
 {
     uint8_t *buf1 = vv_alloc_pages(1);
     uint8_t *buf2 = vv_alloc_pages(1);
-    memset(buf1, 0, 32);
-    memset(buf2, 0, 32);
 
     /* Request 1 */
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(buf1), 32,

@@ -23,7 +23,6 @@ static test_result_t test_net_csum_start_past_payload(struct virtio_dev *dev,
     struct virtio_net_hdr_mrg *hdr = vv_alloc_pages(1);
     uint8_t *payload = vv_alloc_pages(1);
 
-    memset(hdr, 0, sizeof(*hdr));
     hdr->flags       = VIRTIO_NET_HDR_F_NEEDS_CSUM;
     hdr->gso_type    = VIRTIO_NET_HDR_GSO_NONE;
     hdr->csum_start  = 8000;

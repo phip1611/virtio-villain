@@ -25,7 +25,6 @@ static test_result_t test_blk_sector_plus_len_overflow(struct virtio_dev *dev,
      * Adding data length wraps around.
      */
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0xFFFFFFFFFFFFFFFEULL;
     *status = 0xFF;
 

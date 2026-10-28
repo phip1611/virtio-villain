@@ -20,7 +20,6 @@ static test_result_t test_fs_read_zero_size(struct virtio_dev *dev,
                                             struct vring *vr)
 {
     uint8_t *p1 = vv_alloc_pages(1);
-    memset(p1, 0, 4096);
     struct fuse_in_header *h1 = (struct fuse_in_header *)p1;
     struct fuse_init_in   *i1 = (struct fuse_init_in *)(p1 + sizeof(*h1));
     h1->len    = sizeof(*h1) + sizeof(*i1);
@@ -38,7 +37,6 @@ static test_result_t test_fs_read_zero_size(struct virtio_dev *dev,
         return r;
 
     uint8_t *p2 = vv_alloc_pages(1);
-    memset(p2, 0, 4096);
     struct fuse_in_header *h2 = (struct fuse_in_header *)p2;
     struct fuse_read_in   *ri = (struct fuse_read_in *)(p2 + sizeof(*h2));
     h2->len    = sizeof(*h2) + sizeof(*ri);

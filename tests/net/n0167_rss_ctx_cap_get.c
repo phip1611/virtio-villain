@@ -33,7 +33,6 @@ static test_result_t test_net_rss_ctx_cap_get(struct virtio_dev *dev,
 
     h->class = VIRTIO_NET_CTRL_RSS_CTX;
     h->command = VIRTIO_NET_CTRL_RSS_CTX_CAP_GET;
-    memset(resp, 0, 256);
     *ack = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(h), sizeof(*h),

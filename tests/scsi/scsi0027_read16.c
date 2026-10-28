@@ -15,7 +15,6 @@ static test_result_t test_scsi_read16(struct virtio_dev *dev, struct vring *vr)
 
     uint16_t seq = scsi_clear_ua(dev, vr, 0);
 
-    memset(req, 0, sizeof(*req));
     scsi_set_lun(req->lun, 0, 0);
     req->cdb[0] = 0x88;      /* READ(16) */
     req->cdb[13] = 1;        /* transfer length one block */

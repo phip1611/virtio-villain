@@ -24,7 +24,6 @@ static test_result_t test_blk_read_after_discard(struct virtio_dev *dev,
     uint8_t *dstatus = vv_alloc_pages(1);
 
     dhdr->type = VIRTIO_BLK_T_DISCARD;
-    dhdr->ioprio = 0;
     dhdr->sector = 0;
 
     seg->sector = 0;
@@ -50,7 +49,6 @@ static test_result_t test_blk_read_after_discard(struct virtio_dev *dev,
     uint8_t *rstatus = vv_alloc_pages(1);
 
     rhdr->type = VIRTIO_BLK_T_IN;
-    rhdr->ioprio = 0;
     rhdr->sector = 0;
     *rstatus = 0xFF;
 

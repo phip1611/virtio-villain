@@ -30,7 +30,6 @@ static test_result_t test_blk_any_layout_read_merged(struct virtio_dev *dev,
     uint8_t *buf = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_IN;
-    hdr->ioprio = 0;
     hdr->sector = 0;
     memset(buf, 0xA5, 513);
 

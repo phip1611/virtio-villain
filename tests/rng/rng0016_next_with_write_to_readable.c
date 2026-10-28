@@ -20,7 +20,6 @@ static test_result_t test_rng_next_write_then_read(struct virtio_dev *dev,
 {
     uint8_t *out = vv_alloc_pages(1);
     uint8_t *in = vv_alloc_pages(1);
-    memset(in, 0, 16);
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(out), 64,
                        VRING_DESC_F_WRITE | VRING_DESC_F_NEXT, 1);

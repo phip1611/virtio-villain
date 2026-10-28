@@ -38,7 +38,6 @@ static test_result_t test_crypto_akcipher_verify_fuzz(struct virtio_dev *dev,
     uint8_t *src = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
 
-    memset(dreq, 0, sizeof(*dreq));
     dreq->header.opcode = VIRTIO_CRYPTO_AKCIPHER_VERIFY;
     dreq->header.algo = VIRTIO_CRYPTO_AKCIPHER_RSA;
     dreq->header.session_id = 0;

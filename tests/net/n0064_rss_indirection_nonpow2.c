@@ -45,7 +45,6 @@ static test_result_t test_rss_non_power_of_2(struct virtio_dev *dev,
     ctrl->class = VIRTIO_NET_CTRL_MQ;
     ctrl->command = VIRTIO_NET_CTRL_MQ_RSS_CONFIG;
 
-    memset(rss_buf, 0, 4096);
     /* hash_types (u32) */
     uint32_t hash_types = 0x1;
     memcpy(rss_buf, &hash_types, 4);

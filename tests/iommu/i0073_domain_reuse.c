@@ -25,10 +25,6 @@ static test_result_t test_iommu_domain_reuse(struct virtio_dev *dev,
     struct virtio_iommu_req_detach *d0 = vv_alloc_pages(1);
     struct virtio_iommu_req_attach *a1 = vv_alloc_pages(1);
     struct virtio_iommu_req_detach *d1 = vv_alloc_pages(1);
-    memset(a0, 0, sizeof(*a0));
-    memset(d0, 0, sizeof(*d0));
-    memset(a1, 0, sizeof(*a1));
-    memset(d1, 0, sizeof(*d1));
 
     a0->head.type = VIRTIO_IOMMU_T_ATTACH;
     a0->domain = 11;

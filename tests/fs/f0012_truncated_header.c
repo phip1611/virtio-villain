@@ -18,7 +18,6 @@ static test_result_t test_fs_truncated_header(struct virtio_dev *dev,
                                               struct vring *vr)
 {
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     /* Only provide 4 bytes of readable data */
     uint64_t phys = vv_virt_to_phys(page);

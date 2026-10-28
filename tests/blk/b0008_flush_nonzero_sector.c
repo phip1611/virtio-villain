@@ -21,7 +21,6 @@ static test_result_t test_blk_flush_nonzero_sector(struct virtio_dev *dev,
     uint8_t *status = vv_alloc_pages(1);
 
     hdr->type = VIRTIO_BLK_T_FLUSH;
-    hdr->ioprio = 0;
     hdr->sector = 12345; /* should be 0 */
     *status = 0xFF;
 

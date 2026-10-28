@@ -31,7 +31,6 @@ static test_result_t test_rtc_alarm_zero(struct virtio_dev *dev,
     vring_attach(dev, &alarmq, 1);
 
     uint8_t *buf = vv_alloc_pages(1);
-    memset(buf, 0, 256);
     struct rtc_req_set_alarm_flat *req = (void *)buf;
     req->msg_type = VIRTIO_RTC_REQ_SET_ALARM;
     req->alarm_id = 0;

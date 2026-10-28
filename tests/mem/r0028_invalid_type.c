@@ -19,7 +19,6 @@ static test_result_t test_mem_invalid_type(struct virtio_dev *dev,
 {
     struct virtio_mem_req *req = vv_alloc_pages(1);
     struct virtio_mem_resp *resp = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     memset(resp, 0xFF, sizeof(*resp));
 
     req->type = 0xFFFF;

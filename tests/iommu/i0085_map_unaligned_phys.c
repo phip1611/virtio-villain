@@ -23,7 +23,6 @@ static test_result_t test_iommu_map_unaligned_phys(struct virtio_dev *dev,
 {
     /* Attach endpoint 0 to a fresh domain first. */
     struct virtio_iommu_req_attach *att = vv_alloc_pages(1);
-    memset(att, 0, sizeof(*att));
     att->head.type   = VIRTIO_IOMMU_T_ATTACH;
     att->domain      = 1;
     att->endpoint    = 0;
@@ -41,7 +40,6 @@ static test_result_t test_iommu_map_unaligned_phys(struct virtio_dev *dev,
         return r;
 
     struct virtio_iommu_req_map *req = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->head.type   = VIRTIO_IOMMU_T_MAP;
     req->domain      = 1;
     req->virt_start  = 0x10000000ULL;

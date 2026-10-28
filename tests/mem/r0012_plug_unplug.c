@@ -22,7 +22,6 @@ static test_result_t test_mem_plug_unplug(struct virtio_dev *dev,
     struct virtio_mem_resp *resp = vv_alloc_pages(1);
     uint64_t base = *(volatile uint64_t *)((uint8_t *)dev->device_cfg + 16);
 
-    memset(req, 0, sizeof(*req));
     req->type = VIRTIO_MEM_REQ_PLUG;
     req->addr = base; req->nb_blocks = 1;
 

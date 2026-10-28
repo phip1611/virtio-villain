@@ -34,7 +34,6 @@ static test_result_t test_crypto_destroy_unknown(struct virtio_dev *dev,
 
     struct virtio_crypto_op_ctrl_req *req = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
     req->header.opcode = VIRTIO_CRYPTO_CIPHER_DESTROY_SESSION;
     req->u.destroy.session_id = 0xdeadbeefcafef00dULL;
     inhdr->status = 0xFF;

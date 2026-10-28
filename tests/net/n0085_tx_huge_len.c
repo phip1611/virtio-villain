@@ -35,7 +35,6 @@ static test_result_t test_net_tx_huge_len(struct virtio_dev *dev,
     struct virtio_net_hdr *hdr = vv_alloc_pages(1);
     uint8_t *payload = vv_alloc_pages(1);
 
-    memset(hdr, 0, sizeof(*hdr));
     memset(payload, 'z', 4096);
 
     vring_raw_set_desc(&txvr, 0, vv_virt_to_phys(hdr), sizeof(*hdr),

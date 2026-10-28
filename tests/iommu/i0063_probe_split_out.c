@@ -24,7 +24,6 @@ static test_result_t test_iommu_probe_split_out(struct virtio_dev *dev,
 {
     struct virtio_iommu_req_probe *req = vv_alloc_pages(1);
     uint8_t *out2 = vv_alloc_pages(1);
-    memset(req, 0, sizeof(*req));
 
     req->head.type   = VIRTIO_IOMMU_T_PROBE;
     req->endpoint    = 0;

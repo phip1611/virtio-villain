@@ -26,7 +26,6 @@ static test_result_t create_session(struct virtio_dev *dev, struct vring *cvr,
     struct virtio_crypto_op_ctrl_req *creq = vv_alloc_pages(1);
     uint8_t *key = vv_alloc_pages(1);
     struct virtio_crypto_session_input *sin = vv_alloc_pages(1);
-    memset(creq, 0, sizeof(*creq));
     creq->header.opcode = VIRTIO_CRYPTO_CIPHER_CREATE_SESSION;
     creq->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     creq->u.sym_create.para.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
@@ -34,7 +33,6 @@ static test_result_t create_session(struct virtio_dev *dev, struct vring *cvr,
     creq->u.sym_create.para.op = VIRTIO_CRYPTO_OP_ENCRYPT;
     creq->u.sym_create.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
     memset(key, key_byte, 16);
-    memset(sin, 0, sizeof(*sin));
     sin->status = 0xFF;
 
     vring_raw_set_desc(cvr, 0, vv_virt_to_phys(creq), sizeof(*creq),
@@ -69,7 +67,6 @@ static test_result_t encrypt_block(struct virtio_dev *dev, struct vring *vr,
     uint8_t *dst = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
 
-    memset(dreq, 0, sizeof(*dreq));
     dreq->header.opcode = VIRTIO_CRYPTO_CIPHER_ENCRYPT;
     dreq->header.algo = VIRTIO_CRYPTO_CIPHER_AES_CBC;
     dreq->header.session_id = session_id;
@@ -79,7 +76,6 @@ static test_result_t encrypt_block(struct virtio_dev *dev, struct vring *vr,
     dreq->u.sym_cipher.op_type = VIRTIO_CRYPTO_SYM_OP_CIPHER;
     memcpy(iv, iv_in, 16);
     memcpy(src, src_in, 16);
-    memset(dst, 0, 16);
     inhdr->status = 0xFF;
 
     vring_raw_set_desc(vr, 0, vv_virt_to_phys(dreq), sizeof(*dreq),
@@ -109,7 +105,6 @@ static void destroy_session(struct virtio_dev *dev, struct vring *cvr,
 {
     struct virtio_crypto_op_ctrl_req *creq = vv_alloc_pages(1);
     struct virtio_crypto_inhdr *inhdr = vv_alloc_pages(1);
-    memset(creq, 0, sizeof(*creq));
     creq->header.opcode = VIRTIO_CRYPTO_CIPHER_DESTROY_SESSION;
     creq->u.destroy.session_id = session_id;
     inhdr->status = 0xFF;

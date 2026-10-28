@@ -28,7 +28,6 @@ static test_result_t test_fs_forget_unknown(struct virtio_dev *dev,
 {
     /* Phase 1: FUSE_INIT on requestq (vr = queue 1) */
     uint8_t *init_page = vv_alloc_pages(1);
-    memset(init_page, 0, 4096);
 
     struct fuse_in_header *ihdr = (struct fuse_in_header *)init_page;
     struct fuse_init_in *init =
@@ -60,7 +59,6 @@ static test_result_t test_fs_forget_unknown(struct virtio_dev *dev,
     vring_attach(dev, &hiprio, 0);
 
     uint8_t *page = vv_alloc_pages(1);
-    memset(page, 0, 4096);
 
     struct fuse_in_header *hdr = (struct fuse_in_header *)page;
     struct fuse_forget_in *forget =
