@@ -35,6 +35,20 @@ DEPFLAGS = -MMD -MP
 V ?= 0
 Q = $(if $(filter 1,$(V)),,@)
 
+# Write a value to a file only when it changed, so that targets that
+# depend on the file rebuild only on a real change.
+update_file = printf '%s\n' '$(subst ','\'',$(2))' | cmp -s - $(1) || \
+              printf '%s\n' '$(subst ','\'',$(2))' > $(1)
+
+# Make only compares timestamps. Record the toolchain and flags, so that
+# changing them rebuilds everything instead of mixing objects built by
+# different compilers.
+BUILD_FLAGS = $(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS)
+
+%/.flags: FORCE
+	@mkdir -p $(@D)
+	@$(call update_file,$@,$(BUILD_FLAGS))
+
 SRCS = bin/init.c \
        lib/pci.c \
        lib/irq.c \
@@ -48,12 +62,12 @@ SRCS = bin/init.c \
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 DEPS = $(OBJS:.o=.d)
 
-$(TARGET)/init: $(OBJS)
+$(TARGET)/init: $(OBJS) $(OBJDIR)/.flags
 	@mkdir -p $(TARGET)
 	@echo "  LINK  $@"
 	$(Q)$(CC) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS) -o $@ $(OBJS)
 
-$(OBJDIR)/%.o: %.c
+$(OBJDIR)/%.o: %.c $(OBJDIR)/.flags
 	@mkdir -p $(dir $@)
 	@echo "  CC    $<"
 	$(Q)$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
@@ -92,12 +106,12 @@ FUZZ_SRCS = bin/fuzz.c \
 FUZZ_OBJS = $(patsubst %.c,$(OBJDIR)/fuzz/%.o,$(FUZZ_SRCS))
 FUZZ_DEPS = $(FUZZ_OBJS:.o=.d)
 
-$(TARGET)/fuzz: $(FUZZ_OBJS)
+$(TARGET)/fuzz: $(FUZZ_OBJS) $(OBJDIR)/.flags
 	@mkdir -p $(TARGET)
 	@echo "  LINK  $@"
 	$(Q)$(CC) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS) -o $@ $(FUZZ_OBJS)
 
-$(OBJDIR)/fuzz/%.o: %.c
+$(OBJDIR)/fuzz/%.o: %.c $(OBJDIR)/.flags
 	@mkdir -p $(dir $@)
 	@echo "  CC    $<"
 	$(Q)$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
@@ -114,12 +128,12 @@ PERF_SRCS = bin/perf.c \
 PERF_OBJS = $(patsubst %.c,$(OBJDIR)/perf/%.o,$(PERF_SRCS))
 PERF_DEPS = $(PERF_OBJS:.o=.d)
 
-$(TARGET)/perf: $(PERF_OBJS)
+$(TARGET)/perf: $(PERF_OBJS) $(OBJDIR)/.flags
 	@mkdir -p $(TARGET)
 	@echo "  LINK  $@"
 	$(Q)$(CC) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS) -o $@ $(PERF_OBJS)
 
-$(OBJDIR)/perf/%.o: %.c
+$(OBJDIR)/perf/%.o: %.c $(OBJDIR)/.flags
 	@mkdir -p $(dir $@)
 	@echo "  CC    $<"
 	$(Q)$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(DEPFLAGS) -I. -c -o $@ $<
@@ -138,11 +152,14 @@ appliance-check:
 
 $(APPLIANCE_OBJS): | appliance-check
 
-$(APPLIANCE_TARGET)/obj/%.o: %.c
+# APPLIANCE_CPPFLAGS changes the appliance objects too.
+$(APPLIANCE_TARGET)/.flags: BUILD_FLAGS += $(APPLIANCE_CPPFLAGS)
+
+$(APPLIANCE_TARGET)/obj/%.o: %.c $(APPLIANCE_TARGET)/.flags
 	@mkdir -p $(dir $@)
 	$(Q)$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) $(DEPFLAGS) -I. $(APPLIANCE_CPPFLAGS) -c -o $@ $<
 
-$(APPLIANCE_TARGET)/init: $(APPLIANCE_OBJS) appliance-check
+$(APPLIANCE_TARGET)/init: $(APPLIANCE_OBJS) $(APPLIANCE_TARGET)/.flags appliance-check
 	@mkdir -p $(dir $@)
 	$(Q)$(CC) $(CSTD) $(CFLAGS) $(LDFLAGS) $(STATIC_LDFLAGS) -o $@ $(APPLIANCE_OBJS)
 
@@ -204,6 +221,8 @@ $(SELFTEST_DIR)/test_lib: selftest/test_lib.c lib/perf_engine.c lib/vring.c \
 $(SELFTEST_DIR)/test_irq: selftest/test_irq.c lib/irq.c $(SELFTEST_HDRS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CSTD) $(CFLAGS) -I. -o $@ $(filter %.c,$^) $(LDFLAGS)
+
+$(SELFTEST_DIR)/test_lib $(SELFTEST_DIR)/test_irq: $(SELFTEST_DIR)/.flags
 
 PY_SRCS = run run-fuzz run-perf build-kernel $(shell find selftest tests lib -name '*.py' 2>/dev/null)
 
@@ -272,6 +291,8 @@ help:
 	@echo "clean removes TARGET, custom object/appliance outputs and host test binaries."
 	@echo "Caches and results inside those output directories are removed too."
 
-.PHONY: init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest selftest-c selftest-sanitize flake8 flake8-deps-check help guest-kernel
+FORCE:
+
+.PHONY: FORCE init fuzz perf initramfs fuzz-initramfs perf-initramfs clean selftest selftest-c selftest-sanitize flake8 flake8-deps-check help guest-kernel
 .PHONY: appliance appliance-initramfs appliance-check
 endif
